@@ -128,8 +128,11 @@ export default function CharacterAndMapPage() {
   const [step, setStep] = useState<'setup' | 'video' | 'map'>('setup');
   const [heroName, setHeroName] = useState('');
   const [selectedHero, setSelectedHero] = useState<string | null>(null);
+  const [debugMode, setDebugMode] = useState(false);
+  const [clickedCoords, setClickedCoords] = useState<{ x: number; y: number } | null>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
 
-  // ⭐ استرجاع الاسم والشخصية + التحقق من الـ URL
+  // ⭐ استرجاع الاسم والشخصية + التحقق من الـ URL + Debug Mode
   useEffect(() => {
     const savedName = localStorage.getItem('heroName');
     const savedHero = localStorage.getItem('heroType');
@@ -139,6 +142,10 @@ export default function CharacterAndMapPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('from') === 'lesson') {
       setStep('map');
+    }
+    // 🐛 تفعيل Debug Mode عن طريق ?debug=1
+    if (params.get('debug') === '1') {
+      setDebugMode(true);
     }
   }, []);
 
@@ -188,6 +195,7 @@ export default function CharacterAndMapPage() {
   };
 
   const handleLandmarkClick = (landmark: typeof LANDMARKS[0]) => {
+    if (debugMode) return; // في وضع التعديل، لا نفتح المعالم
     if (isLocked(landmark.lesson)) {
       playLockedSound();
       return;
@@ -209,6 +217,16 @@ export default function CharacterAndMapPage() {
     };
     const route = routes[selectedLandmark.id];
     if (route) router.push(route);
+  };
+
+  // 🐛 Debug: حساب الإحداثيات لما المستخدم يضغط على الخريطة
+  const handleMapClickForDebug = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!debugMode || !mapRef.current) return;
+    const rect = mapRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setClickedCoords({ x: parseFloat(x.toFixed(1)), y: parseFloat(y.toFixed(1)) });
+    console.log(`📍 Clicked at: x=${x.toFixed(1)}%, y=${y.toFixed(1)}%`);
   };
 
   // ═════ شاشة Setup ═════
@@ -302,9 +320,21 @@ export default function CharacterAndMapPage() {
   return (
     <div className="relative w-full min-h-screen overflow-hidden" style={{ background: '#07090D', fontFamily: "'Tajawal', sans-serif" }}>
 
+      {/* 🐛 Debug Bar */}
+      {debugMode && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 text-black px-4 py-2 flex items-center justify-between text-xs font-black">
+          <span>🐛 DEBUG MODE - اضغط في أي مكان على الخريطة لمعرفة الإحداثيات</span>
+          {clickedCoords && (
+            <span className="bg-black text-yellow-400 px-3 py-1 rounded-lg font-mono">
+              X: {clickedCoords.x}% | Y: {clickedCoords.y}%
+            </span>
+          )}
+        </div>
+      )}
+
       {/* الهيدر */}
       <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3"
-        style={{ background: 'linear-gradient(to bottom, rgba(7,9,13,0.95), transparent)' }}>
+        style={{ background: 'linear-gradient(to bottom, rgba(7,9,13,0.95), transparent)', marginTop: debugMode ? '32px' : '0' }}>
         <button onClick={() => setStep('setup')}
           className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl px-4 py-2 text-sm font-bold text-white transition-all">
           ← تعديل الاختيارات
@@ -325,16 +355,18 @@ export default function CharacterAndMapPage() {
         </div>
       </div>
 
-      {/* الخريطة - بـ aspect-ratio مظبوط */}
-      <div className="w-full min-h-screen flex items-center justify-center bg-[#07090D] pt-16 pb-4 px-2">
+      {/* الخريطة */}
+      <div className="w-full min-h-screen flex items-center justify-center bg-[#07090D] pt-16 pb-4 px-2" style={{ paddingTop: debugMode ? '96px' : '64px' }}>
         <div 
+          ref={mapRef}
+          onClick={handleMapClickForDebug}
           className="relative w-full"
           style={{ 
             maxWidth: 'min(100vw, calc((100vh - 80px) * 1.78))',
             aspectRatio: '16 / 9',
+            cursor: debugMode ? 'crosshair' : 'default',
           }}
         >
-          {/* الصورة - بتملا الـ container بالظبط */}
           <img 
             src="/maps/german-map.png" 
             alt="خريطة ألمانيا" 
@@ -392,19 +424,30 @@ export default function CharacterAndMapPage() {
             })}
           </svg>
 
-          {/* المناطق الـ Clickable - دلوقتي على المعلم نفسه فقط */}
+          {/* 🐛 Debug: عرض الـ Click Areas */}
+          {debugMode && LANDMARKS.map(l => (
+            <div key={`debug-${l.id}`} className="absolute pointer-events-none border-2 border-dashed flex items-center justify-center"
+              style={{
+                left: `${l.clickArea.x}%`,
+                top: `${l.clickArea.y}%`,
+                width: `${l.clickArea.w}%`,
+                height: `${l.clickArea.h}%`,
+                borderColor: l.color,
+                background: `${l.color}20`,
+                zIndex: 18,
+              }}>
+              <span className="bg-black/80 text-white text-xs font-black px-2 py-0.5 rounded">
+                {l.emoji} {l.nameAr}
+              </span>
+            </div>
+          ))}
+
+          {/* المناطق الـ Clickable */}
           {LANDMARKS.map((landmark, index) => {
             const locked = isLocked(landmark.lesson);
-            // تقليل الحجم: نأخذ 60% من الـ clickArea (تركيز على المعلم نفسه)
-            const shrinkFactor = 0.6;
-            const newW = landmark.clickArea.w * shrinkFactor;
-            const newH = landmark.clickArea.h * shrinkFactor;
-            const newX = landmark.clickArea.x + (landmark.clickArea.w - newW) / 2;
-            const newY = landmark.clickArea.y + (landmark.clickArea.h - newH) / 2;
 
             return (
               <div key={landmark.id}>
-                {/* منطقة الضغط الشفافة - أصغر ومركزة على المعلم */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -414,16 +457,15 @@ export default function CharacterAndMapPage() {
                   onMouseLeave={() => setHoveredLandmark(null)}
                   className="absolute"
                   style={{
-                    left: `${newX}%`,
-                    top: `${newY}%`,
-                    width: `${newW}%`,
-                    height: `${newH}%`,
+                    left: `${landmark.clickArea.x}%`,
+                    top: `${landmark.clickArea.y}%`,
+                    width: `${landmark.clickArea.w}%`,
+                    height: `${landmark.clickArea.h}%`,
                     cursor: locked ? 'not-allowed' : 'pointer',
                     zIndex: 15,
                   }}
                 />
 
-                {/* قفل صغير تحت المعلم */}
                 {locked && (
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
@@ -449,7 +491,6 @@ export default function CharacterAndMapPage() {
                   </motion.div>
                 )}
 
-                {/* اسم المعلم — يظهر عند الـ hover */}
                 <AnimatePresence>
                   {hoveredLandmark?.id === landmark.id && !locked && (
                     <motion.div
@@ -460,7 +501,7 @@ export default function CharacterAndMapPage() {
                       className="absolute pointer-events-none"
                       style={{
                         left: `${landmark.centerX}%`,
-                        top: `${newY - 1}%`,
+                        top: `${landmark.clickArea.y - 2}%`,
                         transform: 'translate(-50%, -100%)',
                         zIndex: 20,
                       }}
@@ -573,7 +614,7 @@ export default function CharacterAndMapPage() {
 
       {/* Intro النسر */}
       <AnimatePresence>
-        {showIntro && (
+        {showIntro && !debugMode && (
           <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }} transition={{ delay: 0.5 }}
             className="fixed bottom-4 right-4 z-40 max-w-[260px]">
             <div className="rounded-2xl p-3 shadow-2xl border border-white/10 relative" style={{ background: 'rgba(19,23,34,0.97)' }}>
