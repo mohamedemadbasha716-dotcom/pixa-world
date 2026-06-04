@@ -125,24 +125,23 @@ function playLockedSound() {
 export default function CharacterAndMapPage() {
   const router = useRouter();
 
-   const [step, setStep] = useState<'setup' | 'video' | 'map'>('setup');
+  const [step, setStep] = useState<'setup' | 'video' | 'map'>('setup');
   const [heroName, setHeroName] = useState('');
-const [selectedHero, setSelectedHero] = useState<string | null>(null);
+  const [selectedHero, setSelectedHero] = useState<string | null>(null);
 
-// ⭐ استرجاع الاسم والشخصية من localStorage
-useEffect(() => {
-  const savedName = localStorage.getItem('heroName');
-  const savedHero = localStorage.getItem('heroType');
-  if (savedName) setHeroName(savedName);
-  if (savedHero) setSelectedHero(savedHero);
-  
-  // ← السطور دي جديدة
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('from') === 'lesson') {
-    setStep('map');
-  }
-}, []);
+  // ⭐ استرجاع الاسم والشخصية + التحقق من الـ URL
+  useEffect(() => {
+    const savedName = localStorage.getItem('heroName');
+    const savedHero = localStorage.getItem('heroType');
+    if (savedName) setHeroName(savedName);
+    if (savedHero) setSelectedHero(savedHero);
 
+    // التحقق من ?from=lesson في الـ URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('from') === 'lesson') {
+      setStep('map');
+    }
+  }, []);
 
   const [videoStarted, setVideoStarted] = useState(false);
 
@@ -152,8 +151,9 @@ useEffect(() => {
   const [showIntro, setShowIntro] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-const unlockedLesson = 6;  // ← هيفتح القلعة  const starsMap: Record<string, number> = {};
-const starsMap: Record<string, number> = {};
+  const unlockedLesson = 6; // ينفتح القلعة 👑
+  const starsMap: Record<string, number> = {};
+
   const heroes = [
     { id: 'boy', name: 'البطل الشجاع', color: '#4CC9F0', img: '/characters/boy-3d.png' },
     { id: 'girl', name: 'البطلة العبقرية', color: '#F72585', img: '/characters/girl-3d.png' },
@@ -176,7 +176,7 @@ const starsMap: Record<string, number> = {};
       localStorage.setItem('heroType', selectedHero);
       setStep('video');
     }
-};
+  };
 
   const handleVideoEnd = () => setStep('map');
 
@@ -200,14 +200,14 @@ const starsMap: Record<string, number> = {};
 
   const handleLandmarkStart = () => {
     if (!selectedLandmark) return;
-   const routes: Record<string, string> = {
-  'hamburg': '/german-letter-lesson',
-  'cologne': '/german-number-lesson',
-  'center': '/german-forest',
-  'berlin': '/german-family',
-  'lake': '/german-lake-lesson',
-  'neuschwanstein': '/german-castle-lesson',
-};
+    const routes: Record<string, string> = {
+      'hamburg': '/german-letter-lesson',
+      'cologne': '/german-number-lesson',
+      'center': '/german-forest',
+      'berlin': '/german-family',
+      'lake': '/german-lake-lesson',
+      'neuschwanstein': '/german-castle-lesson',
+    };
     const route = routes[selectedLandmark.id];
     if (route) router.push(route);
   };
@@ -326,183 +326,191 @@ const starsMap: Record<string, number> = {};
         </div>
       </div>
 
-      {/* الخريطة */}
-      <div className="relative w-full h-screen">
-        <img src="/maps/german-map.png" alt="خريطة ألمانيا" className="w-full h-full object-cover object-center pointer-events-none select-none" draggable={false} />
+      {/* الخريطة - بعد التعديل: responsive و الصورة كاملة */}
+      <div className="relative w-full flex items-center justify-center bg-[#07090D]" style={{ height: '100vh', minHeight: '400px', paddingTop: '60px' }}>
+        <div className="relative" style={{ width: '100%', height: '100%', maxWidth: '1920px' }}>
+          <img 
+            src="/maps/german-map.png" 
+            alt="خريطة ألمانيا" 
+            className="w-full h-full pointer-events-none select-none" 
+            style={{ objectFit: 'contain', display: 'block' }}
+            draggable={false} 
+          />
 
-        {/* SVG: تأثير النيون في الخلفية */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          style={{ zIndex: 5 }}
-        >
-          <defs>
-            {LANDMARKS.map(l => (
-              <radialGradient key={`grad-${l.id}`} id={`glow-${l.id}`} cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor={l.color} stopOpacity="0.55" />
-                <stop offset="50%" stopColor={l.color} stopOpacity="0.2" />
-                <stop offset="100%" stopColor={l.color} stopOpacity="0" />
-              </radialGradient>
-            ))}
-          </defs>
+          {/* SVG: تأثير النيون في الخلفية */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            style={{ zIndex: 5 }}
+          >
+            <defs>
+              {LANDMARKS.map(l => (
+                <radialGradient key={`grad-${l.id}`} id={`glow-${l.id}`} cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor={l.color} stopOpacity="0.55" />
+                  <stop offset="50%" stopColor={l.color} stopOpacity="0.2" />
+                  <stop offset="100%" stopColor={l.color} stopOpacity="0" />
+                </radialGradient>
+              ))}
+            </defs>
 
-          {LANDMARKS.map(l => {
-            const showGlow = hoveredLandmark?.id === l.id || isCurrent(l.lesson);
-            if (isLocked(l.lesson) && !isCurrent(l.lesson)) return null;
-            const cx = l.clickArea.x + l.clickArea.w / 2;
-            const cy = l.clickArea.y + l.clickArea.h / 2;
-            const rx = l.clickArea.w * 0.9;
-            const ry = l.clickArea.h * 0.9;
-            return (
-              <motion.ellipse
-                key={`hover-${l.id}`}
-                cx={cx}
-                cy={cy}
-                rx={rx}
-                ry={ry}
-                fill={`url(#glow-${l.id})`}
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: showGlow ? (isCurrent(l.lesson) ? [0.7, 1, 0.7] : 1) : 0,
-                }}
-                transition={isCurrent(l.lesson)
-                  ? { duration: 2, repeat: Infinity, ease: 'easeInOut' }
-                  : { duration: 0.3 }
-                }
-                style={{
-                  filter: `blur(${isCurrent(l.lesson) ? '2px' : '1px'})`,
-                  mixBlendMode: 'screen',
-                }}
-              />
-            );
-          })}
-        </svg>
-
-        {/* المناطق الـ Clickable */}
-        {LANDMARKS.map((landmark, index) => {
-          const locked = isLocked(landmark.lesson);
-
-          return (
-            <div key={landmark.id}>
-              {/* منطقة الضغط الشفافة */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: index * 0.15 }}
-                onClick={() => handleLandmarkClick(landmark)}
-                onMouseEnter={() => setHoveredLandmark(landmark)}
-                onMouseLeave={() => setHoveredLandmark(null)}
-                className="absolute"
-                style={{
-                  left: `${landmark.clickArea.x}%`,
-                  top: `${landmark.clickArea.y}%`,
-                  width: `${landmark.clickArea.w}%`,
-                  height: `${landmark.clickArea.h}%`,
-                  cursor: locked ? 'not-allowed' : 'pointer',
-                  zIndex: 15,
-                }}
-              />
-
-              {/* قفل صغير تحت المعلم */}
-              {locked && (
-                <motion.div
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.5 + index * 0.1, type: 'spring', stiffness: 200 }}
-                  className="absolute pointer-events-none"
-                  style={{
-                    left: `${landmark.centerX}%`,
-                    top: `${landmark.clickArea.y + landmark.clickArea.h - 2}%`,
-                    transform: 'translate(-50%, 0)',
-                    zIndex: 12,
+            {LANDMARKS.map(l => {
+              const showGlow = hoveredLandmark?.id === l.id || isCurrent(l.lesson);
+              if (isLocked(l.lesson) && !isCurrent(l.lesson)) return null;
+              const cx = l.clickArea.x + l.clickArea.w / 2;
+              const cy = l.clickArea.y + l.clickArea.h / 2;
+              const rx = l.clickArea.w * 0.9;
+              const ry = l.clickArea.h * 0.9;
+              return (
+                <motion.ellipse
+                  key={`hover-${l.id}`}
+                  cx={cx}
+                  cy={cy}
+                  rx={rx}
+                  ry={ry}
+                  fill={`url(#glow-${l.id})`}
+                  initial={{ opacity: 0 }}
+                  animate={{
+                    opacity: showGlow ? (isCurrent(l.lesson) ? [0.7, 1, 0.7] : 1) : 0,
                   }}
-                >
-                  <div
-                    className="rounded-full p-1.5 shadow-lg border border-white/20"
-                    style={{
-                      background: 'rgba(0,0,0,0.7)',
-                      backdropFilter: 'blur(4px)',
-                    }}
-                  >
-                    <Lock size={12} className="text-white/80" strokeWidth={2.5} />
-                  </div>
-                </motion.div>
-              )}
+                  transition={isCurrent(l.lesson)
+                    ? { duration: 2, repeat: Infinity, ease: 'easeInOut' }
+                    : { duration: 0.3 }
+                  }
+                  style={{
+                    filter: `blur(${isCurrent(l.lesson) ? '2px' : '1px'})`,
+                    mixBlendMode: 'screen',
+                  }}
+                />
+              );
+            })}
+          </svg>
 
-              {/* اسم المعلم — يظهر بس عند الـ hover (للمفتوحة فقط) */}
-              <AnimatePresence>
-                {hoveredLandmark?.id === landmark.id && !locked && (
+          {/* المناطق الـ Clickable */}
+          {LANDMARKS.map((landmark, index) => {
+            const locked = isLocked(landmark.lesson);
+
+            return (
+              <div key={landmark.id}>
+                {/* منطقة الضغط الشفافة */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.15 }}
+                  onClick={() => handleLandmarkClick(landmark)}
+                  onMouseEnter={() => setHoveredLandmark(landmark)}
+                  onMouseLeave={() => setHoveredLandmark(null)}
+                  className="absolute"
+                  style={{
+                    left: `${landmark.clickArea.x}%`,
+                    top: `${landmark.clickArea.y}%`,
+                    width: `${landmark.clickArea.w}%`,
+                    height: `${landmark.clickArea.h}%`,
+                    cursor: locked ? 'not-allowed' : 'pointer',
+                    zIndex: 15,
+                  }}
+                />
+
+                {/* قفل صغير تحت المعلم */}
+                {locked && (
                   <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.9 }}
-                    transition={{ duration: 0.2 }}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.5 + index * 0.1, type: 'spring', stiffness: 200 }}
                     className="absolute pointer-events-none"
                     style={{
                       left: `${landmark.centerX}%`,
-                      top: `${landmark.clickArea.y - 2}%`,
-                      transform: 'translate(-50%, -100%)',
-                      zIndex: 20,
+                      top: `${landmark.clickArea.y + landmark.clickArea.h - 2}%`,
+                      transform: 'translate(-50%, 0)',
+                      zIndex: 12,
                     }}
                   >
                     <div
-                      className="px-3 py-1.5 rounded-xl text-xs font-black text-white shadow-2xl border whitespace-nowrap"
+                      className="rounded-full p-1.5 shadow-lg border border-white/20"
                       style={{
-                        background: `${landmark.color}ee`,
-                        borderColor: 'rgba(255,255,255,0.3)',
-                        boxShadow: `0 4px 20px ${landmark.color}88`,
+                        background: 'rgba(0,0,0,0.7)',
+                        backdropFilter: 'blur(4px)',
                       }}
                     >
-                      <div className="flex items-center gap-1.5">
-                        <span>{landmark.emoji}</span>
-                        <span>{landmark.nameAr}</span>
-                      </div>
-                      <div className="text-white/85 text-[10px] font-bold text-center mt-0.5">{landmark.nameDe}</div>
+                      <Lock size={12} className="text-white/80" strokeWidth={2.5} />
                     </div>
-                    <div
-                      className="w-0 h-0 mx-auto"
-                      style={{
-                        borderLeft: '5px solid transparent',
-                        borderRight: '5px solid transparent',
-                        borderTop: `5px solid ${landmark.color}ee`,
-                      }}
-                    />
                   </motion.div>
                 )}
-              </AnimatePresence>
-            </div>
-          );
-        })}
 
-        {/* النسر كارل 3D — صغير ومش هيختفي */}
-        <motion.div
-          className="absolute pointer-events-none"
-          style={{ zIndex: 25 }}
-          animate={{
-            left: `${eaglePos.x}%`,
-            top: `${eaglePos.y - 6}%`,
-          }}
-          transition={{ type: 'spring', stiffness: 50, damping: 14, duration: 2 }}
-        >
+                {/* اسم المعلم — يظهر بس عند الـ hover (للمفتوحة فقط) */}
+                <AnimatePresence>
+                  {hoveredLandmark?.id === landmark.id && !locked && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.9 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: `${landmark.centerX}%`,
+                        top: `${landmark.clickArea.y - 2}%`,
+                        transform: 'translate(-50%, -100%)',
+                        zIndex: 20,
+                      }}
+                    >
+                      <div
+                        className="px-3 py-1.5 rounded-xl text-xs font-black text-white shadow-2xl border whitespace-nowrap"
+                        style={{
+                          background: `${landmark.color}ee`,
+                          borderColor: 'rgba(255,255,255,0.3)',
+                          boxShadow: `0 4px 20px ${landmark.color}88`,
+                        }}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span>{landmark.emoji}</span>
+                          <span>{landmark.nameAr}</span>
+                        </div>
+                        <div className="text-white/85 text-[10px] font-bold text-center mt-0.5">{landmark.nameDe}</div>
+                      </div>
+                      <div
+                        className="w-0 h-0 mx-auto"
+                        style={{
+                          borderLeft: '5px solid transparent',
+                          borderRight: '5px solid transparent',
+                          borderTop: `5px solid ${landmark.color}ee`,
+                        }}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+
+          {/* النسر كارل 3D */}
           <motion.div
-            style={{ transform: 'translate(-50%, -50%)' }}
-            animate={{ y: [-5, 5, -5] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute pointer-events-none"
+            style={{ zIndex: 25 }}
+            animate={{
+              left: `${eaglePos.x}%`,
+              top: `${eaglePos.y - 6}%`,
+            }}
+            transition={{ type: 'spring', stiffness: 50, damping: 14, duration: 2 }}
           >
-            <img
-              src="/characters/karl-3d.png"
-              alt="كارل النسر"
-              style={{
-                width: 'clamp(35px, 3.5vw, 55px)',
-                height: 'clamp(35px, 3.5vw, 55px)',
-                objectFit: 'contain',
-                filter: 'drop-shadow(0 4px 10px rgba(76,201,240,0.7)) drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
-              }}
-              draggable={false}
-            />
+            <motion.div
+              style={{ transform: 'translate(-50%, -50%)' }}
+              animate={{ y: [-5, 5, -5] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <img
+                src="/characters/karl-3d.png"
+                alt="كارل النسر"
+                style={{
+                  width: 'clamp(35px, 3.5vw, 55px)',
+                  height: 'clamp(35px, 3.5vw, 55px)',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 4px 10px rgba(76,201,240,0.7)) drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+                }}
+                draggable={false}
+              />
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Popup البدء */}
