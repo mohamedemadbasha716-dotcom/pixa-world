@@ -136,7 +136,6 @@ export default function CharacterAndMapPage() {
     if (savedName) setHeroName(savedName);
     if (savedHero) setSelectedHero(savedHero);
 
-    // التحقق من ?from=lesson في الـ URL
     const params = new URLSearchParams(window.location.search);
     if (params.get('from') === 'lesson') {
       setStep('map');
@@ -151,7 +150,7 @@ export default function CharacterAndMapPage() {
   const [showIntro, setShowIntro] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const unlockedLesson = 6; // ينفتح القلعة 👑
+  const unlockedLesson = 6;
   const starsMap: Record<string, number> = {};
 
   const heroes = [
@@ -326,18 +325,25 @@ export default function CharacterAndMapPage() {
         </div>
       </div>
 
-      {/* الخريطة - بعد التعديل: responsive و الصورة كاملة */}
-      <div className="relative w-full flex items-center justify-center bg-[#07090D]" style={{ height: '100vh', minHeight: '400px', paddingTop: '60px' }}>
-        <div className="relative" style={{ width: '100%', height: '100%', maxWidth: '1920px' }}>
+      {/* الخريطة - بـ aspect-ratio مظبوط */}
+      <div className="w-full min-h-screen flex items-center justify-center bg-[#07090D] pt-16 pb-4 px-2">
+        <div 
+          className="relative w-full"
+          style={{ 
+            maxWidth: 'min(100vw, calc((100vh - 80px) * 1.78))',
+            aspectRatio: '16 / 9',
+          }}
+        >
+          {/* الصورة - بتملا الـ container بالظبط */}
           <img 
             src="/maps/german-map.png" 
             alt="خريطة ألمانيا" 
-            className="w-full h-full pointer-events-none select-none" 
-            style={{ objectFit: 'contain', display: 'block' }}
+            className="absolute inset-0 w-full h-full pointer-events-none select-none" 
+            style={{ objectFit: 'fill', display: 'block' }}
             draggable={false} 
           />
 
-          {/* SVG: تأثير النيون في الخلفية */}
+          {/* SVG: تأثير النيون */}
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none"
             viewBox="0 0 100 100"
@@ -359,8 +365,8 @@ export default function CharacterAndMapPage() {
               if (isLocked(l.lesson) && !isCurrent(l.lesson)) return null;
               const cx = l.clickArea.x + l.clickArea.w / 2;
               const cy = l.clickArea.y + l.clickArea.h / 2;
-              const rx = l.clickArea.w * 0.9;
-              const ry = l.clickArea.h * 0.9;
+              const rx = l.clickArea.w * 0.6;
+              const ry = l.clickArea.h * 0.6;
               return (
                 <motion.ellipse
                   key={`hover-${l.id}`}
@@ -386,13 +392,19 @@ export default function CharacterAndMapPage() {
             })}
           </svg>
 
-          {/* المناطق الـ Clickable */}
+          {/* المناطق الـ Clickable - دلوقتي على المعلم نفسه فقط */}
           {LANDMARKS.map((landmark, index) => {
             const locked = isLocked(landmark.lesson);
+            // تقليل الحجم: نأخذ 60% من الـ clickArea (تركيز على المعلم نفسه)
+            const shrinkFactor = 0.6;
+            const newW = landmark.clickArea.w * shrinkFactor;
+            const newH = landmark.clickArea.h * shrinkFactor;
+            const newX = landmark.clickArea.x + (landmark.clickArea.w - newW) / 2;
+            const newY = landmark.clickArea.y + (landmark.clickArea.h - newH) / 2;
 
             return (
               <div key={landmark.id}>
-                {/* منطقة الضغط الشفافة */}
+                {/* منطقة الضغط الشفافة - أصغر ومركزة على المعلم */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -402,10 +414,10 @@ export default function CharacterAndMapPage() {
                   onMouseLeave={() => setHoveredLandmark(null)}
                   className="absolute"
                   style={{
-                    left: `${landmark.clickArea.x}%`,
-                    top: `${landmark.clickArea.y}%`,
-                    width: `${landmark.clickArea.w}%`,
-                    height: `${landmark.clickArea.h}%`,
+                    left: `${newX}%`,
+                    top: `${newY}%`,
+                    width: `${newW}%`,
+                    height: `${newH}%`,
                     cursor: locked ? 'not-allowed' : 'pointer',
                     zIndex: 15,
                   }}
@@ -437,7 +449,7 @@ export default function CharacterAndMapPage() {
                   </motion.div>
                 )}
 
-                {/* اسم المعلم — يظهر بس عند الـ hover (للمفتوحة فقط) */}
+                {/* اسم المعلم — يظهر عند الـ hover */}
                 <AnimatePresence>
                   {hoveredLandmark?.id === landmark.id && !locked && (
                     <motion.div
@@ -448,7 +460,7 @@ export default function CharacterAndMapPage() {
                       className="absolute pointer-events-none"
                       style={{
                         left: `${landmark.centerX}%`,
-                        top: `${landmark.clickArea.y - 2}%`,
+                        top: `${newY - 1}%`,
                         transform: 'translate(-50%, -100%)',
                         zIndex: 20,
                       }}
