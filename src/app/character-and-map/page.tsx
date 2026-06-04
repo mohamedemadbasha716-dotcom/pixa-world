@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Sparkles, Lock, Star, ChevronRight, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { savePlayer, getPlayer } from '@/lib/playerData';
 
 // ═══════════════════════════════════════
 // المعالم - الإحداثيات المظبوطة بناءً على الصورة الفعلية
@@ -130,20 +131,33 @@ export default function CharacterAndMapPage() {
   const [selectedHero, setSelectedHero] = useState<string | null>(null);
   const [debugMode, setDebugMode] = useState(false);
   const [clickedCoords, setClickedCoords] = useState<{ x: number; y: number } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // ⭐ استرجاع الاسم والشخصية + التحقق من الـ URL + Debug Mode
+  // ⭐ استرجاع الاسم والشخصية من Supabase + التحقق من الـ URL + Debug Mode
   useEffect(() => {
-    const savedName = localStorage.getItem('heroName');
-    const savedHero = localStorage.getItem('heroType');
-    if (savedName) setHeroName(savedName);
-    if (savedHero) setSelectedHero(savedHero);
+    const loadPlayer = async () => {
+      // 📥 جلب بيانات اللاعب من Supabase
+      const player = await getPlayer();
+      if (player) {
+        setHeroName(player.hero_name);
+        setSelectedHero(player.hero_type);
+        console.log('✅ تم تحميل اللاعب من Supabase:', player);
+      } else {
+        // لو مفيش بيانات في Supabase، نشوف localStorage
+        const savedName = localStorage.getItem('heroName');
+        const savedHero = localStorage.getItem('heroType');
+        if (savedName) setHeroName(savedName);
+        if (savedHero) setSelectedHero(savedHero);
+      }
+    };
+    
+    loadPlayer();
 
     const params = new URLSearchParams(window.location.search);
     if (params.get('from') === 'lesson') {
       setStep('map');
     }
-    // 🐛 تفعيل Debug Mode عن طريق ?debug=1
     if (params.get('debug') === '1') {
       setDebugMode(true);
     }
@@ -195,11 +209,24 @@ export default function CharacterAndMapPage() {
   const isCurrent = (lesson: number) => lesson === unlockedLesson;
   const getStars = (id: string) => starsMap[id] ?? 0;
 
-  const handleStartJourney = () => {
+  // 💾 حفظ في Supabase + Local Storage
+  const handleStartJourney = async () => {
     if (heroName && selectedHero) {
-      localStorage.setItem('heroName', heroName);
-      localStorage.setItem('heroType', selectedHero);
-      setStep('video');
+      setIsSaving(true);
+      
+      // 💾 حفظ في Supabase
+      const player = await savePlayer(heroName, selectedHero);
+      
+      if (player) {
+        // برضو نحفظ في localStorage عشان السرعة
+        localStorage.setItem('heroName', heroName);
+        localStorage.setItem('heroType', selectedHero);
+        setIsSaving(false);
+        setStep('video');
+      } else {
+        setIsSaving(false);
+        alert('حصلت مشكلة في حفظ البيانات، حاول تاني!');
+      }
     }
   };
 
@@ -238,7 +265,6 @@ export default function CharacterAndMapPage() {
     if (route) router.push(route);
   };
 
-  // 🐛 Debug: حساب الإحداثيات لما المستخدم يضغط على الخريطة
   const handleMapClickForDebug = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!debugMode || !mapRef.current) return;
     const rect = mapRef.current.getBoundingClientRect();
@@ -286,10 +312,10 @@ export default function CharacterAndMapPage() {
           </section>
 
           <div className="flex justify-center pt-10 pb-20">
-            <motion.button onClick={handleStartJourney} disabled={!heroName || !selectedHero} whileHover={{ scale: 1.05 }}
+            <motion.button onClick={handleStartJourney} disabled={!heroName || !selectedHero || isSaving} whileHover={{ scale: isSaving ? 1 : 1.05 }}
               className="group relative px-12 py-5 bg-gradient-to-r from-[#F72585] to-[#7209B7] rounded-full font-black text-2xl flex items-center gap-3 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-              ابدأ رحلتك
-              <Sparkles className="text-white group-hover:rotate-12 transition-transform" />
+              {isSaving ? 'جاري الحفظ...' : 'ابدأ رحلتك'}
+              {!isSaving && <Sparkles className="text-white group-hover:rotate-12 transition-transform" />}
             </motion.button>
           </div>
         </motion.main>
@@ -381,7 +407,6 @@ export default function CharacterAndMapPage() {
   return (
     <div className="relative w-full min-h-screen overflow-hidden" style={{ background: '#07090D', fontFamily: "'Tajawal', sans-serif" }}>
 
-      {/* 🐛 Debug Bar */}
       {debugMode && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 text-black px-4 py-2 flex items-center justify-between text-xs font-black">
           <span>🐛 DEBUG MODE - اضغط في أي مكان على الخريطة لمعرفة الإحداثيات</span>
@@ -393,7 +418,6 @@ export default function CharacterAndMapPage() {
         </div>
       )}
 
-      {/* الهيدر */}
       <div className="fixed left-0 right-0 z-30 flex items-center justify-between px-4 py-3"
         style={{ 
           background: 'linear-gradient(to bottom, rgba(7,9,13,0.95), transparent)', 
@@ -419,7 +443,6 @@ export default function CharacterAndMapPage() {
         </div>
       </div>
 
-      {/* الخريطة */}
       <div className="w-full min-h-screen flex items-center justify-center bg-[#07090D] pb-4 px-2" 
         style={{ paddingTop: debugMode ? '96px' : '64px' }}>
         <div 
@@ -440,7 +463,6 @@ export default function CharacterAndMapPage() {
             draggable={false} 
           />
 
-          {/* SVG: تأثير النيون */}
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none"
             viewBox="0 0 100 100"
@@ -489,7 +511,6 @@ export default function CharacterAndMapPage() {
             })}
           </svg>
 
-          {/* 🐛 Debug: عرض الـ Click Areas */}
           {debugMode && LANDMARKS.map(l => (
             <div key={`debug-${l.id}`} className="absolute pointer-events-none border-2 border-dashed flex items-center justify-center"
               style={{
@@ -507,7 +528,6 @@ export default function CharacterAndMapPage() {
             </div>
           ))}
 
-          {/* المناطق الـ Clickable */}
           {LANDMARKS.map((landmark, index) => {
             const locked = isLocked(landmark.lesson);
 
@@ -600,7 +620,6 @@ export default function CharacterAndMapPage() {
             );
           })}
 
-          {/* النسر كارل 3D */}
           <motion.div
             className="absolute pointer-events-none"
             style={{ zIndex: 25 }}
@@ -631,7 +650,6 @@ export default function CharacterAndMapPage() {
         </div>
       </div>
 
-      {/* Popup البدء */}
       <AnimatePresence>
         {selectedLandmark && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -677,7 +695,6 @@ export default function CharacterAndMapPage() {
         )}
       </AnimatePresence>
 
-      {/* Intro النسر */}
       <AnimatePresence>
         {showIntro && !debugMode && (
           <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }} transition={{ delay: 0.5 }}

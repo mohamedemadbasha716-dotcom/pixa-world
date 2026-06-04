@@ -9,11 +9,66 @@ import {
 } from 'lucide-react';
 
 const BOOKS_DATA = [
-  { id: 1, title: 'اللغة الألمانية', color: '#FFD700', img: '/books/german.png', students: '2,340', flag: '🇩🇪', desc: 'لغة الهندسة والابتكار' },
-  { id: 2, title: 'اللغة الإسبانية', color: '#FF6B35', img: '/books/spain.png', students: '3,120', flag: '🇪🇸', desc: 'لغة نصف العالم الغربي' },
-  { id: 3, title: 'اللغة الروسية', color: '#9D4EDD', img: '/books/russian.png', students: '1,890', flag: '🇷🇺', desc: 'لغة الفضاء والعلوم' },
-  { id: 4, title: 'اللغة اليابانية', color: '#FF4D6D', img: '/books/japanese.png', students: '2,750', flag: '🇯🇵', desc: 'لغة التكنولوجيا والأنمي' },
-  { id: 5, title: 'اللغة الصينية', color: '#4CC9F0', img: '/books/chinees.png', students: '4,100', flag: '🇨🇳', desc: 'لغة اقتصاد المستقبل' },
+  { 
+    id: 1, 
+    title: 'اللغة الألمانية', 
+    color: '#FFD700', 
+    img: '/books/german.png', 
+    students: '2,340', 
+    flag: '🇩🇪', 
+    desc: 'لغة الهندسة والابتكار',
+    route: '/character-and-map',
+    available: true,
+    langCode: 'de'
+  },
+  { 
+    id: 2, 
+    title: 'اللغة الإسبانية', 
+    color: '#FF6B35', 
+    img: '/books/spain.png', 
+    students: '3,120', 
+    flag: '🇪🇸', 
+    desc: 'لغة نصف العالم الغربي',
+    route: '/coming-soon?lang=spanish',
+    available: false,
+    langCode: 'es'
+  },
+  { 
+    id: 3, 
+    title: 'اللغة الروسية', 
+    color: '#9D4EDD', 
+    img: '/books/russian.png', 
+    students: '1,890', 
+    flag: '🇷🇺', 
+    desc: 'لغة الفضاء والعلوم',
+    route: '/coming-soon?lang=russian',
+    available: false,
+    langCode: 'ru'
+  },
+  { 
+    id: 4, 
+    title: 'اللغة اليابانية', 
+    color: '#FF4D6D', 
+    img: '/books/japanese.png', 
+    students: '2,750', 
+    flag: '🇯🇵', 
+    desc: 'لغة التكنولوجيا والأنمي',
+    route: '/coming-soon?lang=japanese',
+    available: false,
+    langCode: 'ja'
+  },
+  { 
+    id: 5, 
+    title: 'اللغة الصينية', 
+    color: '#4CC9F0', 
+    img: '/books/chinees.png', 
+    students: '4,100', 
+    flag: '🇨🇳', 
+    desc: 'لغة اقتصاد المستقبل',
+    route: '/coming-soon?lang=chinese',
+    available: false,
+    langCode: 'zh'
+  },
 ];
 
 const MARKETING_MESSAGES = [
@@ -500,7 +555,7 @@ export default function PixiHomePage() {
               className="relative group cursor-pointer flex flex-col items-center"
               onHoverStart={() => setActiveBook(book.id)}
               onHoverEnd={() => setActiveBook(null)}
-              onClick={() => window.location.href = '/character-and-map'}
+              onClick={() => window.location.href = book.route}
             >
               {/* 🌟 إضاءة النيون الخلفية - متعددة الطبقات */}
               <motion.div
@@ -569,6 +624,10 @@ export default function PixiHomePage() {
                 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
+                
+
+
+
                 <motion.img
                   src={book.img}
                   alt={book.title}
@@ -577,6 +636,7 @@ export default function PixiHomePage() {
                     filter: activeBook === book.id
                       ? `drop-shadow(0 0 25px ${book.color}) drop-shadow(0 15px 30px rgba(0,0,0,0.6))`
                       : 'drop-shadow(0 15px 30px rgba(0,0,0,0.5))',
+                    opacity: book.available ? 1 : 0.85,
                   }}
                   animate={{
                     rotate: activeBook === book.id ? [0, -4, 4, -2, 0] : 0,
@@ -662,13 +722,26 @@ export default function PixiHomePage() {
                     whileTap={{ scale: 0.95 }}
                     className="px-4 py-2 rounded-xl text-[11px] font-black flex items-center justify-center gap-1.5 mx-auto"
                     style={{
-                      background: `linear-gradient(135deg, ${book.color}, ${book.color}dd)`,
+                      background: book.available 
+                        ? `linear-gradient(135deg, ${book.color}, ${book.color}dd)`
+                        : 'linear-gradient(135deg, #6b7280, #4b5563)',
                       color: '#fff',
-                      boxShadow: `0 8px 20px ${book.color}50`,
+                      boxShadow: book.available 
+                        ? `0 8px 20px ${book.color}50`
+                        : '0 8px 20px rgba(107, 114, 128, 0.4)',
                     }}
                   >
-                    <Sparkles size={12} />
-                    {'ابدأ التعلم'}
+                    {book.available ? (
+                      <>
+                        <Sparkles size={12} />
+                        {'ابدأ التعلم'}
+                      </>
+                    ) : (
+                      <>
+                        <span>🔔</span>
+                        {'اعرف موعد النزول'}
+                      </>
+                    )}
                   </motion.button>
                 </motion.div>
               </motion.div>
@@ -770,6 +843,7 @@ export default function PixiHomePage() {
               <motion.button
                 whileHover={{ scale: 1.05, boxShadow: '0 0 40px rgba(255,255,255,0.4)' }}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => window.location.href = '/character-and-map'}
                 className="bg-white text-[#F72585] px-10 py-4 rounded-2xl font-black text-base shadow-2xl flex items-center gap-3"
               >
                 <GraduationCap size={20} />
@@ -825,8 +899,13 @@ export default function PixiHomePage() {
             <div className="space-y-4">
               <h4 className="font-black text-sm text-white">{'اللغات المتاحة'}</h4>
               {BOOKS_DATA.map((book) => (
-                <a key={book.id} href="#" className="block text-gray-300 text-sm hover:text-[#FF4D6D] transition-colors font-medium">
+                <a 
+                  key={book.id} 
+                  href={book.route} 
+                  className="block text-gray-300 text-sm hover:text-[#FF4D6D] transition-colors font-medium"
+                >
                   {book.flag} {book.title}
+                  {!book.available && <span className="text-[9px] text-yellow-400 mr-2">(قريباً)</span>}
                 </a>
               ))}
             </div>
