@@ -92,7 +92,11 @@ const SECTIONS = [
 
 type Box = { x: number; y: number; w: number; h: number };
 
+// ═══════════════════════════════════════
+// FOREST_OBJECTS - بدون تكرار
+// ═══════════════════════════════════════
 const FOREST_OBJECTS: Record<string, Box[]> = {
+  // الحيوانات
   Eule:           [{ x: 2.0,  y: 6.0,  w: 12.0, h: 22.0 }],
   Reh:            [{ x: 10.0, y: 35.0, w: 16.0, h: 32.0 }],
   Wolf:           [{ x: 37.0, y: 40.0, w: 12.0, h: 24.0 }],
@@ -101,6 +105,7 @@ const FOREST_OBJECTS: Record<string, Box[]> = {
   Schmetterling:  [{ x: 47.0, y: 56.0, w: 9.0,  h: 14.0 }],
   Frosch:         [{ x: 54.0, y: 80.0, w: 11.0, h: 14.0 }],
   Hase:           [{ x: 59.0, y: 60.0, w: 10.0, h: 16.0 }],
+  // الفواكه
   Apfel:          [{ x: 14.0, y: 1.0,  w: 11.0, h: 20.0 }],
   Traube:         [{ x: 25.0, y: 1.0,  w: 10.0, h: 18.0 }],
   Kirsche:        [{ x: 36.0, y: 1.0,  w: 8.0,  h: 14.0 }],
@@ -109,6 +114,7 @@ const FOREST_OBJECTS: Record<string, Box[]> = {
   Zitrone:        [{ x: 69.0, y: 1.0,  w: 8.0,  h: 16.0 }],
   Orange:         [{ x: 78.0, y: 1.0,  w: 10.0, h: 18.0 }],
   Erdbeere:       [{ x: 8.0,  y: 86.0, w: 16.0, h: 12.0 }],
+  // الخضروات
   Karotte:        [{ x: 65.0, y: 60.0, w: 20.0, h: 14.0 }],
   Tomate:         [{ x: 69.0, y: 70.0, w: 8.0,  h: 12.0 }],
   Kuerbis:        [{ x: 75.0, y: 70.0, w: 14.0, h: 20.0 }],
@@ -117,6 +123,12 @@ const FOREST_OBJECTS: Record<string, Box[]> = {
   Zucchini:       [{ x: 83.0, y: 80.0, w: 13.0, h: 12.0 }],
   Pilz:           [{ x: 0.0,  y: 80.0, w: 14.0, h: 20.0 }],
   Paprika:        [{ x: 91.0, y: 80.0, w: 9.0,  h: 18.0 }],
+};
+
+// ═══════════════════════════════════════
+// COLOR_OBJECTS - منفصلة عن الكلمات (عشان نتجنب التكرار)
+// ═══════════════════════════════════════
+const COLOR_OBJECTS: Record<string, Box[]> = {
   Rot: [
     { x: 14.0, y: 1.0,  w: 11.0, h: 20.0 },
     { x: 36.0, y: 1.0,  w: 8.0,  h: 14.0 },
@@ -176,6 +188,16 @@ const FOREST_OBJECTS: Record<string, Box[]> = {
     { x: 1.0,  y: 83.0, w: 4.0,  h: 4.0  },
   ],
 };
+
+// ═══════════════════════════════════════
+// Helper function - يجيب الـ boxes الصح حسب القسم
+// ═══════════════════════════════════════
+function getBoxesForWord(word: string, sectionId: string): Box[] {
+  if (sectionId === 'colors') {
+    return COLOR_OBJECTS[word] ?? [];
+  }
+  return FOREST_OBJECTS[word] ?? [];
+}
 
 const NAT_W = 1920;
 const NAT_H = 1080;
@@ -265,7 +287,7 @@ function playComboSound() {
 }
 
 // ═══════════════════════════════════════
-// خلفية الغابة المتغيرة حسب القسم ✅ (Hydration Fixed)
+// خلفية الغابة المتغيرة حسب القسم
 // ═══════════════════════════════════════
 function PremiumForestBackground({ section, activeColor }: { section: typeof SECTIONS[0]; activeColor: string }) {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number; rotation: number; xOffset1: number; xOffset2: number }>>([]);
@@ -366,7 +388,7 @@ function PremiumForestBackground({ section, activeColor }: { section: typeof SEC
 }
 
 // ═══════════════════════════════════════
-// Confetti ✅ (Hydration Fixed)
+// Confetti
 // ═══════════════════════════════════════
 function ConfettiBurst({ trigger, x, y, colors }: { trigger: number; x: number; y: number; colors: string[] }) {
   const [particles, setParticles] = useState<Array<{ id: number; angle: number; distance: number; color: string; size: number; rotation: number; isCircle: boolean }>>([]);
@@ -507,8 +529,10 @@ function KarlEagle({ mood, message }: { mood: KarlMood; message: { de: string; a
       </motion.div>
     </div>
   );
-}// ═══════════════════════════════════════
-// 🔥 Combo Badge — إيقونة صغيرة جانبية (بدل ComboDisplay الكبير)
+}
+
+// ═══════════════════════════════════════
+// Combo Badge
 // ═══════════════════════════════════════
 function ComboBadge({ combo }: { combo: number }) {
   if (combo < 3) return null;
@@ -540,7 +564,7 @@ function ComboBadge({ combo }: { combo: number }) {
 }
 
 // ═══════════════════════════════════════
-// Streak Counter
+// Streak Badge
 // ═══════════════════════════════════════
 function StreakBadge({ streak }: { streak: number }) {
   if (streak === 0) return null;
@@ -563,7 +587,7 @@ function StreakBadge({ streak }: { streak: number }) {
 }
 
 // ═══════════════════════════════════════
-// Sound Wave Button
+// Sound Button
 // ═══════════════════════════════════════
 function SoundButton({ onClick, color, label }: { onClick: () => void; color: string; label: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -627,7 +651,7 @@ function SoundButton({ onClick, color, label }: { onClick: () => void; color: st
 }
 
 // ═══════════════════════════════════════
-// Hero Word Display ✅ (Hydration Fixed)
+// Hero Word Display
 // ═══════════════════════════════════════
 function HeroWordDisplay({ wordData }: { wordData: typeof SECTIONS[0]['words'][0] }) {
   const [sparkles, setSparkles] = useState<Array<{ top: number; left: number; delay: number; duration: number }>>([]);
@@ -770,7 +794,7 @@ function SpecialCharsKeyboard({ chars, onChar, color }: { chars: string[]; onCha
 }
 
 // ═══════════════════════════════════════
-// Phase 1 — تعلم الكلمة ✅ (Ghost Text محسّن + نجمة من الإنبوت)
+// Phase 1 — تعلم الكلمة
 // ═══════════════════════════════════════
 function LearnCardPhase({ wordData, sectionTitle, onDone, onKarlReact, onCombo, onStreak, onStarEarned }: {
   wordData: typeof SECTIONS[0]['words'][0];
@@ -804,7 +828,6 @@ function LearnCardPhase({ wordData, sectionTitle, onDone, onKarlReact, onCombo, 
       onStreak(true);
       onKarlReact('happy');
 
-      // 🌟 النجمة الطايرة تطلع من مكان الإنبوت
       let starX = 0, starY = 0;
       if (inputRef.current) {
         const r = inputRef.current.getBoundingClientRect();
@@ -844,7 +867,6 @@ function LearnCardPhase({ wordData, sectionTitle, onDone, onKarlReact, onCombo, 
         className="w-full max-w-5xl mx-auto"
       >
         <div className="grid lg:grid-cols-5 gap-8 items-center">
-          {/* Left: Hero Word */}
           <div className="lg:col-span-3 flex flex-col items-center gap-4">
             <motion.div
               onClick={() => speak(wordData.word)}
@@ -856,7 +878,6 @@ function LearnCardPhase({ wordData, sectionTitle, onDone, onKarlReact, onCombo, 
             <SoundButton onClick={() => speak(wordData.word)} color={wordData.color} label="استمع للكلمة" />
           </div>
 
-          {/* Right: Input */}
           <div className="lg:col-span-2 space-y-4">
             <div className="text-center lg:text-right">
               <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${wordData.color}aa` }}>
@@ -866,7 +887,6 @@ function LearnCardPhase({ wordData, sectionTitle, onDone, onKarlReact, onCombo, 
               <div className="text-sm font-bold text-white/40 mt-1">بالألمانية</div>
             </div>
 
-            {/* ✅ Ghost Text محسّن - أوضح للأطفال */}
             <div className="relative">
               {!input && (
                 <span
@@ -950,8 +970,10 @@ function LearnCardPhase({ wordData, sectionTitle, onDone, onKarlReact, onCombo, 
       </motion.div>
     </>
   );
-}// ═══════════════════════════════════════
-// Phase 2 — اختبار الغابة (Premium)
+}
+
+// ═══════════════════════════════════════
+// Phase 2 — اختبار الغابة
 // ═══════════════════════════════════════
 function ForestTest({
   sectionWords,
@@ -987,7 +1009,8 @@ function ForestTest({
 
   const currentWord = sectionWords[currentIdx];
   const isColors = sectionId === 'colors';
-  const boxes = currentWord ? (FOREST_OBJECTS[currentWord.word] ?? []) : [];
+  // ✅ استخدام الـ helper function الجديدة
+  const boxes = currentWord ? getBoxesForWord(currentWord.word, sectionId) : [];
 
   useEffect(() => {
     setShowHint(false);
@@ -1063,7 +1086,6 @@ function ForestTest({
     <>
       <ConfettiBurst trigger={confettiTrigger} x={confettiPos.x} y={confettiPos.y} colors={currentWord ? currentWord.gradient.concat(['#FFD700', '#FFFFFF']) : ['#FFD700']} />
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col lg:flex-row gap-4 w-full items-start max-w-7xl mx-auto">
-        {/* البطاقة الجانبية */}
         <AnimatePresence mode="wait">
           {!finished && currentWord && (
             <motion.div key={currentWord.word}
@@ -1120,7 +1142,6 @@ function ForestTest({
           )}
         </AnimatePresence>
 
-        {/* الصورة */}
         <div
           ref={containerRef}
           className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl select-none"
@@ -1149,7 +1170,6 @@ function ForestTest({
             </div>
           )}
 
-          {/* Hint */}
           <AnimatePresence>
             {showHint && boxes.length > 0 && currentWord && boxes.map((b, idx) => (
               <div key={idx}>
@@ -1185,7 +1205,6 @@ function ForestTest({
             ))}
           </AnimatePresence>
 
-          {/* Click effect */}
           <AnimatePresence>
             {clickEffect && (
               <motion.div
@@ -1199,7 +1218,6 @@ function ForestTest({
             )}
           </AnimatePresence>
 
-          {/* Feedback */}
           <AnimatePresence>
             {showFeedback === 'correct' && currentWord && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -1299,7 +1317,7 @@ function FailScreen({ onRetry }: { onRetry: () => void }) {
 }
 
 // ═══════════════════════════════════════
-// الصفحة الرئيسية ✅ (ComboBadge في الهيدر + النجمة من الإنبوت)
+// الصفحة الرئيسية
 // ═══════════════════════════════════════
 export default function GermanForestPage() {
   const router = useRouter();
@@ -1345,7 +1363,6 @@ export default function GermanForestPage() {
     }
   };
 
-  // ✅ ما عادتش بتزود نجمة من هنا - النجمة بتيجي من handleStarEarned
   const handleWordDone = () => {
     const nextIdx = wordIdx + 1;
     if (nextIdx < section.words.length) setWordIdx(nextIdx);
@@ -1363,7 +1380,6 @@ export default function GermanForestPage() {
 
   const handleRetry = () => { setWordIdx(0); setPhase('learn'); };
 
-  // ✅ النجمة بتطلع من أي مكان (الإنبوت أو الكليك على الصورة)
   const handleStarEarned = useCallback((x: number, y: number) => {
     setTotalStars(s => s + 1);
     const id = Date.now() + Math.random();
@@ -1383,8 +1399,6 @@ export default function GermanForestPage() {
     <div className="min-h-screen text-white relative" style={{ fontFamily: "'Tajawal', sans-serif" }} dir="rtl">
       <PremiumForestBackground section={section} activeColor={activeColor} />
       <KarlEagle mood={karlMood} message={karlMessage} />
-
-      {/* ❌ تم حذف ComboDisplay الكبير من هنا - بقى ComboBadge في الهيدر */}
 
       <div className="fixed inset-0 pointer-events-none z-[9999]">
         <AnimatePresence>
@@ -1410,11 +1424,10 @@ export default function GermanForestPage() {
         </AnimatePresence>
       </div>
 
-      {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-30 px-4 pt-4 pb-3" style={{ background: 'linear-gradient(to bottom, rgba(7,11,7,0.97) 80%, transparent)' }}>
         <div className="max-w-7xl mx-auto space-y-2">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()}
+            <button onClick={() => router.push('/character-and-map?from=lesson')}
               className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md"
               style={{ background: 'rgba(255,255,255,0.05)' }}>
               <ArrowLeft size={20} />
@@ -1439,7 +1452,6 @@ export default function GermanForestPage() {
               </div>
             </div>
 
-            {/* ✅ ComboBadge جنب StreakBadge - مش هيخفي حاجة */}
             <AnimatePresence>
               <ComboBadge combo={combo} />
             </AnimatePresence>
@@ -1455,7 +1467,6 @@ export default function GermanForestPage() {
             </motion.div>
           </div>
 
-          {/* Sections nav */}
           <div className="flex gap-1.5 justify-center">
             {SECTIONS.map((s, i) => {
               const done = i < sectionIdx || (i === sectionIdx && (phase === 'section-success' || phase === 'all-done'));
@@ -1480,7 +1491,6 @@ export default function GermanForestPage() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="pt-36 pb-32 px-6 min-h-screen flex flex-col justify-center relative" style={{ zIndex: 10 }}>
         <AnimatePresence mode="wait">
           {phase === 'learn' && wordData && (
@@ -1545,7 +1555,7 @@ export default function GermanForestPage() {
               </div>
               <motion.button
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}
-                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={() => router.push('/character-and-map')}
+                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={() => router.push('/character-and-map?from=lesson')}
                 className="flex items-center gap-2 px-12 py-5 rounded-2xl font-black text-lg text-white"
                 style={{ background: 'linear-gradient(135deg, #58CC02, #096A02)', boxShadow: '0 10px 40px rgba(88,204,2,0.4)' }}>
                 <Trophy size={24} /> العودة للخريطة
