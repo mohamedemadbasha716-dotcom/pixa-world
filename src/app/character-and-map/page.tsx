@@ -6,7 +6,7 @@ import { ArrowLeft, Sparkles, Lock, Star, ChevronRight, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 // ═══════════════════════════════════════
-// المعالم
+// المعالم - الإحداثيات المظبوطة بناءً على الصورة الفعلية
 // ═══════════════════════════════════════
 const LANDMARKS = [
   {
@@ -18,8 +18,8 @@ const LANDMARKS = [
     description: 'أكبر ميناء في ألمانيا! هنا هتتعلم الحروف الألمانية.',
     color: '#4CC9F0',
     centerX: 41,
-    centerY: 8,
-    clickArea: { x: 36, y: 2, w: 12, h: 16 },
+    centerY: 9,
+    clickArea: { x: 35, y: 3, w: 13, h: 14 },
   },
   {
     id: 'cologne',
@@ -29,9 +29,9 @@ const LANDMARKS = [
     lesson: 2,
     description: 'أشهر كنيسة في ألمانيا! هنا هتتعلم الأرقام.',
     color: '#F72585',
-    centerX: 18,
-    centerY: 38,
-    clickArea: { x: 10, y: 22, w: 18, h: 32 },
+    centerX: 23,
+    centerY: 41,
+    clickArea: { x: 16, y: 25, w: 15, h: 33 },
   },
   {
     id: 'center',
@@ -41,9 +41,9 @@ const LANDMARKS = [
     lesson: 3,
     description: 'قرية سحرية في قلب ألمانيا! هنا هتتعلم الألوان والفواكه والخضروات والحيوانات.',
     color: '#7209B7',
-    centerX: 44,
-    centerY: 45,
-    clickArea: { x: 38, y: 35, w: 13, h: 18 },
+    centerX: 49,
+    centerY: 46,
+    clickArea: { x: 43, y: 36, w: 13, h: 20 },
   },
   {
     id: 'berlin',
@@ -53,11 +53,11 @@ const LANDMARKS = [
     lesson: 4,
     description: 'قلب برلين وعاصمة ألمانيا! هنا هتتعلم التحيات والتعارف والعائلة.',
     color: '#FFD700',
-    centerX: 73,
-    centerY: 20,
-    clickArea: { x: 64, y: 6, w: 18, h: 26 },
+    centerX: 71,
+    centerY: 21,
+    clickArea: { x: 62, y: 8, w: 18, h: 28 },
   },
-    {
+  {
     id: 'lake',
     nameAr: 'بحيرة الملوك',
     nameDe: 'Königssee',
@@ -65,9 +65,9 @@ const LANDMARKS = [
     lesson: 5,
     description: 'أجمل بحيرة في ألمانيا بين جبال الألب! هنا هتتعلم الطقس وأيام الأسبوع والطبيعة.',
     color: '#06D6A0',
-    centerX: 78,
-    centerY: 53,
-    clickArea: { x: 73, y: 43, w: 12, h: 22 },
+    centerX: 84,
+    centerY: 51,
+    clickArea: { x: 79, y: 44, w: 10, h: 14 },
   },
   {
     id: 'neuschwanstein',
@@ -77,9 +77,9 @@ const LANDMARKS = [
     lesson: 6,
     description: 'أجمل قلعة في العالم! هنا هتتعلم الجمل الكاملة.',
     color: '#58CC02',
-    centerX: 51,
-    centerY: 72,
-    clickArea: { x: 42, y: 55, w: 20, h: 26 },
+    centerX: 56,
+    centerY: 74,
+    clickArea: { x: 47, y: 58, w: 18, h: 30 },
   },
 ];
 
@@ -153,7 +153,7 @@ export default function CharacterAndMapPage() {
 
   const [selectedLandmark, setSelectedLandmark] = useState<typeof LANDMARKS[0] | null>(null);
   const [hoveredLandmark, setHoveredLandmark] = useState<typeof LANDMARKS[0] | null>(null);
-  const [eaglePos, setEaglePos] = useState({ x: 44, y: 45 });
+  const [eaglePos, setEaglePos] = useState({ x: 49, y: 46 });
   const [showIntro, setShowIntro] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -195,7 +195,7 @@ export default function CharacterAndMapPage() {
   };
 
   const handleLandmarkClick = (landmark: typeof LANDMARKS[0]) => {
-    if (debugMode) return; // في وضع التعديل، لا نفتح المعالم
+    if (debugMode) return;
     if (isLocked(landmark.lesson)) {
       playLockedSound();
       return;
@@ -333,8 +333,11 @@ export default function CharacterAndMapPage() {
       )}
 
       {/* الهيدر */}
-      <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3"
-        style={{ background: 'linear-gradient(to bottom, rgba(7,9,13,0.95), transparent)', marginTop: debugMode ? '32px' : '0' }}>
+      <div className="fixed left-0 right-0 z-30 flex items-center justify-between px-4 py-3"
+        style={{ 
+          background: 'linear-gradient(to bottom, rgba(7,9,13,0.95), transparent)', 
+          top: debugMode ? '32px' : '0' 
+        }}>
         <button onClick={() => setStep('setup')}
           className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl px-4 py-2 text-sm font-bold text-white transition-all">
           ← تعديل الاختيارات
@@ -356,7 +359,8 @@ export default function CharacterAndMapPage() {
       </div>
 
       {/* الخريطة */}
-      <div className="w-full min-h-screen flex items-center justify-center bg-[#07090D] pt-16 pb-4 px-2" style={{ paddingTop: debugMode ? '96px' : '64px' }}>
+      <div className="w-full min-h-screen flex items-center justify-center bg-[#07090D] pb-4 px-2" 
+        style={{ paddingTop: debugMode ? '96px' : '64px' }}>
         <div 
           ref={mapRef}
           onClick={handleMapClickForDebug}
