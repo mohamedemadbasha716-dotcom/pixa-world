@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Bell, Sparkles, Calendar, Star } from 'lucide-react';
+import { ArrowLeft, Bell, Sparkles, Star } from 'lucide-react';
+
+// ⚠️ مهم: تعطيل الـ Static Generation للصفحة دي
+export const dynamic = 'force-dynamic';
 
 const LANGUAGES_INFO: Record<string, { 
   name: string; 
@@ -47,10 +50,10 @@ const LANGUAGES_INFO: Record<string, {
   },
 };
 
-export default function ComingSoonPage() {
+function ComingSoonContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const lang = searchParams.get('lang') || 'spanish';
+  const lang = searchParams?.get('lang') || 'spanish';
   const langInfo = LANGUAGES_INFO[lang] || LANGUAGES_INFO.spanish;
 
   const [email, setEmail] = useState('');
@@ -83,8 +86,8 @@ export default function ComingSoonPage() {
             key={i}
             className="absolute text-4xl opacity-20"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: `${(i * 5.3) % 100}%`,
+              top: `${(i * 7.7) % 100}%`,
             }}
             animate={{
               y: [0, -100, 0],
@@ -92,9 +95,9 @@ export default function ComingSoonPage() {
               opacity: [0, 0.3, 0],
             }}
             transition={{
-              duration: Math.random() * 10 + 10,
+              duration: 10 + (i % 5),
               repeat: Infinity,
-              delay: Math.random() * 5,
+              delay: i * 0.3,
             }}
           >
             {langInfo.emoji}
@@ -275,5 +278,24 @@ export default function ComingSoonPage() {
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-indigo-900 flex items-center justify-center">
+      <div className="text-center space-y-4">
+        <div className="text-8xl animate-bounce">🚧</div>
+        <div className="text-white text-2xl font-black">جاري التحميل...</div>
+      </div>
+    </div>
+  );
+}
+
+export default function ComingSoonPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ComingSoonContent />
+    </Suspense>
   );
 }
