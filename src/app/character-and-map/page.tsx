@@ -169,7 +169,6 @@ export default function CharacterAndMapPage() {
   const [hoveredLandmark, setHoveredLandmark] = useState<typeof LANDMARKS[0] | null>(null);
   const [eaglePos, setEaglePos] = useState({ x: 49, y: 46 });
   const [showIntro, setShowIntro] = useState(true);
-  const [needsRotation, setNeedsRotation] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const unlockedLesson = 6;
@@ -185,24 +184,6 @@ export default function CharacterAndMapPage() {
     if (current) {
       setEaglePos({ x: current.centerX, y: current.centerY });
     }
-  }, []);
-
-  // 📱 كشف الموبايل العمودي
-  useEffect(() => {
-    const checkOrientation = () => {
-      const isMobile = window.innerWidth < 768;
-      const isPortrait = window.innerHeight > window.innerWidth;
-      setNeedsRotation(isMobile && isPortrait);
-    };
-
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
-
-    return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
-    };
   }, []);
 
   const isLocked = (lesson: number) => lesson > unlockedLesson;
@@ -358,48 +339,6 @@ export default function CharacterAndMapPage() {
           )}
         </AnimatePresence>
       </motion.div>
-    );
-  }
-
-  // ═════ شاشة "اقلب موبايلك" ═════
-  if (needsRotation) {
-    return (
-      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gradient-to-br from-[#07090D] via-[#131722] to-[#1a1f2e] p-8" style={{ fontFamily: "'Tajawal', sans-serif" }}>
-        <motion.div
-          animate={{ rotate: [0, 90, 90, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', times: [0, 0.4, 0.6, 1] }}
-          className="text-8xl mb-8"
-        >
-          📱
-        </motion.div>
-
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-3xl font-black text-white text-center mb-4"
-        >
-          اقلب موبايلك بالعرض 🔄
-        </motion.h2>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-base text-white/60 text-center font-bold max-w-xs leading-relaxed"
-        >
-          عشان تستمتع بالمغامرة على الخريطة بشكل أحسن! 🗺️✨
-        </motion.p>
-
-        <motion.div
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="mt-12 flex items-center gap-2 text-[#4CC9F0] text-sm font-bold"
-        >
-          <span>⬇️</span>
-          <span>قلّب موبايلك دلوقتي</span>
-          <span>⬇️</span>
-        </motion.div>
-      </div>
     );
   }
 
