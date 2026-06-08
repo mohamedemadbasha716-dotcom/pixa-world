@@ -576,25 +576,12 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
     const containerW = rect.width;
     const containerH = rect.height;
 
-    // ✅ نستخدم cover لما الصورة تملى الإطار، ونحسب الإحداثيات بناءً على الجزء الظاهر
-    const imgRatio = harborImage.width / harborImage.height;
-    const boxRatio = containerW / containerH;
-    
-    let renderedW: number, renderedH: number, offsetX: number, offsetY: number;
-    
-    if (imgRatio > boxRatio) {
-      // الصورة أعرض من الإطار - cover يقص من الجوانب
-      renderedH = containerH;
-      renderedW = containerH * imgRatio;
-      offsetX = (containerW - renderedW) / 2;
-      offsetY = 0;
-    } else {
-      // الصورة أطول من الإطار - cover يقص من فوق وتحت
-      renderedW = containerW;
-      renderedH = containerW / imgRatio;
-      offsetX = 0;
-      offsetY = (containerH - renderedH) / 2;
-    }
+    // ✅ نستخدم contain - الصورة كاملة من غير قص
+const scale = Math.min(containerW / harborImage.width, containerH / harborImage.height);
+const renderedW = harborImage.width * scale;
+const renderedH = harborImage.height * scale;
+const offsetX = (containerW - renderedW) / 2;
+const offsetY = (containerH - renderedH) / 2;
 
     const clickX = e.clientX - rect.left - offsetX;
     const clickY = e.clientY - rect.top - offsetY;
@@ -661,16 +648,16 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
       onClick={handleImageClick}
     >
       <img 
-        src={harborImage.src} 
-        alt="ميناء" 
-        className="w-full h-full"
-        style={{ 
-          objectFit: 'cover',  // ✅ الصورة تملى الإطار كامل
-          pointerEvents: 'none', 
-          display: 'block',
-        }}
-        draggable={false} 
-      />
+  src={harborImage.src} 
+  alt="ميناء" 
+  className="w-full h-full"
+  style={{ 
+    objectFit: 'contain',
+    pointerEvents: 'none', 
+    display: 'block',
+  }}
+  draggable={false} 
+/>
 
       <AnimatePresence>
         {showHint && boxes.length > 0 && currentLetter && boxes.map((b, idx) => (
@@ -764,7 +751,7 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
           <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
     ) : (
-        <div className="flex gap-4 items-stretch" style={{ height: '70vh' }}>
+        <div className="flex gap-4 items-stretch" style={{ height: '78vh' }}>
           {/* الكارت الجانبي - على اليمين */}
           <div className="flex-shrink-0 flex items-center">
             <AnimatePresence mode="wait">
