@@ -127,7 +127,6 @@ const FLOATING_EMOJIS = ['🌟', '🎮', '🚀', '🎯', '✨', '🏆', '💡', 
 function FloatingParticles() {
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {/* 🌈 Gradient Mesh ملون */}
       <div className="absolute inset-0" style={{
         background: `
           radial-gradient(circle at 20% 20%, rgba(255, 77, 109, 0.15) 0%, transparent 50%),
@@ -138,13 +137,11 @@ function FloatingParticles() {
         `
       }} />
 
-      {/* شبكة نقاط مزخرفة */}
       <div className="absolute inset-0 opacity-[0.07]" style={{
         backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
         backgroundSize: '30px 30px',
       }} />
 
-      {/* 🫧 فقاعات كبيرة متحركة */}
       {Array.from({ length: 6 }).map((_, i) => (
         <motion.div
           key={`bubble-${i}`}
@@ -170,7 +167,6 @@ function FloatingParticles() {
         />
       ))}
 
-      {/* ⭐ جزيئات صغيرة متطايرة مع توهج */}
       {Array.from({ length: 40 }).map((_, i) => (
         <motion.div
           key={`particle-${i}`}
@@ -197,7 +193,6 @@ function FloatingParticles() {
         />
       ))}
 
-      {/* 🎈 دوائر هندسية متحركة */}
       {Array.from({ length: 8 }).map((_, i) => (
         <motion.div
           key={`shape-${i}`}
@@ -222,7 +217,6 @@ function FloatingParticles() {
         />
       ))}
 
-      {/* ✨ نجوم ذهبية بتلمع */}
       {Array.from({ length: 15 }).map((_, i) => (
         <motion.div
           key={`sparkle-${i}`}
@@ -263,7 +257,6 @@ export default function PixiHomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // 🔊 تفعيل الصوت بعد أول تفاعل من المستخدم
   useEffect(() => {
     const enableSound = () => {
       if (videoRef.current && !soundEnabled) {
@@ -329,7 +322,7 @@ export default function PixiHomePage() {
         </motion.div>
       </motion.header>
 
-      {/* 2. الهيرو */}
+      {/* 2. الهيرو - مع الرسائل التسويقية الجديدة */}
       <section className="relative w-full max-w-5xl mx-auto text-center px-6 pt-20 pb-12 space-y-8 z-10">
         {FLOATING_EMOJIS.map((emoji, i) => (
           <motion.span
@@ -369,35 +362,54 @@ export default function PixiHomePage() {
           </motion.div>
         </motion.div>
 
+        {/* 🎯 العنوان الرئيسي الجديد */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="text-4xl md:text-7xl font-black leading-tight"
+          className="text-3xl md:text-6xl font-black leading-tight"
         >
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100 drop-shadow-2xl">
-            اختار مغامرتك السحرية
+            خلي طفلك يتكلم
           </span>
           <br />
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D6D] via-[#F72585] to-[#9D4EDD] drop-shadow-[0_0_30px_rgba(247,37,133,0.5)]">
-            واضغط على كتاب اللغة
+            5 لغات نادرة 🚀
+          </span>
+          <br />
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100 drop-shadow-2xl text-2xl md:text-5xl">
+            قبل ما يدخل إعدادي
           </span>
         </motion.h1>
 
-        <motion.p
+        {/* 🌍 العنوان الفرعي الجديد */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="text-gray-200 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-medium"
+          className="relative inline-block max-w-3xl mx-auto"
         >
-          {'منصة تعليمية تفاعلية تحول تعلم اللغات لمغامرة مثيرة! 5 لغات عالمية بأسلوب ألعاب يحبه الأطفال 🎮'}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FFD700]/20 via-[#FF6B35]/20 to-[#FFD700]/20 blur-2xl" />
+          <p className="relative text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[#FFD700] via-[#FF6B35] to-[#FFD700] drop-shadow-[0_0_20px_rgba(255,215,0,0.4)] py-2">
+            اللي مش بيتعلموه في المدرسة... طفلك هيتعلمه عندنا 🌍
+          </p>
+        </motion.div>
+
+        {/* 📝 الوصف المحسّن */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="text-gray-200 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-medium"
+        >
+          المنصة العربية الوحيدة اللي بتأسس طفلك في <span className="text-[#FFD700] font-black">5 لغات عالمية نادرة</span> من الصفر للاحتراف، بنظام مستويات تدريجي وأسلوب ألعاب يحبه الأطفال 🎮
         </motion.p>
 
         {/* Stats bar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 1 }}
           className="flex flex-wrap justify-center gap-6 md:gap-10 pt-4"
         >
           {[
@@ -442,7 +454,6 @@ export default function PixiHomePage() {
             className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-700"
           />
 
-          {/* 🔊 مؤشر الصوت - يظهر لحد ما المستخدم يتفاعل */}
           <AnimatePresence>
             {!soundEnabled && (
               <motion.div
@@ -473,13 +484,13 @@ export default function PixiHomePage() {
         >
           <div className="inline-flex items-center gap-2 bg-[#9D4EDD]/20 border border-[#9D4EDD]/30 px-4 py-1.5 rounded-full text-xs font-bold text-[#c084fc] backdrop-blur-sm">
             <Sparkles size={14} />
-            {'مميزات حصرية'}
+            مميزات حصرية
           </div>
           <h2 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
-            {'ليه بيكسا وورلد؟'}
+            ليه بيكسا وورلد؟
           </h2>
           <p className="text-gray-300 text-sm max-w-lg mx-auto">
-            {'اكتشف كل المميزات اللي بتخلي أطفالك يحبوا تعلم اللغات'}
+            اكتشف كل المميزات اللي بتخلي أطفالك يحبوا تعلم اللغات
           </p>
         </motion.div>
 
@@ -526,7 +537,7 @@ export default function PixiHomePage() {
         </div>
       </section>
 
-      {/* 5. عرض الكتب - بدون مستطيلات مع إضاءة نيون */}
+      {/* 5. عرض الكتب */}
       <section className="w-full max-w-6xl mx-auto px-6 mb-28 z-10 relative">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -536,12 +547,12 @@ export default function PixiHomePage() {
         >
           <div className="inline-flex items-center gap-2 bg-[#4CC9F0]/20 border border-[#4CC9F0]/30 px-4 py-1.5 rounded-full text-xs font-bold text-[#7dd3fc] backdrop-blur-sm">
             <BookOpen size={14} />
-            {'اختار لغتك'}
+            اختار لغتك
           </div>
           <h2 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
-            {'5 لغات عالمية في انتظارك'}
+            5 لغات عالمية في انتظارك
           </h2>
-          <p className="text-gray-300 text-sm">{'اضغط على أي كتاب وابدأ رحلتك التعليمية'}</p>
+          <p className="text-gray-300 text-sm">اضغط على أي كتاب وابدأ رحلتك التعليمية</p>
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 md:gap-6 pt-10">
@@ -557,7 +568,6 @@ export default function PixiHomePage() {
               onHoverEnd={() => setActiveBook(null)}
               onClick={() => window.location.href = book.route}
             >
-              {/* 🌟 إضاءة النيون الخلفية - متعددة الطبقات */}
               <motion.div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
                 style={{
@@ -573,7 +583,6 @@ export default function PixiHomePage() {
                 transition={{ duration: 0.5 }}
               />
 
-              {/* طبقة نيون ثانية أصغر وأقوى */}
               <motion.div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] rounded-full pointer-events-none"
                 style={{
@@ -589,7 +598,6 @@ export default function PixiHomePage() {
                 transition={{ duration: 0.4 }}
               />
 
-              {/* نقاط ضوئية متطايرة لما تقف بالماوس */}
               <AnimatePresence>
                 {activeBook === book.id && (
                   <>
@@ -616,7 +624,6 @@ export default function PixiHomePage() {
                 )}
               </AnimatePresence>
 
-              {/* 📖 صورة الكتاب */}
               <motion.div
                 className="relative w-full h-56 flex items-center justify-center mb-5 z-10"
                 animate={{
@@ -624,10 +631,6 @@ export default function PixiHomePage() {
                 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
-                
-
-
-
                 <motion.img
                   src={book.img}
                   alt={book.title}
@@ -645,7 +648,6 @@ export default function PixiHomePage() {
                   transition={{ duration: 0.6 }}
                 />
 
-                {/* عدد الطلاب */}
                 <motion.div
                   className="absolute -top-2 right-1/2 translate-x-1/2 z-20"
                   animate={{
@@ -668,14 +670,12 @@ export default function PixiHomePage() {
                 </motion.div>
               </motion.div>
 
-              {/* معلومات الكتاب */}
               <motion.div
                 className="text-center space-y-2 relative z-10"
                 animate={{
                   y: activeBook === book.id ? -10 : 0,
                 }}
               >
-                {/* العلم */}
                 <motion.div
                   className="text-3xl mb-1"
                   animate={{
@@ -687,7 +687,6 @@ export default function PixiHomePage() {
                   {book.flag}
                 </motion.div>
 
-                {/* الاسم */}
                 <motion.h3
                   className="text-sm font-black transition-colors duration-300"
                   style={{
@@ -698,7 +697,6 @@ export default function PixiHomePage() {
                   {book.title}
                 </motion.h3>
 
-                {/* الوصف */}
                 <motion.p
                   className="text-[10px] text-gray-300 font-medium px-2"
                   animate={{
@@ -708,7 +706,6 @@ export default function PixiHomePage() {
                   {book.desc}
                 </motion.p>
 
-                {/* الزرار */}
                 <motion.div
                   className="overflow-hidden pt-2"
                   animate={{
@@ -734,12 +731,12 @@ export default function PixiHomePage() {
                     {book.available ? (
                       <>
                         <Sparkles size={12} />
-                        {'ابدأ التعلم'}
+                        ابدأ التعلم
                       </>
                     ) : (
                       <>
                         <span>🔔</span>
-                        {'اعرف موعد النزول'}
+                        اعرف موعد النزول
                       </>
                     )}
                   </motion.button>
@@ -760,10 +757,10 @@ export default function PixiHomePage() {
         >
           <div className="inline-flex items-center gap-2 bg-[#FFD700]/20 border border-[#FFD700]/30 px-4 py-1.5 rounded-full text-xs font-bold text-[#fde047] backdrop-blur-sm">
             <Heart size={14} />
-            {'آراء الأهالي'}
+            آراء الأهالي
           </div>
           <h2 className="text-3xl md:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
-            {'ايه رأي أهالي الأبطال؟'}
+            ايه رأي أهالي الأبطال؟
           </h2>
         </motion.div>
 
@@ -780,7 +777,7 @@ export default function PixiHomePage() {
               <div className="w-full max-w-xl mx-auto p-8 rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.03] border border-white/[0.15] text-center space-y-4 backdrop-blur-md shadow-2xl">
                 <div className="text-4xl">{testimonials[currentTestimonial].avatar}</div>
                 <p className="text-white/90 text-base font-medium leading-relaxed">
-                  {`"${testimonials[currentTestimonial].text}"`}
+                  &quot;{testimonials[currentTestimonial].text}&quot;
                 </p>
                 <div>
                   <div className="font-black text-sm text-white">{testimonials[currentTestimonial].name}</div>
@@ -834,10 +831,10 @@ export default function PixiHomePage() {
               🚀
             </motion.div>
             <h2 className="text-3xl md:text-4xl font-black text-white drop-shadow-lg">
-              {'جاهز تبدأ المغامرة؟'}
+              جاهز تبدأ المغامرة؟
             </h2>
             <p className="text-white/90 text-sm md:text-base max-w-md mx-auto font-medium">
-              {'سجل مجاناً دلوقتي وخلي طفلك يبدأ رحلة تعلم اللغات بأسلوب ممتع ومختلف!'}
+              سجل مجاناً دلوقتي وخلي طفلك يبدأ رحلة تعلم اللغات بأسلوب ممتع ومختلف!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-2">
               <motion.button
@@ -847,7 +844,7 @@ export default function PixiHomePage() {
                 className="bg-white text-[#F72585] px-10 py-4 rounded-2xl font-black text-base shadow-2xl flex items-center gap-3"
               >
                 <GraduationCap size={20} />
-                {'ابدأ مجاناً الآن'}
+                ابدأ مجاناً الآن
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -855,7 +852,7 @@ export default function PixiHomePage() {
                 className="bg-white/15 border border-white/30 backdrop-blur-sm text-white px-8 py-4 rounded-2xl font-black text-sm flex items-center gap-2"
               >
                 <Play size={16} />
-                {'شاهد الفيديو التعريفي'}
+                شاهد الفيديو التعريفي
               </motion.button>
             </div>
           </div>
@@ -872,7 +869,7 @@ export default function PixiHomePage() {
                 <span className="text-xl font-black">PIXA WORLD</span>
               </div>
               <p className="text-gray-300 text-sm leading-relaxed max-w-sm">
-                {'منصة تعليمية تفاعلية تحول تعلم اللغات لمغامرة مثيرة للأطفال من 6-11 سنة. 5 لغات عالمية بأسلوب ألعاب مبتكر.'}
+                منصة تعليمية تفاعلية تحول تعلم اللغات لمغامرة مثيرة للأطفال من 6-11 سنة. 5 لغات عالمية بأسلوب ألعاب مبتكر.
               </p>
               <div className="flex gap-3">
                 {['🐦', '📘', '📸', '🎵'].map((icon, i) => (
@@ -888,7 +885,7 @@ export default function PixiHomePage() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-black text-sm text-white">{'روابط سريعة'}</h4>
+              <h4 className="font-black text-sm text-white">روابط سريعة</h4>
               {['عن بيكسا وورلد', 'المنهج التعليمي', 'الأسعار', 'تواصل معنا'].map((link, i) => (
                 <a key={i} href="#" className="block text-gray-300 text-sm hover:text-[#4CC9F0] transition-colors font-medium">
                   {link}
@@ -897,7 +894,7 @@ export default function PixiHomePage() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-black text-sm text-white">{'اللغات المتاحة'}</h4>
+              <h4 className="font-black text-sm text-white">اللغات المتاحة</h4>
               {BOOKS_DATA.map((book) => (
                 <a 
                   key={book.id} 
@@ -913,11 +910,11 @@ export default function PixiHomePage() {
 
           <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-[11px] text-gray-400 font-bold">
-              {'© '}{new Date().getFullYear()}{' بيكسا وورلد. جميع الحقوق محفوظة 🎮✨'}
+              © {new Date().getFullYear()} بيكسا وورلد. جميع الحقوق محفوظة 🎮✨
             </p>
             <div className="flex gap-6 text-[11px] text-gray-400 font-bold">
-              <a href="#" className="hover:text-white transition-colors">{'سياسة الخصوصية'}</a>
-              <a href="#" className="hover:text-white transition-colors">{'شروط الاستخدام'}</a>
+              <a href="#" className="hover:text-white transition-colors">سياسة الخصوصية</a>
+              <a href="#" className="hover:text-white transition-colors">شروط الاستخدام</a>
             </div>
           </div>
         </div>
