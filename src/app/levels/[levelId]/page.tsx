@@ -561,8 +561,8 @@ export default function LevelPage() {
         <div className="text-center">
           <div className="text-6xl mb-4">🗺️</div>
           <p className="font-black text-xl">المنطقة دي جاية قريباً!</p>
-          <button onClick={() => router.push('/character-and-map')}
-            className="mt-4 px-6 py-3 bg-white/10 rounded-2xl font-bold">الخريطة</button>
+          <button onClick={() => router.push('/character-and-map?from=lesson')}
+  className="mt-4 px-6 py-3 bg-white/10 rounded-2xl font-bold">الخريطة</button>
         </div>
       </div>
     );
@@ -573,8 +573,8 @@ export default function LevelPage() {
       <div className="min-h-screen bg-[#07090D] text-white" style={{ fontFamily: "'Tajawal', sans-serif" }}>
         <div className="fixed top-0 left-0 right-0 z-30 px-4 pt-4 pb-3"
           style={{ background: 'linear-gradient(to bottom, rgba(7,9,13,1), transparent)' }}>
-          <button onClick={() => router.push('/character-and-map')}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 text-white">
+          <button onClick={() => router.push('/character-and-map?from=lesson')}
+  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border bo border-white/10 text-white">
             <ArrowLeft size={20} />
           </button>
         </div>

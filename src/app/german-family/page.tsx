@@ -1,127 +1,36 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Volume2, Star, Check, X, Trophy, RotateCcw, Sparkles, Flame } from 'lucide-react';
+import { ArrowLeft, Volume2, Star, Check, X, Trophy, RotateCcw, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { saveLessonProgress, getLessonProgress } from '@/lib/playerData';
 
-// ═══════════════════════════════════════
-// البيانات - 3 مجموعات
-// ═══════════════════════════════════════
-const GREETINGS = [
-  { word: 'Hallo',           wordAr: 'مرحباً',             emoji: '👋', color: '#FF6B6B', gradient: ['#FF6B6B', '#FF8E53'] },
-  { word: 'Guten Morgen',    wordAr: 'صباح الخير',         emoji: '🌅', color: '#4ECDC4', gradient: ['#4ECDC4', '#44A08D'] },
-  { word: 'Guten Tag',       wordAr: 'نهارك سعيد',         emoji: '☀️', color: '#45B7D1', gradient: ['#45B7D1', '#2980B9'] },
-  { word: 'Gute Nacht',      wordAr: 'تصبح على خير',       emoji: '🌙', color: '#96CEB4', gradient: ['#96CEB4', '#5FB385'] },
-  { word: 'Tschüss',         wordAr: 'مع السلامة',         emoji: '👋', color: '#FFEAA7', gradient: ['#FFEAA7', '#FDCB6E'] },
-  { word: 'Auf Wiedersehen', wordAr: 'إلى اللقاء',         emoji: '🤝', color: '#DDA0DD', gradient: ['#DDA0DD', '#B97FBA'] },
-];
+// 🎯 المكونات المشتركة
+import KarlEagle from '@/app/components/lesson/KarlEagle';
+import GhostInput from '@/app/components/lesson/GhostInput';
+import ConfettiBurst from '@/app/components/lesson/ConfettiBurst';
+import ComboDisplay from '@/app/components/lesson/ComboDisplay';
+import FlyingStars, { type FlyingStar } from '@/app/components/lesson/FlyingStars';
+import SoundButton from '@/app/components/lesson/SoundButton';
+import SpecialCharsKeyboard, { getRequiredSpecialChars } from '@/app/components/lesson/SpecialCharsKeyboard';
 
-const INTRODUCTIONS = [
-  { word: 'Ich bin Ali',           wordAr: 'أنا اسمي علي',          emoji: '😊', color: '#F0A500', gradient: ['#F0A500', '#D17F00'] },
-  { word: 'Wie heißt du',          wordAr: 'ما اسمك',               emoji: '❓', color: '#FF7675', gradient: ['#FF7675', '#E84545'] },
-  { word: 'Woher kommst du',       wordAr: 'من أين أنت',            emoji: '🌍', color: '#A29BFE', gradient: ['#A29BFE', '#6C5CE7'] },
-  { word: 'Ich komme aus Ägypten', wordAr: 'أنا من مصر',            emoji: '🇪🇬', color: '#FD79A8', gradient: ['#FD79A8', '#E84393'] },
-  { word: 'Wie geht es dir',       wordAr: 'كيف حالك',              emoji: '💬', color: '#55EFC4', gradient: ['#55EFC4', '#00B894'] },
-  { word: 'Mir geht es gut',       wordAr: 'أنا بخير',              emoji: '😄', color: '#FDCB6E', gradient: ['#FDCB6E', '#E17055'] },
-];
+// 🎯 الأنواع والرسائل المشتركة
+import type { KarlMood } from '@/lib/types/lesson';
+import { ENCOURAGEMENTS, SAD_MESSAGES } from '@/lib/types/lesson';
 
-const FAMILY = [
-  { word: 'die Familie',     wordAr: 'العائلة',            emoji: '👨‍👩‍👧‍👦', color: '#74B9FF', gradient: ['#74B9FF', '#0984E3'] },
-  { word: 'der Vater',       wordAr: 'الأب',               emoji: '👨', color: '#FF9FF3', gradient: ['#FF9FF3', '#F368E0'] },
-  { word: 'die Mutter',      wordAr: 'الأم',               emoji: '👩', color: '#00CEC9', gradient: ['#00CEC9', '#00B0AF'] },
-  { word: 'der Bruder',      wordAr: 'الأخ',               emoji: '👦', color: '#6C5CE7', gradient: ['#6C5CE7', '#4834D4'] },
-  { word: 'die Schwester',   wordAr: 'الأخت',              emoji: '👧', color: '#E17055', gradient: ['#E17055', '#D63031'] },
-  { word: 'das Baby',        wordAr: 'الطفل الصغير',       emoji: '👶', color: '#0984E3', gradient: ['#0984E3', '#0652DD'] },
-  { word: 'die Großmutter',  wordAr: 'الجدة',              emoji: '👵', color: '#A29BFE', gradient: ['#A29BFE', '#5F27CD'] },
-  { word: 'der Großvater',   wordAr: 'الجد',               emoji: '👴', color: '#55EFC4', gradient: ['#55EFC4', '#10AC84'] },
-];
+// 🎯 الأصوات والنطق المشتركة
+import { playCoinSound, playBuzzSound, playComboSound } from '@/lib/audio/sounds';
+import { speakWord } from '@/lib/audio/speech';
 
-const GROUPS = [
-  { items: GREETINGS,     title: 'التحيات',     groupId: 0, icon: '👋' },
-  { items: INTRODUCTIONS, title: 'عرّف بنفسك',  groupId: 1, icon: '😊' },
-  { items: FAMILY,        title: 'العائلة',     groupId: 2, icon: '👨‍👩‍👧' },
-];
-
-const ALL_SPECIAL_CHARS = ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'];
-
-function getRequiredSpecialChars(word: string): string[] {
-  const found = new Set<string>();
-  for (const char of word) {
-    if (ALL_SPECIAL_CHARS.includes(char)) {
-      found.add(char.toLowerCase());
-      const upper = char.toUpperCase();
-      if (upper !== char.toLowerCase()) found.add(upper);
-    }
-  }
-  return Array.from(found);
-}
+// 📦 البيانات من الملفات المنفصلة
+import { FAMILY_GROUPS, type FamilyWord } from '@/data/german/family';
 
 function compareWords(input: string, target: string): boolean {
   return input.trim().toLowerCase() === target.toLowerCase();
 }
 
 // ═══════════════════════════════════════
-// أصوات
-// ═══════════════════════════════════════
-function speakWord(word: string) {
-  if (typeof window === 'undefined') return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(word);
-  u.lang = 'de-DE'; u.rate = 0.7; u.pitch = 1.1;
-  window.speechSynthesis.speak(u);
-}
-
-function playCoinSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [0, 0.1, 0.2].forEach((t, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(880 + i * 220, ctx.currentTime + t);
-      osc.frequency.exponentialRampToValueAtTime(1760 + i * 220, ctx.currentTime + t + 0.08);
-      gain.gain.setValueAtTime(0.18, ctx.currentTime + t);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.18);
-      osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.2);
-    });
-  } catch {}
-}
-
-function playBuzzSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
-  } catch {}
-}
-
-function playComboSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [523, 659, 784, 1047].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.08);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.3);
-      osc.start(ctx.currentTime + i * 0.08); osc.stop(ctx.currentTime + i * 0.08 + 0.3);
-    });
-  } catch {}
-}
-
-// ═══════════════════════════════════════
-// خلفية بوابة براندنبورغ الليلية ✅ (مع حل Hydration)
+// خلفية بوابة براندنبورغ
 // ═══════════════════════════════════════
 function BrandenburgBackground({ activeColor }: { activeColor: string }) {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number; xOffset: number }>>([]);
@@ -227,164 +136,9 @@ function BrandenburgBackground({ activeColor }: { activeColor: string }) {
 }
 
 // ═══════════════════════════════════════
-// Confetti
+// Hero Word Display
 // ═══════════════════════════════════════
-function ConfettiBurst({ trigger, x, y, colors }: { trigger: number; x: number; y: number; colors: string[] }) {
-  const [particles, setParticles] = useState<Array<{ id: number; angle: number; distance: number; color: string; size: number; rotation: number; isCircle: boolean }>>([]);
-
-  useEffect(() => {
-    if (trigger === 0) return;
-    const newParticles = Array.from({ length: 30 }, (_, i) => ({
-      id: Date.now() + i,
-      angle: (Math.PI * 2 * i) / 30 + Math.random() * 0.3,
-      distance: 80 + Math.random() * 120,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      size: 6 + Math.random() * 8,
-      rotation: Math.random() * 720,
-      isCircle: Math.random() > 0.5,
-    }));
-    setParticles(newParticles);
-    const t = setTimeout(() => setParticles([]), 1500);
-    return () => clearTimeout(t);
-  }, [trigger]);
-
-  return (
-    <div className="fixed pointer-events-none" style={{ left: x, top: y, zIndex: 9998 }}>
-      <AnimatePresence>
-        {particles.map(p => (
-          <motion.div
-            key={p.id}
-            initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
-            animate={{
-              x: Math.cos(p.angle) * p.distance,
-              y: Math.sin(p.angle) * p.distance,
-              scale: 0,
-              opacity: 0,
-              rotate: p.rotation,
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: [0.2, 0.8, 0.4, 1] }}
-            className="absolute"
-            style={{
-              width: p.size,
-              height: p.size,
-              background: p.color,
-              borderRadius: p.isCircle ? '50%' : '2px',
-              boxShadow: `0 0 ${p.size}px ${p.color}99`,
-            }}
-          />
-        ))}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// كارل النسر
-// ═══════════════════════════════════════
-type KarlMood = 'idle' | 'happy' | 'sad' | 'celebrate';
-
-const ENCOURAGEMENTS = [
-  { de: 'Super!', ar: 'ممتاز!' }, { de: 'Toll!', ar: 'رائع!' },
-  { de: 'Wunderbar!', ar: 'مدهش!' }, { de: 'Klasse!', ar: 'تحفة!' },
-  { de: 'Bravo!', ar: 'برافو!' }, { de: 'Sehr gut!', ar: 'ممتاز جداً!' },
-  { de: 'Genial!', ar: 'عبقري!' }, { de: 'Fantastisch!', ar: 'خيالي!' },
-];
-
-const SAD_MESSAGES = [
-  { de: 'Versuch nochmal!', ar: 'جرب تاني!' },
-  { de: 'Du schaffst das!', ar: 'تقدر تعملها!' },
-  { de: 'Keine Sorge!', ar: 'متقلقش!' },
-];
-
-function KarlEagle({ mood, message }: { mood: KarlMood; message: { de: string; ar: string } | null }) {
-  return (
-    <div className="fixed pointer-events-none" style={{ zIndex: 50, bottom: 20, right: 20 }}>
-      <motion.div
-        animate={
-          mood === 'celebrate'
-            ? { y: [-12, 0, -12], rotate: [-15, 15, -15], scale: [1, 1.15, 1] }
-            : mood === 'happy'
-            ? { y: [-8, 0, -8], rotate: [-8, 8, -8] }
-            : mood === 'sad'
-            ? { y: [0, -3, 0], rotate: [-3, 3, -3] }
-            : { y: [-4, 4, -4] }
-        }
-        transition={{ duration: mood === 'celebrate' ? 0.5 : mood === 'happy' ? 0.8 : 2.5, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <div className="relative">
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: mood === 'celebrate' ? 'radial-gradient(circle, #FFD70066, transparent 70%)'
-                : mood === 'happy' ? 'radial-gradient(circle, #58CC0266, transparent 70%)'
-                : mood === 'sad' ? 'radial-gradient(circle, #FF6B6B44, transparent 70%)'
-                : 'radial-gradient(circle, #4CC9F044, transparent 70%)',
-              filter: 'blur(15px)',
-              transform: 'scale(1.5)',
-            }}
-            animate={{ scale: [1.4, 1.7, 1.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-          <img
-            src="/characters/karl-3d.png"
-            alt="كارل"
-            style={{
-              width: 'clamp(85px, 9vw, 130px)',
-              height: 'clamp(85px, 9vw, 130px)',
-              objectFit: 'contain',
-              position: 'relative',
-              zIndex: 1,
-              filter: mood === 'celebrate'
-                ? 'drop-shadow(0 8px 20px rgba(255,215,0,0.8))'
-                : mood === 'happy'
-                ? 'drop-shadow(0 6px 16px rgba(88,204,2,0.7))'
-                : mood === 'sad'
-                ? 'drop-shadow(0 4px 12px rgba(255,107,107,0.5)) saturate(0.6)'
-                : 'drop-shadow(0 6px 14px rgba(76,201,240,0.5))',
-              transition: 'filter 0.4s ease',
-            }}
-            draggable={false}
-          />
-
-          <AnimatePresence>
-            {message && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.6, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.6, y: 10 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                className="absolute whitespace-nowrap"
-                style={{ bottom: '100%', right: '50%', transform: 'translateX(50%)', marginBottom: 12 }}
-              >
-                <div className="px-4 py-2.5 rounded-2xl shadow-2xl border-2 backdrop-blur-md"
-                  style={{
-                    background: mood === 'celebrate' || mood === 'happy'
-                      ? 'linear-gradient(135deg, rgba(88,204,2,0.95), rgba(76,201,240,0.95))'
-                      : 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(247,37,133,0.95))',
-                    borderColor: 'rgba(255,255,255,0.4)',
-                  }}>
-                  <div className="text-base font-black text-white text-center leading-tight">{message.de}</div>
-                  <div className="text-xs font-bold text-white/90 text-center mt-0.5">{message.ar}</div>
-                </div>
-                <div className="w-0 h-0 mx-auto" style={{
-                  borderLeft: '6px solid transparent',
-                  borderRight: '6px solid transparent',
-                  borderTop: `6px solid ${mood === 'celebrate' || mood === 'happy' ? 'rgba(88,204,2,0.95)' : 'rgba(255,107,107,0.95)'}`,
-                }} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// Hero Word Display ✅ (مع حل Hydration)
-// ═══════════════════════════════════════
-function HeroWordDisplay({ itemData }: { itemData: typeof GREETINGS[0] }) {
+function HeroWordDisplay({ itemData }: { itemData: FamilyWord }) {
   const [sparkles, setSparkles] = useState<Array<{ top: number; left: number; delay: number }>>([]);
 
   useEffect(() => {
@@ -485,141 +239,14 @@ function HeroWordDisplay({ itemData }: { itemData: typeof GREETINGS[0] }) {
 }
 
 // ═══════════════════════════════════════
-// Combo Display
-// ═══════════════════════════════════════
-function ComboDisplay({ combo }: { combo: number }) {
-  if (combo < 2) return null;
-  return (
-    <AnimatePresence>
-      <motion.div
-        key={combo}
-        initial={{ scale: 0, y: 20, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        exit={{ scale: 0, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-        className="fixed top-32 left-1/2 transform -translate-x-1/2 z-40"
-      >
-        <div className="flex items-center gap-2 px-4 py-2 rounded-2xl backdrop-blur-md border-2 shadow-2xl"
-          style={{
-            background: combo >= 5 ? 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(255,165,0,0.95))'
-              : 'linear-gradient(135deg, rgba(255,215,0,0.95), rgba(255,165,0,0.95))',
-            borderColor: 'rgba(255,255,255,0.4)',
-            boxShadow: '0 8px 32px rgba(255,165,0,0.5)',
-          }}
-        >
-          <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 0.5, repeat: Infinity }}>
-            <Flame size={20} className="text-white" fill="white" />
-          </motion.div>
-          <span className="font-black text-white text-base">
-            {combo >= 5 ? `🔥 On Fire! x${combo}` : `Combo x${combo}!`}
-          </span>
-        </div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-// ═══════════════════════════════════════
-// Special Chars Keyboard
-// ═══════════════════════════════════════
-function SpecialCharsKeyboard({ chars, onChar, color }: { chars: string[]; onChar: (c: string) => void; color: string }) {
-  if (chars.length === 0) return null;
-  return (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2 justify-center flex-wrap">
-      {chars.map(c => (
-        <motion.button
-          key={c}
-          whileTap={{ scale: 0.85 }}
-          whileHover={{ scale: 1.08, y: -2 }}
-          onMouseDown={e => { e.preventDefault(); onChar(c); }}
-          className="w-12 h-12 rounded-2xl font-black text-2xl border-2 transition-all select-none"
-          style={{
-            borderColor: color,
-            background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-            color: 'white',
-            boxShadow: `0 4px 16px ${color}55, inset 0 1px 0 ${color}66`,
-            textShadow: `0 0 12px ${color}aa`,
-            backdropFilter: 'blur(10px)',
-          }}
-        >
-          {c}
-        </motion.button>
-      ))}
-    </motion.div>
-  );
-}
-
-// ═══════════════════════════════════════
-// Sound Button
-// ═══════════════════════════════════════
-function SoundButton({ onClick, color, label }: { onClick: () => void; color: string; label: string }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const handleClick = () => {
-    setIsPlaying(true);
-    onClick();
-    setTimeout(() => setIsPlaying(false), 1500);
-  };
-
-  return (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
-      whileHover={{ scale: 1.03 }}
-      onClick={handleClick}
-      className="relative flex items-center gap-3 px-6 py-3.5 rounded-2xl font-black text-base border-2 transition-all overflow-hidden"
-      style={{
-        color: 'white',
-        borderColor: color,
-        background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-        boxShadow: `0 4px 20px ${color}44, inset 0 1px 0 ${color}66`,
-        backdropFilter: 'blur(10px)',
-      }}
-    >
-      {isPlaying && (
-        <>
-          {[0, 0.2, 0.4].map((delay, i) => (
-            <motion.div
-              key={i}
-              className="absolute inset-0 rounded-2xl border-2 pointer-events-none"
-              style={{ borderColor: color }}
-              initial={{ scale: 1, opacity: 0.8 }}
-              animate={{ scale: 1.4, opacity: 0 }}
-              transition={{ duration: 1, delay, ease: 'easeOut' }}
-            />
-          ))}
-        </>
-      )}
-
-      <motion.div animate={isPlaying ? { rotate: [0, -10, 10, 0] } : {}} transition={{ duration: 0.4, repeat: 3 }}>
-        <Volume2 size={20} />
-      </motion.div>
-
-      {isPlaying && (
-        <div className="flex items-center gap-0.5">
-          {[0, 0.1, 0.2, 0.3].map((delay, i) => (
-            <motion.div
-              key={i}
-              className="w-0.5 rounded-full"
-              style={{ background: 'white' }}
-              animate={{ height: [4, 16, 4] }}
-              transition={{ duration: 0.5, repeat: Infinity, delay }}
-            />
-          ))}
-        </div>
-      )}
-
-      {label}
-    </motion.button>
-  );
-}// ═══════════════════════════════════════
 // PHASE 1 — تعلم الكلمة
 // ═══════════════════════════════════════
-function LearnWordPhase({ itemData, onDone, onKarlReact, onCombo, combo }: {
-  itemData: typeof GREETINGS[0];
+function LearnWordPhase({ itemData, onDone, onKarlReact, onCombo, onStarEarned }: {
+  itemData: FamilyWord;
   onDone: () => void;
   onKarlReact: (mood: KarlMood) => void;
   onCombo: () => void;
-  combo: number;
+  onStarEarned: (x: number, y: number) => void;
 }) {
   const [input, setInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
@@ -629,6 +256,8 @@ function LearnWordPhase({ itemData, onDone, onKarlReact, onCombo, combo }: {
   const requiredChars = getRequiredSpecialChars(itemData.word);
 
   useEffect(() => {
+    setInput('');
+    setStatus('idle');
     const t = setTimeout(() => speakWord(itemData.word), 400);
     return () => clearTimeout(t);
   }, [itemData.word]);
@@ -640,12 +269,17 @@ function LearnWordPhase({ itemData, onDone, onKarlReact, onCombo, combo }: {
       playCoinSound();
       onCombo();
       onKarlReact('happy');
+      let starX = 0, starY = 0;
       if (e) {
-        setConfettiPos({ x: e.clientX, y: e.clientY });
+        starX = e.clientX;
+        starY = e.clientY;
       } else if (inputRef.current) {
         const r = inputRef.current.getBoundingClientRect();
-        setConfettiPos({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+        starX = r.left + r.width / 2;
+        starY = r.top + r.height / 2;
       }
+      onStarEarned(starX, starY);
+      setConfettiPos({ x: starX, y: starY });
       setConfettiTrigger(t => t + 1);
       setTimeout(onDone, 1100);
     } else {
@@ -699,24 +333,15 @@ function LearnWordPhase({ itemData, onDone, onKarlReact, onCombo, combo }: {
               <div className="text-2xl font-black text-white">اكتب الكلمة</div>
             </div>
 
-            <input
+            <GhostInput
               ref={inputRef}
-              type="text"
               value={input}
-              onChange={e => { setInput(e.target.value); setStatus('idle'); }}
-              onKeyDown={e => e.key === 'Enter' && input && handleCheck()}
-              placeholder={itemData.word}
-              autoFocus
-              className="w-full text-center font-black py-4 rounded-2xl border-2 outline-none transition-all text-white placeholder:text-white/15"
-              style={{
-                fontSize: '1.4rem',
-                background: 'rgba(255,255,255,0.03)',
-                backdropFilter: 'blur(10px)',
-                borderColor: status === 'correct' ? '#58CC02' : status === 'wrong' ? '#FF4444' : `${itemData.color}55`,
-                boxShadow: status === 'correct' ? '0 0 30px #58CC0266'
-                  : status === 'wrong' ? '0 0 30px #FF444466'
-                  : `inset 0 1px 0 ${itemData.color}33, 0 8px 30px ${itemData.color}22`,
-              }}
+              onChange={v => { setInput(v); setStatus('idle'); }}
+              onEnter={handleCheck}
+              ghostText={itemData.word}
+              color={itemData.color}
+              status={status}
+              fontSize="1.4rem"
             />
 
             {requiredChars.length > 0 && (
@@ -762,7 +387,7 @@ function LearnWordPhase({ itemData, onDone, onKarlReact, onCombo, combo }: {
 }
 
 // ═══════════════════════════════════════
-// QUIZ Phase — اختيار من متعدد
+// QUIZ Phase
 // ═══════════════════════════════════════
 interface QuizQuestion {
   question: string;
@@ -773,7 +398,7 @@ interface QuizQuestion {
   gradient: string[];
 }
 
-function generateQuizQuestions(items: typeof GREETINGS): QuizQuestion[] {
+function generateQuizQuestions(items: FamilyWord[]): QuizQuestion[] {
   const questions: QuizQuestion[] = [];
 
   for (const item of items) {
@@ -799,7 +424,7 @@ function generateQuizQuestions(items: typeof GREETINGS): QuizQuestion[] {
 }
 
 function QuizPhase({ items, totalStars, onPass, onFail, onStarEarned, onKarlReact, onCombo }: {
-  items: typeof GREETINGS;
+  items: FamilyWord[];
   totalStars: number;
   onPass: () => void;
   onFail: () => void;
@@ -1078,23 +703,54 @@ function FailScreen({ onRetry }: { onRetry: () => void }) {
 // ═══════════════════════════════════════
 type Phase = 'learn-word' | 'quiz' | 'group-success' | 'group-fail' | 'all-done';
 
-interface FlyingStar { id: number; x: number; y: number; }
-
 export default function GermanFamilyPage() {
   const router = useRouter();
   const [groupIdx, setGroupIdx] = useState(0);
   const [itemIdx, setItemIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>('learn-word');
   const [totalStars, setTotalStars] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const LESSON_ID = 'berlin';
+
+  // إجمالي العناصر
+  const totalItemsAll = FAMILY_GROUPS.reduce((sum, g) => sum + g.items.length, 0);
+
+  // 📥 جلب التقدم + استرجاع المكان
+  useEffect(() => {
+    const loadProgress = async () => {
+      const progress = await getLessonProgress(LESSON_ID);
+      if (progress) {
+        setTotalStars(progress.stars);
+        
+        if (!progress.completed) {
+          if (progress.current_group !== undefined && progress.current_group !== null) {
+            setGroupIdx(progress.current_group);
+          }
+          if (progress.current_letter !== undefined && progress.current_letter !== null) {
+            setItemIdx(progress.current_letter);
+          }
+          if (progress.current_phase) {
+            setPhase(progress.current_phase as Phase);
+          }
+          console.log(`📍 الرجوع لمكانك: مجموعة ${progress.current_group}, عنصر ${progress.current_letter}, مرحلة ${progress.current_phase}`);
+        }
+        
+        console.log('✅ تم تحميل التقدم:', progress);
+      }
+      setIsLoading(false);
+    };
+    loadProgress();
+  }, []);
+
   const [flyingStars, setFlyingStars] = useState<FlyingStar[]>([]);
   const [karlMood, setKarlMood] = useState<KarlMood>('idle');
   const [karlMessage, setKarlMessage] = useState<{ de: string; ar: string } | null>(null);
   const [combo, setCombo] = useState(0);
 
-  const group = GROUPS[groupIdx];
+  const group = FAMILY_GROUPS[groupIdx];
   const itemData = group?.items[itemIdx];
-  const totalItemsLearned = GROUPS.slice(0, groupIdx).reduce((sum, g) => sum + g.items.length, 0) + itemIdx;
-  const totalItems = GROUPS.reduce((sum, g) => sum + g.items.length, 0);
+  const totalItemsLearned = FAMILY_GROUPS.slice(0, groupIdx).reduce((sum, g) => sum + g.items.length, 0) + itemIdx;
+  const totalItems = totalItemsAll;
 
   const handleKarlReact = (mood: KarlMood) => {
     setKarlMood(mood);
@@ -1116,24 +772,57 @@ export default function GermanFamilyPage() {
 
   const resetCombo = () => setCombo(0);
 
+  // 🎯 حساب التقييم من 3
+  const calculateRating = (starsCount: number): number => {
+    const totalPossibleStars = totalItemsAll * 2;
+    const progressRatio = starsCount / totalPossibleStars;
+    if (progressRatio >= 0.67) return 3;
+    if (progressRatio >= 0.34) return 2;
+    return 1;
+  };
+
+  // 💾 حفظ المكان
+  const savePosition = (newGroup: number, newItem: number, newPhase: Phase, starsToSave?: number) => {
+    const stars = starsToSave !== undefined ? starsToSave : totalStars;
+    const rating = calculateRating(stars);
+    saveLessonProgress(LESSON_ID, rating, false, {
+      current_group: newGroup,
+      current_letter: newItem,
+      current_phase: newPhase,
+    }).then(() => {
+      console.log(`📍 تم حفظ المكان: G${newGroup} I${newItem} ${newPhase} | نجوم: ${stars} → تقييم: ${rating}/3`);
+    });
+  };
+
   const handleWordDone = () => {
     const nextIdx = itemIdx + 1;
     if (nextIdx < group.items.length) {
       setItemIdx(nextIdx);
       setPhase('learn-word');
+      savePosition(groupIdx, nextIdx, 'learn-word');
     } else {
       setPhase('quiz');
+      savePosition(groupIdx, itemIdx, 'quiz');
     }
   };
 
-  const handleQuizPass = () => setPhase('group-success');
-  const handleQuizFail = () => { resetCombo(); setPhase('group-fail'); };
+  const handleQuizPass = () => {
+    setPhase('group-success');
+    savePosition(groupIdx, itemIdx, 'group-success');
+  };
+  
+  const handleQuizFail = () => {
+    resetCombo();
+    setPhase('group-fail');
+  };
 
   const handleGroupNext = () => {
-    if (groupIdx + 1 < GROUPS.length) {
-      setGroupIdx(i => i + 1);
+    if (groupIdx + 1 < FAMILY_GROUPS.length) {
+      const newGroupIdx = groupIdx + 1;
+      setGroupIdx(newGroupIdx);
       setItemIdx(0);
       setPhase('learn-word');
+      savePosition(newGroupIdx, 0, 'learn-word');
     } else {
       setPhase('all-done');
     }
@@ -1142,14 +831,38 @@ export default function GermanFamilyPage() {
   const handleRetry = () => {
     setItemIdx(0);
     setPhase('learn-word');
+    savePosition(groupIdx, 0, 'learn-word');
   };
 
   const handleStarEarned = (clientX: number, clientY: number) => {
     const id = Date.now() + Math.random();
-    setTotalStars(s => s + 1);
+    setTotalStars(s => {
+      const newCount = s + 1;
+      const rating = calculateRating(newCount);
+      saveLessonProgress(LESSON_ID, rating, false, {
+        current_group: groupIdx,
+        current_letter: itemIdx,
+        current_phase: phase,
+      }).then(() => {
+        console.log(`⭐ تقدمك: ${newCount}/${totalItemsAll * 2} → تقييم: ${rating}/3`);
+      });
+      return newCount;
+    });
     setFlyingStars(prev => [...prev, { id, x: clientX, y: clientY }]);
     setTimeout(() => setFlyingStars(prev => prev.filter(s => s.id !== id)), 1000);
   };
+
+  // 🆕 شاشة تحميل
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#050210]">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">🏛️</div>
+          <p className="text-white font-bold">جاري تحميل تقدمك...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!group || !itemData) return null;
 
@@ -1163,34 +876,18 @@ export default function GermanFamilyPage() {
   return (
     <div className="min-h-screen text-white relative" style={{ fontFamily: "'Tajawal', sans-serif" }} dir="rtl">
       <BrandenburgBackground activeColor={activeColor} />
-      <KarlEagle mood={karlMood} message={karlMessage} />
+      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#FFD700" />
       <ComboDisplay combo={combo} />
-
-      <div className="fixed inset-0 pointer-events-none z-[9999]">
-        <AnimatePresence>
-          {flyingStars.map(star => (
-            <motion.div key={star.id}
-              initial={{ x: star.x - 20, y: star.y - 20, scale: 1.4, opacity: 1 }}
-              animate={{ x: star.x - 20, y: star.y - 150, scale: 0.2, opacity: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.9, ease: [0.2, 0.8, 0.4, 1] }}
-              style={{ position: 'absolute', top: 0, left: 0 }}>
-              <svg width="40" height="40" viewBox="0 0 40 40">
-                <polygon points="20,2 24.9,14.5 38.5,14.5 27.8,22.3 31.7,35.5 20,27.5 8.3,35.5 12.2,22.3 1.5,14.5 15.1,14.5"
-                  fill="#FFD700" stroke="#FFA500" strokeWidth="1" />
-              </svg>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+      <FlyingStars stars={flyingStars} />
 
       <div className="fixed top-0 left-0 right-0 z-30 px-4 pt-4 pb-3"
         style={{ background: 'linear-gradient(to bottom, rgba(2,5,15,0.95) 70%, transparent)' }}>
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
-            <button onClick={() => router.back()}
-              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md"
-              style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <button onClick={() => router.push('/character-and-map?from=lesson')}
+              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md hover:bg-white/10"
+              style={{ background: 'rgba(255,255,255,0.05)' }}
+              title="ارجع للخريطة (تقدمك محفوظ)">
               <ArrowLeft size={20} />
             </button>
             <div className="flex-1">
@@ -1258,7 +955,7 @@ export default function GermanFamilyPage() {
               onDone={handleWordDone}
               onKarlReact={handleKarlReact}
               onCombo={handleCombo}
-              combo={combo}
+              onStarEarned={handleStarEarned}
             />
           )}
           {phase === 'quiz' && (
@@ -1307,7 +1004,11 @@ export default function GermanFamilyPage() {
               </div>
               <motion.button initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}
                 whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                onClick={() => router.push('/character-and-map')}
+                onClick={async () => {
+                  // 🏆 الدرس مكتمل = 3 نجوم كاملة + completed
+                  await saveLessonProgress(LESSON_ID, 3, true);
+                  router.push('/character-and-map?from=lesson');
+                }}
                 className="flex items-center gap-2 px-12 py-5 rounded-2xl font-black text-lg text-white"
                 style={{
                   background: 'linear-gradient(135deg, #58CC02, #096A02)',

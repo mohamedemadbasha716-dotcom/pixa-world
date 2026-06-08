@@ -4,8 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Sparkles, Lock, Star, ChevronRight, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { savePlayer, getPlayer } from '@/lib/playerData';
-
+import { 
+  savePlayer, 
+  getPlayer, 
+  getAllProgress, 
+  LESSON_ORDER, 
+  type LessonProgress 
+} from '@/lib/playerData';
 // ═══════════════════════════════════════
 // المعالم - الإحداثيات المظبوطة بناءً على الصورة الفعلية
 // ═══════════════════════════════════════
@@ -171,8 +176,9 @@ export default function CharacterAndMapPage() {
   const [showIntro, setShowIntro] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const unlockedLesson = 6;
-  const starsMap: Record<string, number> = {};
+  const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({});
+const [unlockedLesson, setUnlockedLesson] = useState(1);
+const [progressLoaded, setProgressLoaded] = useState(false);
 
   const heroes = [
     { id: 'boy', name: 'البطل الشجاع', color: '#4CC9F0', img: '/characters/boy-3d.png' },
@@ -185,10 +191,46 @@ export default function CharacterAndMapPage() {
       setEaglePos({ x: current.centerX, y: current.centerY });
     }
   }, []);
+  // 📥 تحميل التقدم من Supabase + حساب آخر درس مفتوح
+  useEffect(() => {
+    const loadProgress = async () => {
+      const allProgress = await getAllProgress();
+      
+      // تحويل المصفوفة لـ Map للسرعة
+      const map: Record<string, LessonProgress> = {};
+      allProgress.forEach(p => {
+        map[p.lesson_id] = p;
+      });
+      setProgressMap(map);
+
+      // حساب آخر درس مفتوح بناءً على الترتيب
+      let lastUnlocked = 1;
+      for (let i = 0; i < LESSON_ORDER.length; i++) {
+        const lessonId = LESSON_ORDER[i];
+        const progress = map[lessonId];
+        
+        if (progress?.completed) {
+          // لو الدرس متكمل، الدرس اللي بعده يفتح
+          lastUnlocked = i + 2;
+        } else {
+          break;
+        }
+      }
+      
+      // التأكد إنه مايعديش الحد الأقصى
+      setUnlockedLesson(Math.min(lastUnlocked, LESSON_ORDER.length));
+      setProgressLoaded(true);
+      
+      console.log('🗺️ التقدم المحمّل:', map);
+      console.log('🔓 آخر درس مفتوح:', lastUnlocked);
+    };
+    
+    loadProgress();
+  }, []);
 
   const isLocked = (lesson: number) => lesson > unlockedLesson;
   const isCurrent = (lesson: number) => lesson === unlockedLesson;
-  const getStars = (id: string) => starsMap[id] ?? 0;
+  const getStars = (id: string) => progressMap[id]?.stars ?? 0;
 
   // 💾 حفظ في Supabase + Local Storage
   const handleStartJourney = async () => {
@@ -491,29 +533,66 @@ export default function CharacterAndMapPage() {
                 />
 
                 {locked && (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.5 + index * 0.1, type: 'spring', stiffness: 200 }}
-                    className="absolute pointer-events-none"
-                    style={{
-                      left: `${landmark.centerX}%`,
-                      top: `${landmark.clickArea.y + landmark.clickArea.h - 2}%`,
-                      transform: 'translate(-50%, 0)',
-                      zIndex: 12,
-                    }}
-                  >
-                    <div
-                      className="rounded-full p-1.5 shadow-lg border border-white/20"
-                      style={{
-                        background: 'rgba(0,0,0,0.7)',
-                        backdropFilter: 'blur(4px)',
-                      }}
-                    >
-                      <Lock size={12} className="text-white/80" strokeWidth={2.5} />
-                    </div>
-                  </motion.div>
-                )}
+  <motion.div
+    initial={{ scale: 0, opacity: 0, y: 10 }}
+    animate={{ 
+      scale: 1, 
+      opacity: 1, 
+      y: [0, -3, 0],
+    }}
+    transition={{ 
+      scale: { delay: 0.5 + index * 0.1, type: 'spring', stiffness: 200 },
+      opacity: { delay: 0.5 + index * 0.1 },
+      y: { duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: index * 0.3 }
+    }}
+    className="absolute pointer-events-none"
+    style={{
+      left: `${landmark.centerX}%`,
+      top: `${landmark.centerY}%`,
+      transform: 'translate(-50%, -50%)',
+      zIndex: 14,
+    }}
+  >
+    {/* 🌟 توهج خلفي */}
+    <motion.div
+      className="absolute inset-0 rounded-full"
+      style={{
+        background: 'radial-gradient(circle, rgba(255,180,50,0.4), transparent 70%)',
+        filter: 'blur(8px)',
+        transform: 'scale(2)',
+      }}
+      animate={{ opacity: [0.4, 0.7, 0.4] }}
+      transition={{ duration: 2, repeat: Infinity }}
+    />
+
+    {/* 🔒 القفل نفسه */}
+    <div
+      className="relative rounded-full flex items-center justify-center"
+      style={{
+        width: 'clamp(28px, 2.8vw, 38px)',
+        height: 'clamp(28px, 2.8vw, 38px)',
+        background: 'linear-gradient(135deg, #8B6914 0%, #4A3508 100%)',
+        border: '2px solid #D4AF37',
+        boxShadow: `
+          0 0 15px rgba(212,175,55,0.5),
+          inset 0 2px 4px rgba(255,215,0,0.4),
+          inset 0 -2px 4px rgba(0,0,0,0.4),
+          0 3px 6px rgba(0,0,0,0.5)
+        `,
+      }}
+    >
+      <Lock 
+        size={16} 
+        className="relative" 
+        strokeWidth={2.5}
+        style={{ 
+          color: '#FFD700',
+          filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))',
+        }}
+      />
+    </div>
+  </motion.div>
+)}
 
                 <AnimatePresence>
                   {hoveredLandmark?.id === landmark.id && !locked && (
@@ -625,7 +704,12 @@ export default function CharacterAndMapPage() {
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleLandmarkStart}
                   className="w-full py-4 rounded-2xl font-black text-lg text-white flex items-center justify-center gap-2 shadow-lg"
                   style={{ background: `linear-gradient(135deg, ${selectedLandmark.color}, ${selectedLandmark.color}99)`, borderBottom: `4px solid ${selectedLandmark.color}66` }}>
-                  {getStars(selectedLandmark.id) > 0 ? 'العب تاني 🔄' : 'ابدأ المغامرة! 🚀'}
+                  {(() => {
+  const lessonData = progressMap[selectedLandmark.id];
+  if (!lessonData) return 'ابدأ المغامرة! 🚀';
+  if (lessonData.completed) return 'العب تاني 🔄';
+  return 'أكمل تقدمك ▶️';
+})()}
                   <ChevronRight size={20} />
                 </motion.button>
               </div>

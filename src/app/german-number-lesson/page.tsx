@@ -1,110 +1,34 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Volume2, RotateCcw, Star, Sparkles, Flame } from 'lucide-react';
+import { ArrowLeft, Star, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { saveLessonProgress, getLessonProgress } from '@/lib/playerData';
 
-// ═══════════════════════════════════════
-// البيانات
-// ═══════════════════════════════════════
-const NUMBERS = [
-  { num: 1,  de: 'eins',   ar: 'واحد',   emoji: '⛪', objAr: 'كاتدرائية',  color: '#A78BFA', gradient: ['#A78BFA', '#7C3AED'] },
-  { num: 2,  de: 'zwei',   ar: 'اثنان',  emoji: '🚗', objAr: 'سيارة',      color: '#F87171', gradient: ['#F87171', '#DC2626'] },
-  { num: 3,  de: 'drei',   ar: 'ثلاثة',  emoji: '🐦', objAr: 'حمامة',      color: '#60A5FA', gradient: ['#60A5FA', '#2563EB'] },
-  { num: 4,  de: 'vier',   ar: 'أربعة',  emoji: '💡', objAr: 'عمود إضاءة', color: '#FBBF24', gradient: ['#FBBF24', '#D97706'] },
-  { num: 5,  de: 'fünf',   ar: 'خمسة',   emoji: '🎈', objAr: 'بالونة',     color: '#F472B6', gradient: ['#F472B6', '#DB2777'] },
-  { num: 6,  de: 'sechs',  ar: 'ستة',    emoji: '🪑', objAr: 'كرسي',       color: '#34D399', gradient: ['#34D399', '#059669'] },
-  { num: 7,  de: 'sieben', ar: 'سبعة',   emoji: '⭐', objAr: 'نجمة',       color: '#FFD700', gradient: ['#FFD700', '#F59E0B'] },
-  { num: 8,  de: 'acht',   ar: 'ثمانية', emoji: '🍾', objAr: 'زجاجة',      color: '#2DD4BF', gradient: ['#2DD4BF', '#0D9488'] },
-  { num: 9,  de: 'neun',   ar: 'تسعة',   emoji: '🌸', objAr: 'زهرة',       color: '#FB7185', gradient: ['#FB7185', '#E11D48'] },
-  { num: 10, de: 'zehn',   ar: 'عشرة',   emoji: '🐤', objAr: 'طائر',       color: '#93C5FD', gradient: ['#93C5FD', '#3B82F6'] },
-];
+// 🎯 المكونات المشتركة
+import KarlEagle from '@/app/components/lesson/KarlEagle';
+import GhostInput from '@/app/components/lesson/GhostInput';
+import ConfettiBurst from '@/app/components/lesson/ConfettiBurst';
+import ComboDisplay from '@/app/components/lesson/ComboDisplay';
+import FlyingStars, { type FlyingStar } from '@/app/components/lesson/FlyingStars';
+import SoundButton from '@/app/components/lesson/SoundButton';
+import SpecialCharsKeyboard, { getRequiredSpecialChars } from '@/app/components/lesson/SpecialCharsKeyboard';
 
-const GROUPS = [
-  { numbers: NUMBERS.slice(0, 5),  title: 'المجموعة الأولى' },
-  { numbers: NUMBERS.slice(5, 10), title: 'المجموعة الثانية' },
-];
+// 🎯 الأنواع والرسائل المشتركة
+import type { KarlMood } from '@/lib/types/lesson';
+import { ENCOURAGEMENTS, SAD_MESSAGES } from '@/lib/types/lesson';
 
-const ALL_SPECIAL_CHARS = ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'];
+// 🎯 الأصوات والنطق المشتركة
+import { playCoinSound, playBuzzSound, playComboSound } from '@/lib/audio/sounds';
+import { speakNumber } from '@/lib/audio/speech';
 
-function getRequiredSpecialChars(word: string): string[] {
-  const found = new Set<string>();
-  for (const char of word) {
-    if (ALL_SPECIAL_CHARS.includes(char)) {
-      found.add(char.toLowerCase());
-      const upper = char.toUpperCase();
-      if (upper !== char.toLowerCase()) found.add(upper);
-    }
-  }
-  return Array.from(found);
-}
+// 📦 البيانات من الملفات المنفصلة
+import { NUMBERS, NUMBER_GROUPS, type NumberItem } from '@/data/german/numbers';
 
 type Phase = 'listen' | 'write' | 'test';
-type FlyingStar = { id: number; x: number; y: number };
-type KarlMood = 'idle' | 'happy' | 'sad' | 'celebrate';
 
 // ═══════════════════════════════════════
-// أصوات
-// ═══════════════════════════════════════
-function speak(text: string, rate = 0.65) {
-  if (typeof window === 'undefined') return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'de-DE'; u.rate = rate; u.pitch = 1.1;
-  window.speechSynthesis.speak(u);
-}
-
-function playCoinSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [0, 0.1, 0.2].forEach((t, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(880 + i * 220, ctx.currentTime + t);
-      osc.frequency.exponentialRampToValueAtTime(1760 + i * 220, ctx.currentTime + t + 0.08);
-      gain.gain.setValueAtTime(0.18, ctx.currentTime + t);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.18);
-      osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.2);
-    });
-  } catch {}
-}
-
-function playErrorSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
-  } catch {}
-}
-
-function playComboSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [523, 659, 784, 1047].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.08);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.3);
-      osc.start(ctx.currentTime + i * 0.08); osc.stop(ctx.currentTime + i * 0.08 + 0.3);
-    });
-  } catch {}
-}
-
-// ═══════════════════════════════════════
-// خلفية احترافية للأرقام (Cathedral theme)
+// خلفية الكاتدرائية
 // ═══════════════════════════════════════
 function PremiumCathedralBackground({ activeColor }: { activeColor: string }) {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number }>>([]);
@@ -122,31 +46,24 @@ function PremiumCathedralBackground({ activeColor }: { activeColor: string }) {
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      {/* Base gradient */}
       <div className="absolute inset-0" style={{
         background: 'radial-gradient(ellipse at 50% 0%, #1a0f3a 0%, #0a0820 50%, #050310 100%)',
       }} />
 
-      {/* Aurora effect */}
       <motion.div
         className="absolute inset-0 opacity-40"
-        style={{
-          background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${activeColor}44, transparent 70%)`,
-        }}
+        style={{ background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${activeColor}44, transparent 70%)` }}
         animate={{ opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
       />
 
       <motion.div
         className="absolute inset-0 opacity-30"
-        style={{
-          background: `radial-gradient(ellipse 60% 40% at 20% 80%, ${activeColor}33, transparent 60%)`,
-        }}
+        style={{ background: `radial-gradient(ellipse 60% 40% at 20% 80%, ${activeColor}33, transparent 60%)` }}
         animate={{ opacity: [0.2, 0.4, 0.2] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Floating sparkle particles */}
       {particles.map(p => (
         <motion.div
           key={p.id}
@@ -164,16 +81,10 @@ function PremiumCathedralBackground({ activeColor }: { activeColor: string }) {
             opacity: [0, 0.8, 0.8, 0],
             x: [0, Math.random() * 50 - 25, 0],
           }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
+          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'linear' }}
         />
       ))}
 
-      {/* Stars */}
       {Array.from({ length: 35 }).map((_, i) => (
         <motion.div
           key={`star-${i}`}
@@ -186,15 +97,10 @@ function PremiumCathedralBackground({ activeColor }: { activeColor: string }) {
             background: 'white',
           }}
           animate={{ opacity: [0.2, 1, 0.2] }}
-          transition={{
-            duration: 2 + Math.random() * 3,
-            delay: Math.random() * 5,
-            repeat: Infinity,
-          }}
+          transition={{ duration: 2 + Math.random() * 3, delay: Math.random() * 5, repeat: Infinity }}
         />
       ))}
 
-      {/* Grid pattern overlay */}
       <div className="absolute inset-0 opacity-[0.015]" style={{
         backgroundImage: `linear-gradient(${activeColor} 1px, transparent 1px), linear-gradient(90deg, ${activeColor} 1px, transparent 1px)`,
         backgroundSize: '50px 50px',
@@ -204,263 +110,11 @@ function PremiumCathedralBackground({ activeColor }: { activeColor: string }) {
 }
 
 // ═══════════════════════════════════════
-// Confetti System
-// ═══════════════════════════════════════
-function ConfettiBurst({ trigger, x, y, colors }: { trigger: number; x: number; y: number; colors: string[] }) {
-  const [particles, setParticles] = useState<Array<{ id: number; angle: number; distance: number; color: string; size: number; rotation: number }>>([]);
-
-  useEffect(() => {
-    if (trigger === 0) return;
-    const newParticles = Array.from({ length: 30 }, (_, i) => ({
-      id: Date.now() + i,
-      angle: (Math.PI * 2 * i) / 30 + Math.random() * 0.3,
-      distance: 80 + Math.random() * 120,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      size: 6 + Math.random() * 8,
-      rotation: Math.random() * 720,
-    }));
-    setParticles(newParticles);
-    const t = setTimeout(() => setParticles([]), 1500);
-    return () => clearTimeout(t);
-  }, [trigger]);
-
-  return (
-    <div className="fixed pointer-events-none" style={{ left: x, top: y, zIndex: 9998 }}>
-      <AnimatePresence>
-        {particles.map(p => (
-          <motion.div
-            key={p.id}
-            initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
-            animate={{
-              x: Math.cos(p.angle) * p.distance,
-              y: Math.sin(p.angle) * p.distance,
-              scale: 0,
-              opacity: 0,
-              rotate: p.rotation,
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: [0.2, 0.8, 0.4, 1] }}
-            className="absolute"
-            style={{
-              width: p.size,
-              height: p.size,
-              background: p.color,
-              borderRadius: Math.random() > 0.5 ? '50%' : '2px',
-              boxShadow: `0 0 ${p.size}px ${p.color}99`,
-            }}
-          />
-        ))}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// كارل النسر — Premium
-// ═══════════════════════════════════════
-const ENCOURAGEMENTS = [
-  { de: 'Super!', ar: 'ممتاز!' }, { de: 'Toll!', ar: 'رائع!' },
-  { de: 'Wunderbar!', ar: 'مدهش!' }, { de: 'Klasse!', ar: 'تحفة!' },
-  { de: 'Bravo!', ar: 'برافو!' }, { de: 'Sehr gut!', ar: 'ممتاز جداً!' },
-  { de: 'Genial!', ar: 'عبقري!' }, { de: 'Fantastisch!', ar: 'خيالي!' },
-];
-
-const SAD_MESSAGES = [
-  { de: 'Versuch nochmal!', ar: 'جرب تاني!' },
-  { de: 'Du schaffst das!', ar: 'تقدر تعملها!' },
-  { de: 'Keine Sorge!', ar: 'متقلقش!' },
-];
-
-function KarlEagle({ mood, message }: { mood: KarlMood; message: { de: string; ar: string } | null }) {
-  return (
-    <div className="fixed pointer-events-none" style={{ zIndex: 50, bottom: 20, right: 20 }}>
-      <motion.div
-        animate={
-          mood === 'celebrate'
-            ? { y: [-12, 0, -12], rotate: [-15, 15, -15], scale: [1, 1.15, 1] }
-            : mood === 'happy'
-            ? { y: [-8, 0, -8], rotate: [-8, 8, -8] }
-            : mood === 'sad'
-            ? { y: [0, -3, 0], rotate: [-3, 3, -3] }
-            : { y: [-4, 4, -4] }
-        }
-        transition={{ duration: mood === 'celebrate' ? 0.5 : mood === 'happy' ? 0.8 : 2.5, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <div className="relative">
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: mood === 'celebrate' ? 'radial-gradient(circle, #FFD70066, transparent 70%)'
-                : mood === 'happy' ? 'radial-gradient(circle, #58CC0266, transparent 70%)'
-                : mood === 'sad' ? 'radial-gradient(circle, #FF6B6B44, transparent 70%)'
-                : 'radial-gradient(circle, #A78BFA44, transparent 70%)',
-              filter: 'blur(15px)',
-              transform: 'scale(1.5)',
-            }}
-            animate={{ scale: [1.4, 1.7, 1.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-          <img
-            src="/characters/karl-3d.png"
-            alt="كارل"
-            style={{
-              width: 'clamp(85px, 9vw, 130px)',
-              height: 'clamp(85px, 9vw, 130px)',
-              objectFit: 'contain',
-              position: 'relative',
-              zIndex: 1,
-              filter: mood === 'celebrate'
-                ? 'drop-shadow(0 8px 20px rgba(255,215,0,0.8))'
-                : mood === 'happy'
-                ? 'drop-shadow(0 6px 16px rgba(88,204,2,0.7))'
-                : mood === 'sad'
-                ? 'drop-shadow(0 4px 12px rgba(255,107,107,0.5)) saturate(0.6)'
-                : 'drop-shadow(0 6px 14px rgba(167,139,250,0.5))',
-              transition: 'filter 0.4s ease',
-            }}
-            draggable={false}
-          />
-
-          <AnimatePresence>
-            {message && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.6, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.6, y: 10 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                className="absolute whitespace-nowrap"
-                style={{ bottom: '100%', right: '50%', transform: 'translateX(50%)', marginBottom: 12 }}
-              >
-                <div className="px-4 py-2.5 rounded-2xl shadow-2xl border-2 backdrop-blur-md"
-                  style={{
-                    background: mood === 'celebrate' || mood === 'happy'
-                      ? 'linear-gradient(135deg, rgba(88,204,2,0.95), rgba(76,201,240,0.95))'
-                      : 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(247,37,133,0.95))',
-                    borderColor: 'rgba(255,255,255,0.4)',
-                  }}>
-                  <div className="text-base font-black text-white text-center leading-tight">{message.de}</div>
-                  <div className="text-xs font-bold text-white/90 text-center mt-0.5">{message.ar}</div>
-                </div>
-                <div className="w-0 h-0 mx-auto" style={{
-                  borderLeft: '6px solid transparent',
-                  borderRight: '6px solid transparent',
-                  borderTop: `6px solid ${mood === 'celebrate' || mood === 'happy' ? 'rgba(88,204,2,0.95)' : 'rgba(255,107,107,0.95)'}`,
-                }} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// Combo Display
-// ═══════════════════════════════════════
-function ComboDisplay({ combo }: { combo: number }) {
-  if (combo < 2) return null;
-  return (
-    <AnimatePresence>
-      <motion.div
-        key={combo}
-        initial={{ scale: 0, y: 20, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        exit={{ scale: 0, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-        className="fixed top-32 left-1/2 transform -translate-x-1/2 z-40"
-      >
-        <div className="flex items-center gap-2 px-4 py-2 rounded-2xl backdrop-blur-md border-2 shadow-2xl"
-          style={{
-            background: combo >= 5 ? 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(255,165,0,0.95))'
-              : 'linear-gradient(135deg, rgba(255,215,0,0.95), rgba(255,165,0,0.95))',
-            borderColor: 'rgba(255,255,255,0.4)',
-            boxShadow: '0 8px 32px rgba(255,165,0,0.5)',
-          }}
-        >
-          <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 0.5, repeat: Infinity }}>
-            <Flame size={20} className="text-white" fill="white" />
-          </motion.div>
-          <span className="font-black text-white text-base">
-            {combo >= 5 ? `🔥 On Fire! x${combo}` : `Combo x${combo}!`}
-          </span>
-        </div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-// ═══════════════════════════════════════
-// Sound Wave Button
-// ═══════════════════════════════════════
-function SoundButton({ onClick, color, label }: { onClick: () => void; color: string; label: string }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const handleClick = () => {
-    setIsPlaying(true);
-    onClick();
-    setTimeout(() => setIsPlaying(false), 1500);
-  };
-
-  return (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
-      whileHover={{ scale: 1.03 }}
-      onClick={handleClick}
-      className="relative flex items-center gap-3 px-6 py-3.5 rounded-2xl font-black text-base border-2 transition-all overflow-hidden"
-      style={{
-        color: 'white',
-        borderColor: color,
-        background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-        boxShadow: `0 4px 20px ${color}44, inset 0 1px 0 ${color}66`,
-        backdropFilter: 'blur(10px)',
-      }}
-    >
-      {isPlaying && (
-        <>
-          {[0, 0.2, 0.4].map((delay, i) => (
-            <motion.div
-              key={i}
-              className="absolute inset-0 rounded-2xl border-2 pointer-events-none"
-              style={{ borderColor: color }}
-              initial={{ scale: 1, opacity: 0.8 }}
-              animate={{ scale: 1.4, opacity: 0 }}
-              transition={{ duration: 1, delay, ease: 'easeOut' }}
-            />
-          ))}
-        </>
-      )}
-
-      <motion.div animate={isPlaying ? { rotate: [0, -10, 10, 0] } : {}} transition={{ duration: 0.4, repeat: 3 }}>
-        <Volume2 size={20} />
-      </motion.div>
-
-      {isPlaying && (
-        <div className="flex items-center gap-0.5">
-          {[0, 0.1, 0.2, 0.3].map((delay, i) => (
-            <motion.div
-              key={i}
-              className="w-0.5 rounded-full"
-              style={{ background: 'white' }}
-              animate={{ height: [4, 16, 4] }}
-              transition={{ duration: 0.5, repeat: Infinity, delay }}
-            />
-          ))}
-        </div>
-      )}
-
-      {label}
-    </motion.button>
-  );
-}
-
-// ═══════════════════════════════════════
 // Hero Number Display
 // ═══════════════════════════════════════
-function HeroNumberDisplay({ numData }: { numData: typeof NUMBERS[0] }) {
+function HeroNumberDisplay({ numData }: { numData: NumberItem }) {
   return (
     <div className="relative flex items-center justify-center" style={{ width: 260, height: 260 }}>
-      {/* Orbital rings */}
       <motion.div
         className="absolute inset-0 rounded-full border-2"
         style={{ borderColor: `${numData.color}33` }}
@@ -487,7 +141,6 @@ function HeroNumberDisplay({ numData }: { numData: typeof NUMBERS[0] }) {
         }} />
       </motion.div>
 
-      {/* Glow background */}
       <motion.div
         className="absolute inset-8 rounded-full blur-3xl"
         style={{ background: `radial-gradient(circle, ${numData.color}66, transparent)` }}
@@ -495,7 +148,6 @@ function HeroNumberDisplay({ numData }: { numData: typeof NUMBERS[0] }) {
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* Main number container */}
       <motion.div
         animate={{ scale: [1, 1.04, 1], rotate: [-1, 1, -1] }}
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -505,11 +157,7 @@ function HeroNumberDisplay({ numData }: { numData: typeof NUMBERS[0] }) {
           background: `linear-gradient(145deg, ${numData.gradient[0]}22, ${numData.gradient[1]}11)`,
           backdropFilter: 'blur(20px)',
           border: `1px solid ${numData.color}44`,
-          boxShadow: `
-            0 20px 60px ${numData.color}33,
-            inset 0 1px 0 ${numData.color}55,
-            inset 0 -1px 0 rgba(0,0,0,0.3)
-          `,
+          boxShadow: `0 20px 60px ${numData.color}33, inset 0 1px 0 ${numData.color}55, inset 0 -1px 0 rgba(0,0,0,0.3)`,
         }}
       >
         <div className="absolute top-0 left-0 right-0 h-1/2 rounded-t-[2.5rem]" style={{
@@ -544,25 +192,13 @@ function HeroNumberDisplay({ numData }: { numData: typeof NUMBERS[0] }) {
         }} />
       </motion.div>
 
-      {/* Floating sparkles */}
       {[...Array(6)].map((_, i) => (
         <motion.div
           key={i}
           className="absolute"
-          style={{
-            top: `${20 + Math.random() * 60}%`,
-            left: `${10 + Math.random() * 80}%`,
-          }}
-          animate={{
-            y: [0, -20, 0],
-            opacity: [0, 1, 0],
-            scale: [0, 1, 0],
-          }}
-          transition={{
-            duration: 2 + Math.random() * 2,
-            repeat: Infinity,
-            delay: i * 0.4,
-          }}
+          style={{ top: `${20 + Math.random() * 60}%`, left: `${10 + Math.random() * 80}%` }}
+          animate={{ y: [0, -20, 0], opacity: [0, 1, 0], scale: [0, 1, 0] }}
+          transition={{ duration: 2 + Math.random() * 2, repeat: Infinity, delay: i * 0.4 }}
         >
           <Sparkles size={12} style={{ color: numData.color }} />
         </motion.div>
@@ -572,7 +208,7 @@ function HeroNumberDisplay({ numData }: { numData: typeof NUMBERS[0] }) {
 }
 
 // ═══════════════════════════════════════
-// Premium EmojiCount
+// EmojiCount
 // ═══════════════════════════════════════
 function EmojiCount({ emoji, count, color }: { emoji: string; count: number; color: string }) {
   const rows: number[] = count <= 5 ? [count] : [5, count - 5];
@@ -597,37 +233,7 @@ function EmojiCount({ emoji, count, color }: { emoji: string; count: number; col
 }
 
 // ═══════════════════════════════════════
-// Special Chars Keyboard
-// ═══════════════════════════════════════
-function SpecialCharsKeyboard({ chars, onChar, color }: { chars: string[]; onChar: (c: string) => void; color: string }) {
-  if (chars.length === 0) return null;
-  return (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2 justify-center flex-wrap">
-      {chars.map(c => (
-        <motion.button
-          key={c}
-          whileTap={{ scale: 0.85 }}
-          whileHover={{ scale: 1.08, y: -2 }}
-          onMouseDown={e => { e.preventDefault(); onChar(c); }}
-          className="w-12 h-12 rounded-2xl font-black text-2xl border-2 transition-all select-none"
-          style={{
-            borderColor: color,
-            background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-            color: 'white',
-            boxShadow: `0 4px 16px ${color}55, inset 0 1px 0 ${color}66`,
-            textShadow: `0 0 12px ${color}aa`,
-            backdropFilter: 'blur(10px)',
-          }}
-        >
-          {c}
-        </motion.button>
-      ))}
-    </motion.div>
-  );
-}
-
-// ═══════════════════════════════════════
-// Match Game (محسّن)
+// Match Game
 // ═══════════════════════════════════════
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -641,7 +247,7 @@ function shuffle<T>(arr: T[]): T[] {
 function MatchGame({
   group, groupTitle, onComplete, onStar, onKarlReact, onCombo,
 }: {
-  group: typeof NUMBERS;
+  group: NumberItem[];
   groupTitle: string;
   onComplete: () => void;
   onStar: (x: number, y: number) => void;
@@ -649,7 +255,7 @@ function MatchGame({
   onCombo: () => void;
 }) {
   const [matched, setMatched] = useState<Set<number>>(new Set());
-  const [deOrder, setDeOrder] = useState<typeof NUMBERS>(() => shuffle(group));
+  const [deOrder, setDeOrder] = useState<NumberItem[]>(() => shuffle(group));
   const [dragging, setDragging] = useState<number | null>(null);
   const [overTarget, setOverTarget] = useState<number | null>(null);
   const [wrongPair, setWrongPair] = useState<{ num: number; de: number } | null>(null);
@@ -678,7 +284,7 @@ function MatchGame({
   const doMatch = (fromNum: number, toNum: number, cx: number, cy: number) => {
     if (fromNum === toNum) {
       const n = group.find(x => x.num === fromNum)!;
-      speak(n.de);
+      speakNumber(n.de);
       playCoinSound();
       onCombo();
       onKarlReact('happy');
@@ -689,7 +295,7 @@ function MatchGame({
       setTimeout(() => setSuccessPair(null), 600);
       setMatched(prev => new Set([...prev, fromNum]));
     } else {
-      playErrorSound();
+      playBuzzSound();
       onKarlReact('sad');
       setErrors(e => e + 1);
       setWrongPair({ num: fromNum, de: toNum });
@@ -773,7 +379,6 @@ function MatchGame({
         transition={{ type: 'spring', stiffness: 260, damping: 24 }}
         className="w-full flex flex-col items-center gap-5 max-w-2xl mx-auto"
       >
-        {/* header */}
         <div className="flex flex-col items-center gap-1.5">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full animate-pulse bg-purple-400" />
@@ -784,7 +389,6 @@ function MatchGame({
           <p className="text-white/30 text-sm">اسحب كل رقم وضعه على ترجمته بالألمانية</p>
         </div>
 
-        {/* progress dots */}
         <div className="flex gap-2.5">
           {group.map(n => (
             <motion.div
@@ -800,7 +404,6 @@ function MatchGame({
           ))}
         </div>
 
-        {/* errors */}
         {errors > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -815,7 +418,6 @@ function MatchGame({
           </motion.div>
         )}
 
-        {/* GAME BOARD */}
         <div className="w-full max-w-xl" dir="rtl">
           <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 32px 1fr' }}>
             <div className="text-center text-xs text-white/30 tracking-widest uppercase pb-2 font-bold">الأرقام</div>
@@ -834,7 +436,6 @@ function MatchGame({
 
               return (
                 <div key={`row-${i}`} className="contents">
-                  {/* Number card */}
                   <motion.div
                     draggable={!numMatched}
                     onDragStart={() => handleDragStart(n.num)}
@@ -842,7 +443,7 @@ function MatchGame({
                     onTouchStart={e => onTouchStart(e, n.num)}
                     onTouchMove={onTouchMove}
                     onTouchEnd={onTouchEnd}
-                    onClick={() => speak(n.de)}
+                    onClick={() => speakNumber(n.de)}
                     animate={
                       isWrongNum ? { x: [-8, 8, -6, 6, -3, 3, 0] }
                       : isSuccessNum ? { scale: [1, 1.1, 1] }
@@ -895,7 +496,6 @@ function MatchGame({
                     )}
                   </motion.div>
 
-                  {/* divider */}
                   <div className="flex items-center justify-center">
                     <motion.div
                       className="w-1.5 h-1.5 rounded-full"
@@ -904,13 +504,12 @@ function MatchGame({
                     />
                   </div>
 
-                  {/* German card */}
                   <motion.div
                     data-de-target={deItem.num}
                     onDragOver={e => !deMatched && handleDragOver(e, deItem.num)}
                     onDragLeave={() => setOverTarget(null)}
                     onDrop={e => !deMatched && handleDrop(e, deItem.num)}
-                    onClick={() => speak(deItem.de)}
+                    onClick={() => speakNumber(deItem.de)}
                     animate={
                       isWrongDe ? { x: [-8, 8, -6, 6, -3, 3, 0] }
                       : isSuccessDe ? { scale: [1, 1.1, 1] }
@@ -988,7 +587,7 @@ function MatchGame({
 // PHASE 1 — استمع واكتب الرقم
 // ═══════════════════════════════════════
 function ListenPhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
-  numData: typeof NUMBERS[0];
+  numData: NumberItem;
   groupTitle: string;
   onDone: () => void;
   onKarlReact: (mood: KarlMood) => void;
@@ -1003,14 +602,14 @@ function ListenPhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
   useEffect(() => {
     setInput('');
     setStatus('idle');
-    const t = setTimeout(() => { speak(numData.de, 0.6); inputRef.current?.focus(); }, 500);
+    const t = setTimeout(() => { speakNumber(numData.de); inputRef.current?.focus(); }, 500);
     return () => clearTimeout(t);
   }, [numData.num]);
 
   const handleCheck = (e?: React.MouseEvent) => {
     if (input.trim() === String(numData.num)) {
       setStatus('correct');
-      speak(numData.de, 0.6);
+      speakNumber(numData.de);
       playCoinSound();
       onCombo();
       onKarlReact('happy');
@@ -1023,7 +622,7 @@ function ListenPhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
       setTimeout(onDone, 1000);
     } else {
       setStatus('wrong');
-      playErrorSound();
+      playBuzzSound();
       onKarlReact('sad');
       setTimeout(() => { setStatus('idle'); setInput(''); }, 900);
     }
@@ -1039,13 +638,11 @@ function ListenPhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
         className="w-full max-w-5xl mx-auto"
       >
         <div className="grid lg:grid-cols-5 gap-8 items-center">
-          {/* Left: Hero Number */}
           <div className="lg:col-span-3 flex flex-col items-center gap-4">
             <HeroNumberDisplay numData={numData} />
-            <SoundButton onClick={() => speak(numData.de, 0.6)} color={numData.color} label="استمع للرقم" />
+            <SoundButton onClick={() => speakNumber(numData.de)} color={numData.color} label="استمع للرقم" />
           </div>
 
-          {/* Right: Input */}
           <div className="lg:col-span-2 space-y-5">
             <div className="text-center lg:text-right">
               <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${numData.color}aa` }}>
@@ -1055,35 +652,19 @@ function ListenPhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
               <div className="text-sm font-bold text-white/40 mt-1">بالأرقام (1, 2, 3...)</div>
             </div>
 
-            <div className="relative">
-              <span
-                className="absolute inset-0 flex items-center justify-center font-black pointer-events-none select-none tabular-nums"
-                style={{ fontSize: '4rem', color: `${numData.color}15` }}
-              >
-                {numData.num}
-              </span>
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={e => { setInput(e.target.value.replace(/\D/g, '')); setStatus('idle'); }}
-                onKeyDown={e => e.key === 'Enter' && input && handleCheck()}
-                maxLength={2}
-                inputMode="numeric"
-                autoFocus
-                className="w-full text-center font-black py-6 rounded-2xl border-2 outline-none transition-all text-white tabular-nums"
-                style={{
-                  fontSize: '4rem',
-                  direction: 'ltr',
-                  background: 'rgba(255,255,255,0.03)',
-                  backdropFilter: 'blur(10px)',
-                  borderColor: status === 'correct' ? '#22c55e' : status === 'wrong' ? '#ef4444' : `${numData.color}55`,
-                  boxShadow: status === 'correct' ? '0 0 30px #22c55e66'
-                    : status === 'wrong' ? '0 0 30px #ef444466'
-                    : `inset 0 1px 0 ${numData.color}33, 0 8px 30px ${numData.color}22`,
-                }}
-              />
-            </div>
+            <GhostInput
+              ref={inputRef}
+              value={input}
+              onChange={v => { setInput(v); setStatus('idle'); }}
+              onEnter={handleCheck}
+              ghostText={String(numData.num)}
+              color={numData.color}
+              status={status}
+              fontSize="4rem"
+              maxLength={2}
+              inputMode="numeric"
+              numbersOnly
+            />
 
             <AnimatePresence>
               {status !== 'idle' && (
@@ -1122,7 +703,7 @@ function ListenPhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
 // PHASE 2 — اكتب بالألمانية
 // ═══════════════════════════════════════
 function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
-  numData: typeof NUMBERS[0];
+  numData: NumberItem;
   groupTitle: string;
   onDone: () => void;
   onKarlReact: (mood: KarlMood) => void;
@@ -1144,7 +725,7 @@ function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
   const handleCheck = (e?: React.MouseEvent) => {
     if (input.trim().toLowerCase() === numData.de.toLowerCase()) {
       setStatus('correct');
-      speak(numData.de, 0.6);
+      speakNumber(numData.de);
       playCoinSound();
       onCombo();
       onKarlReact('happy');
@@ -1157,7 +738,7 @@ function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
       setTimeout(onDone, 1000);
     } else {
       setStatus('wrong');
-      playErrorSound();
+      playBuzzSound();
       onKarlReact('sad');
       setTimeout(() => { setStatus('idle'); setInput(''); }, 900);
     }
@@ -1179,7 +760,6 @@ function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
         className="w-full max-w-5xl mx-auto"
       >
         <div className="grid lg:grid-cols-5 gap-8 items-center">
-          {/* Left: Visual */}
           <div className="lg:col-span-3 flex flex-col items-center gap-5">
             <motion.div
               animate={{ y: [0, -8, 0], rotate: [-1, 1, -1] }}
@@ -1216,7 +796,6 @@ function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
                 </div>
               </div>
 
-              {/* Number badge */}
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
@@ -1232,10 +811,9 @@ function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
               </motion.div>
             </motion.div>
 
-            <SoundButton onClick={() => speak(numData.de, 0.6)} color={numData.color} label="استمع للكلمة" />
+            <SoundButton onClick={() => speakNumber(numData.de)} color={numData.color} label="استمع للكلمة" />
           </div>
 
-          {/* Right: Input */}
           <div className="lg:col-span-2 space-y-4">
             <div className="text-center lg:text-right">
               <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${numData.color}aa` }}>
@@ -1245,37 +823,16 @@ function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo }: {
               <div className="text-sm font-bold text-white/40 mt-1">{numData.ar}</div>
             </div>
 
-            <div className="relative">
-              <span
-                className="absolute inset-0 flex items-center justify-center font-black tracking-wider pointer-events-none select-none"
-                style={{ fontSize: '1.8rem', color: `${numData.color}15`, fontFamily: 'monospace' }}
-              >
-                {numData.de}
-              </span>
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={e => { setInput(e.target.value); setStatus('idle'); }}
-                onKeyDown={e => e.key === 'Enter' && input && handleCheck()}
-                autoFocus
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                className="w-full text-center font-black py-5 rounded-2xl border-2 outline-none transition-all text-white"
-                style={{
-                  fontSize: '1.8rem',
-                  direction: 'ltr',
-                  background: 'rgba(255,255,255,0.03)',
-                  backdropFilter: 'blur(10px)',
-                  borderColor: status === 'correct' ? '#22c55e' : status === 'wrong' ? '#ef4444' : `${numData.color}55`,
-                  boxShadow: status === 'correct' ? '0 0 30px #22c55e66'
-                    : status === 'wrong' ? '0 0 30px #ef444466'
-                    : `inset 0 1px 0 ${numData.color}33, 0 8px 30px ${numData.color}22`,
-                }}
-              />
-            </div>
+            <GhostInput
+              ref={inputRef}
+              value={input}
+              onChange={v => { setInput(v); setStatus('idle'); }}
+              onEnter={handleCheck}
+              ghostText={numData.de}
+              color={numData.color}
+              status={status}
+              fontSize="1.8rem"
+            />
 
             {requiredChars.length > 0 && (
               <div className="space-y-2 pt-1">
@@ -1328,6 +885,36 @@ export default function GermanNumberLesson() {
   const [numIdx, setNumIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>('listen');
   const [totalStars, setTotalStars] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const LESSON_ID = 'cologne';
+
+  // 📥 جلب التقدم المحفوظ + استرجاع مكان الطالب
+  useEffect(() => {
+    const loadProgress = async () => {
+      const progress = await getLessonProgress(LESSON_ID);
+      if (progress) {
+        setTotalStars(progress.stars);
+        
+        if (!progress.completed) {
+          if (progress.current_group !== undefined && progress.current_group !== null) {
+            setGroupIdx(progress.current_group);
+          }
+          if (progress.current_letter !== undefined && progress.current_letter !== null) {
+            setNumIdx(progress.current_letter);
+          }
+          if (progress.current_phase) {
+            setPhase(progress.current_phase as Phase);
+          }
+          console.log(`📍 الرجوع لمكانك: مجموعة ${progress.current_group}, رقم ${progress.current_letter}, مرحلة ${progress.current_phase}`);
+        }
+        
+        console.log('✅ تم تحميل التقدم:', progress);
+      }
+      setIsLoading(false);
+    };
+    loadProgress();
+  }, []);
+
   const [flyingStars, setFlyingStars] = useState<FlyingStar[]>([]);
   const [completedNums, setCompletedNums] = useState<Set<number>>(new Set());
   const [testSuccess, setTestSuccess] = useState(false);
@@ -1335,8 +922,8 @@ export default function GermanNumberLesson() {
   const [karlMessage, setKarlMessage] = useState<{ de: string; ar: string } | null>(null);
   const [combo, setCombo] = useState(0);
 
-  const currentGroup = GROUPS[groupIdx];
-  const currentNum = currentGroup.numbers[numIdx];
+  const currentGroup = NUMBER_GROUPS[groupIdx];
+  const currentNum = currentGroup?.numbers[numIdx];
 
   const handleKarlReact = (mood: KarlMood) => {
     setKarlMood(mood);
@@ -1356,41 +943,97 @@ export default function GermanNumberLesson() {
     });
   };
 
-  const resetCombo = () => setCombo(0);
+  // 🎯 حساب التقييم من 3
+  const calculateRating = (starsCount: number): number => {
+    const totalPossibleStars = NUMBERS.length;
+    const progressRatio = starsCount / totalPossibleStars;
+    if (progressRatio >= 0.67) return 3;
+    if (progressRatio >= 0.34) return 2;
+    return 1;
+  };
+
+  // 💾 حفظ المكان الحالي
+  const savePosition = (newGroup: number, newNum: number, newPhase: Phase) => {
+    const rating = calculateRating(totalStars);
+    saveLessonProgress(LESSON_ID, rating, false, {
+      current_group: newGroup,
+      current_letter: newNum,
+      current_phase: newPhase,
+    }).then(() => {
+      console.log(`📍 تم حفظ المكان: G${newGroup} N${newNum} ${newPhase}`);
+    });
+  };
 
   const spawnStar = useCallback((clientX: number, clientY: number) => {
     const id = Date.now() + Math.random();
     setFlyingStars(prev => [...prev, { id, x: clientX, y: clientY }]);
     setTimeout(() => setFlyingStars(prev => prev.filter(s => s.id !== id)), 1200);
-    setTotalStars(p => p + 1);
-  }, []);
+    setTotalStars(p => {
+      const newCount = p + 1;
+      const rating = calculateRating(newCount);
+      saveLessonProgress(LESSON_ID, rating, false, {
+        current_group: groupIdx,
+        current_letter: numIdx,
+        current_phase: phase,
+      }).then(() => {
+        console.log(`⭐ تقدمك: ${newCount}/${NUMBERS.length} → التقييم: ${rating}/3`);
+      });
+      return newCount;
+    });
+  }, [groupIdx, numIdx, phase]);
 
-  const handleListenDone = () => setPhase('write');
+  const handleListenDone = () => {
+    setPhase('write');
+    savePosition(groupIdx, numIdx, 'write');
+  };
+  
   const handleWriteDone = () => {
     setCompletedNums(prev => new Set([...prev, currentNum.num]));
     if (numIdx < currentGroup.numbers.length - 1) {
-      setNumIdx(p => p + 1);
+      const newNumIdx = numIdx + 1;
+      setNumIdx(newNumIdx);
       setPhase('listen');
+      savePosition(groupIdx, newNumIdx, 'listen');
     } else {
       setPhase('test');
+      savePosition(groupIdx, numIdx, 'test');
     }
   };
+  
   const handleTestComplete = () => setTestSuccess(true);
 
-  const nextGroup = () => {
-    if (groupIdx < GROUPS.length - 1) {
-      setGroupIdx(p => p + 1);
+  const nextGroup = async () => {
+    if (groupIdx < NUMBER_GROUPS.length - 1) {
+      const newGroupIdx = groupIdx + 1;
+      setGroupIdx(newGroupIdx);
       setNumIdx(0);
       setPhase('listen');
       setTestSuccess(false);
       setCompletedNums(new Set());
+      savePosition(newGroupIdx, 0, 'listen');
     } else {
-      router.push('/character-and-map');
+      // 🏆 الدرس مكتمل = 3 نجوم كاملة
+      await saveLessonProgress(LESSON_ID, 3, true);
+      router.push('/character-and-map?from=lesson');
     }
   };
 
+  // 🆕 شاشة تحميل
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#07090D]">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">⛪</div>
+          <p className="text-white font-bold">جاري تحميل تقدمك...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentGroup || !currentNum) return null;
+
   const progress = Math.round(
-    ((groupIdx * 5 + (testSuccess ? currentGroup.numbers.length : numIdx)) / 10) * 100
+    ((groupIdx * 5 + (testSuccess ? currentGroup.numbers.length : numIdx)) / NUMBERS.length) * 100
   );
 
   const activeColor = currentNum?.color ?? '#A78BFA';
@@ -1399,35 +1042,18 @@ export default function GermanNumberLesson() {
   return (
     <div className="min-h-screen text-white relative" style={{ fontFamily: "'Tajawal', sans-serif" }} dir="rtl">
       <PremiumCathedralBackground activeColor={activeColor} />
-      <KarlEagle mood={karlMood} message={karlMessage} />
+      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#A78BFA" />
       <ComboDisplay combo={combo} />
+      <FlyingStars stars={flyingStars} />
 
-      <div className="fixed inset-0 pointer-events-none z-[9999]">
-        <AnimatePresence>
-          {flyingStars.map(star => (
-            <motion.div key={star.id}
-              initial={{ x: star.x - 20, y: star.y - 20, scale: 1.4, opacity: 1 }}
-              animate={{ x: star.x - 20, y: star.y - 150, scale: 0.2, opacity: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.9, ease: [0.2, 0.8, 0.4, 1] }}
-              style={{ position: 'absolute', top: 0, left: 0 }}>
-              <svg width="40" height="40" viewBox="0 0 40 40">
-                <polygon points="20,2 24.9,14.5 38.5,14.5 27.8,22.3 31.7,35.5 20,27.5 8.3,35.5 12.2,22.3 1.5,14.5 15.1,14.5"
-                  fill="#FFD700" stroke="#FFA500" strokeWidth="1" />
-              </svg>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {/* Premium Header */}
       <div className="fixed top-0 left-0 right-0 z-30 px-4 pt-4 pb-3"
         style={{ background: 'linear-gradient(to bottom, rgba(5,3,16,0.95) 70%, transparent)' }}>
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
-            <button onClick={() => router.push('/character-and-map')}
-              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md"
-              style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <button onClick={() => router.push('/character-and-map?from=lesson')}
+              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md hover:bg-white/10"
+              style={{ background: 'rgba(255,255,255,0.05)' }}
+              title="ارجع للخريطة (تقدمك محفوظ)">
               <ArrowLeft size={20} />
             </button>
             <div className="flex-1">
@@ -1460,7 +1086,6 @@ export default function GermanNumberLesson() {
             </motion.div>
           </div>
 
-          {/* Numbers mini-map */}
           {!isTestPhase && !testSuccess && (
             <div className="flex gap-1.5 justify-center">
               {currentGroup.numbers.map((n, i) => {
@@ -1487,7 +1112,6 @@ export default function GermanNumberLesson() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="pt-36 pb-32 px-6 min-h-screen flex flex-col justify-center relative" style={{ zIndex: 10 }}>
         <AnimatePresence mode="wait">
           {phase === 'listen' && (
@@ -1562,7 +1186,7 @@ export default function GermanNumberLesson() {
                   background: 'linear-gradient(135deg, #7c3aed, #ec4899)',
                   boxShadow: '0 10px 40px rgba(124,58,237,0.5)',
                 }}>
-                {groupIdx < GROUPS.length - 1 ? 'المجموعة التالية ←' : '🗺️ رجوع للخريطة'}
+                {groupIdx < NUMBER_GROUPS.length - 1 ? 'المجموعة التالية ←' : '🗺️ رجوع للخريطة'}
               </motion.button>
             </motion.div>
           )}

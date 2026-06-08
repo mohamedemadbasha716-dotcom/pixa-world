@@ -1,167 +1,37 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Volume2, Star, Check, X, Trophy, RotateCcw, Sparkles, Flame } from 'lucide-react';
+import { ArrowLeft, Volume2, Star, Check, X, Trophy, RotateCcw, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { saveLessonProgress, getLessonProgress } from '@/lib/playerData';
 
-// ═══════════════════════════════════════
-// البيانات
-// ═══════════════════════════════════════
-const LETTERS = [
-  { letter: 'A', word: 'Anker',        wordAr: 'مرساة',         emoji: '⚓', color: '#FF6B6B', gradient: ['#FF6B6B', '#FF8E53'] },
-  { letter: 'B', word: 'Boot',         wordAr: 'قارب',          emoji: '⛵', color: '#4ECDC4', gradient: ['#4ECDC4', '#44A08D'] },
-  { letter: 'C', word: 'Container',    wordAr: 'حاوية شحن',     emoji: '📦', color: '#45B7D1', gradient: ['#45B7D1', '#2980B9'] },
-  { letter: 'D', word: 'Delphin',      wordAr: 'دولفين',        emoji: '🐬', color: '#96CEB4', gradient: ['#96CEB4', '#5FB385'] },
-  { letter: 'E', word: 'Eimer',        wordAr: 'جردل',          emoji: '🪣', color: '#FFEAA7', gradient: ['#FFEAA7', '#FDCB6E'] },
-  { letter: 'F', word: 'Fisch',        wordAr: 'سمكة',          emoji: '🐟', color: '#DDA0DD', gradient: ['#DDA0DD', '#B97FBA'] },
-  { letter: 'G', word: 'Gabelstapler', wordAr: 'رافعة شوكية',   emoji: '🚜', color: '#F0A500', gradient: ['#F0A500', '#D17F00'] },
-  { letter: 'H', word: 'Haken',        wordAr: 'خطاف',          emoji: '🪝', color: '#FF7675', gradient: ['#FF7675', '#E84545'] },
-  { letter: 'I', word: 'Insel',        wordAr: 'جزيرة',         emoji: '🏝️', color: '#A29BFE', gradient: ['#A29BFE', '#6C5CE7'] },
-  { letter: 'J', word: 'Jacke',        wordAr: 'جاكيت',         emoji: '🧥', color: '#FD79A8', gradient: ['#FD79A8', '#E84393'] },
-  { letter: 'K', word: 'Kran',         wordAr: 'رافعة',         emoji: '🏗️', color: '#55EFC4', gradient: ['#55EFC4', '#00B894'] },
-  { letter: 'L', word: 'Leuchtturm',   wordAr: 'منارة',         emoji: '🗼', color: '#FDCB6E', gradient: ['#FDCB6E', '#E17055'] },
-  { letter: 'M', word: 'Möwe',         wordAr: 'نورس',          emoji: '🕊️', color: '#74B9FF', gradient: ['#74B9FF', '#0984E3'] },
-  { letter: 'N', word: 'Netz',         wordAr: 'شبكة صيد',      emoji: '🕸️', color: '#FF9FF3', gradient: ['#FF9FF3', '#F368E0'] },
-  { letter: 'O', word: 'Otter',        wordAr: 'قضاعة',         emoji: '🦦', color: '#00CEC9', gradient: ['#00CEC9', '#00B0AF'] },
-  { letter: 'P', word: 'Pinguin',      wordAr: 'بطريق',         emoji: '🐧', color: '#6C5CE7', gradient: ['#6C5CE7', '#4834D4'] },
-  { letter: 'Q', word: 'Qualle',       wordAr: 'قنديل البحر',   emoji: '🪼', color: '#E17055', gradient: ['#E17055', '#D63031'] },
-  { letter: 'R', word: 'Ruder',        wordAr: 'مجداف',         emoji: '🚣', color: '#0984E3', gradient: ['#0984E3', '#0652DD'] },
-  { letter: 'S', word: 'Schiff',       wordAr: 'سفينة',         emoji: '🚢', color: '#FDCB6E', gradient: ['#FDCB6E', '#F39C12'] },
-  { letter: 'T', word: 'Tau',          wordAr: 'حبل',           emoji: '🪢', color: '#E17055', gradient: ['#E17055', '#C0392B'] },
-  { letter: 'U', word: 'Uhr',          wordAr: 'ساعة',          emoji: '⏰', color: '#A29BFE', gradient: ['#A29BFE', '#5F27CD'] },
-  { letter: 'V', word: 'Vogel',        wordAr: 'طائر',          emoji: '🐦', color: '#55EFC4', gradient: ['#55EFC4', '#10AC84'] },
-  { letter: 'W', word: 'Welle',        wordAr: 'موجة',          emoji: '🌊', color: '#74B9FF', gradient: ['#74B9FF', '#2E86DE'] },
-  { letter: 'X', word: 'Xylofon',      wordAr: 'إكسيلوفون',    emoji: '🎵', color: '#FD79A8', gradient: ['#FD79A8', '#EE5A6F'] },
-  { letter: 'Y', word: 'Yacht',        wordAr: 'يخت',           emoji: '⛵', color: '#FFEAA7', gradient: ['#FFEAA7', '#F8B500'] },
-  { letter: 'Z', word: 'Zug',          wordAr: 'قطار',          emoji: '🚂', color: '#DDA0DD', gradient: ['#DDA0DD', '#A55EEA'] },
-];
+// 🎯 المكونات المشتركة
+import KarlEagle from '@/app/components/lesson/KarlEagle';
+import GhostInput from '@/app/components/lesson/GhostInput';
+import ConfettiBurst from '@/app/components/lesson/ConfettiBurst';
+import ComboDisplay from '@/app/components/lesson/ComboDisplay';
+import FlyingStars, { type FlyingStar } from '@/app/components/lesson/FlyingStars';
+import SoundButton from '@/app/components/lesson/SoundButton';
+import SpecialCharsKeyboard, { getRequiredSpecialChars } from '@/app/components/lesson/SpecialCharsKeyboard';
 
-const GROUPS = [
-  { letters: LETTERS.slice(0, 6),   title: 'المجموعة الأولى',   groupId: 0 },
-  { letters: LETTERS.slice(6, 12),  title: 'المجموعة الثانية',  groupId: 1 },
-  { letters: LETTERS.slice(12, 18), title: 'المجموعة الثالثة',  groupId: 2 },
-  { letters: LETTERS.slice(18, 24), title: 'المجموعة الرابعة',  groupId: 3 },
-  { letters: LETTERS.slice(24, 26), title: 'المجموعة الخامسة',  groupId: 4 },
-];
+// 🎯 الأنواع والرسائل المشتركة
+import type { KarlMood } from '@/lib/types/lesson';
+import { ENCOURAGEMENTS, SAD_MESSAGES } from '@/lib/types/lesson';
 
-type Box = { x: number; y: number; w: number; h: number };
+// 🎯 الأصوات والنطق المشتركة
+import { playCoinSound, playBuzzSound, playComboSound } from '@/lib/audio/sounds';
+import { speakLetter, speakWord } from '@/lib/audio/speech';
 
-const HARBOR_OBJECTS: Record<string, Box[]> = {
-  A: [{ x: 16, y: 47, w: 11, h: 22 }],
-  B: [{ x: 47, y: 58, w: 23, h: 23 }],
-  C: [{ x: 36, y: 36, w: 18, h: 25 }, { x: 52, y: 25, w: 25, h: 22 }],
-  D: [{ x: 64, y: 48, w: 14, h: 22 }],
-  E: [{ x: 4, y: 70, w: 12, h: 20 }, { x: 65, y: 78, w: 12, h: 18 }],
-  F: [{ x: 5, y: 67, w: 10, h: 10 }, { x: 21, y: 78, w: 13, h: 10 }, { x: 53, y: 78, w: 10, h: 8 }],
-  G: [{ x: 22, y: 33, w: 22, h: 30 }],
-  H: [{ x: 42, y: 5, w: 9, h: 30 }],
-  I: [{ x: 80, y: 22, w: 14, h: 18 }],
-  J: [{ x: 4, y: 18, w: 10, h: 28 }],
-  K: [{ x: 17, y: 0, w: 30, h: 35 }],
-  L: [{ x: 88, y: 4, w: 9, h: 45 }],
-  M: [{ x: 65, y: 0, w: 12, h: 12 }, { x: 75, y: 5, w: 14, h: 14 }, { x: 62, y: 56, w: 14, h: 22 }],
-  N: [{ x: 16, y: 70, w: 22, h: 22 }],
-  O: [{ x: 38, y: 68, w: 18, h: 22 }],
-  P: [{ x: 22, y: 53, w: 17, h: 30 }],
-  Q: [{ x: 86, y: 60, w: 12, h: 32 }],
-  R: [{ x: 11, y: 60, w: 8, h: 32 }],
-  S: [{ x: 56, y: 26, w: 32, h: 22 }],
-  T: [{ x: 0, y: 50, w: 9, h: 20 }],
-  U: [{ x: 1, y: 3, w: 11, h: 17 }],
-  V: [{ x: 15, y: 0, w: 7, h: 8 }],
-  W: [{ x: 60, y: 40, w: 25, h: 12 }, { x: 45, y: 60, w: 15, h: 10 }],
-  X: [{ x: 35, y: 88, w: 22, h: 10 }],
-  Y: [{ x: 76, y: 47, w: 22, h: 22 }],
-  Z: [{ x: 16, y: 27, w: 18, h: 8 }],
-};
-
-const ALL_SPECIAL_CHARS = ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'];
-
-function getRequiredSpecialChars(word: string): string[] {
-  const found = new Set<string>();
-  for (const char of word) {
-    if (ALL_SPECIAL_CHARS.includes(char)) {
-      found.add(char.toLowerCase());
-      const upper = char.toUpperCase();
-      if (upper !== char.toLowerCase()) found.add(upper);
-    }
-  }
-  return Array.from(found);
-}
+// 📦 البيانات من الملفات المنفصلة
+import { LETTERS, LETTER_GROUPS, type Letter } from '@/data/german/letters';
+import { HARBOR_OBJECTS, HARBOR_IMAGE } from '@/data/german/harbor-objects';
 
 function compareWords(input: string, target: string): boolean {
   return input.trim().toLowerCase() === target.toLowerCase();
 }
 
 // ═══════════════════════════════════════
-// أصوات
-// ═══════════════════════════════════════
-function speakLetter(letter: string) {
-  if (typeof window === 'undefined') return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(letter);
-  u.lang = 'de-DE'; u.rate = 0.6; u.pitch = 1.2;
-  window.speechSynthesis.speak(u);
-}
-function speakWord(word: string) {
-  if (typeof window === 'undefined') return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(word);
-  u.lang = 'de-DE'; u.rate = 0.7; u.pitch = 1.1;
-  window.speechSynthesis.speak(u);
-}
-
-function playCoinSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [0, 0.1, 0.2].forEach((t, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(880 + i * 220, ctx.currentTime + t);
-      osc.frequency.exponentialRampToValueAtTime(1760 + i * 220, ctx.currentTime + t + 0.08);
-      gain.gain.setValueAtTime(0.18, ctx.currentTime + t);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.18);
-      osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.2);
-    });
-  } catch {}
-}
-
-function playBuzzSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
-  } catch {}
-}
-
-function playComboSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [523, 659, 784, 1047].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.08);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.3);
-      osc.start(ctx.currentTime + i * 0.08); osc.stop(ctx.currentTime + i * 0.08 + 0.3);
-    });
-  } catch {}
-}
-
-// ═══════════════════════════════════════
-// خلفية بحرية احترافية مع Aurora
+// خلفية بحرية
 // ═══════════════════════════════════════
 function PremiumOceanBackground({ activeColor }: { activeColor: string }) {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number }>>([]);
@@ -179,35 +49,24 @@ function PremiumOceanBackground({ activeColor }: { activeColor: string }) {
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      {/* Base gradient */}
       <div className="absolute inset-0" style={{
         background: 'radial-gradient(ellipse at 20% 20%, #0a1845 0%, #050a1f 50%, #02050f 100%)',
       }} />
 
-      {/* Aurora effect */}
       <motion.div
         className="absolute inset-0 opacity-40"
-        style={{
-          background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${activeColor}33, transparent 70%)`,
-        }}
-        animate={{
-          opacity: [0.3, 0.5, 0.3],
-        }}
+        style={{ background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${activeColor}33, transparent 70%)` }}
+        animate={{ opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
       />
 
       <motion.div
         className="absolute inset-0 opacity-30"
-        style={{
-          background: `radial-gradient(ellipse 60% 40% at 80% 30%, ${activeColor}22, transparent 60%)`,
-        }}
-        animate={{
-          opacity: [0.2, 0.4, 0.2],
-        }}
+        style={{ background: `radial-gradient(ellipse 60% 40% at 80% 30%, ${activeColor}22, transparent 60%)` }}
+        animate={{ opacity: [0.2, 0.4, 0.2] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Animated waves */}
       <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1200 200" preserveAspectRatio="none" style={{ height: '35%', opacity: 0.18 }}>
         <motion.path
           d="M0,100 C300,150 600,50 1200,100 L1200,200 L0,200 Z"
@@ -223,7 +82,6 @@ function PremiumOceanBackground({ activeColor }: { activeColor: string }) {
         />
       </svg>
 
-      {/* Floating particles */}
       {particles.map(p => (
         <motion.div
           key={p.id}
@@ -241,16 +99,10 @@ function PremiumOceanBackground({ activeColor }: { activeColor: string }) {
             opacity: [0, 0.8, 0.8, 0],
             x: [0, Math.random() * 50 - 25, 0],
           }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
+          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'linear' }}
         />
       ))}
 
-      {/* Stars */}
       {Array.from({ length: 30 }).map((_, i) => (
         <motion.div
           key={`star-${i}`}
@@ -263,15 +115,10 @@ function PremiumOceanBackground({ activeColor }: { activeColor: string }) {
             background: 'white',
           }}
           animate={{ opacity: [0.2, 1, 0.2] }}
-          transition={{
-            duration: 2 + Math.random() * 3,
-            delay: Math.random() * 5,
-            repeat: Infinity,
-          }}
+          transition={{ duration: 2 + Math.random() * 3, delay: Math.random() * 5, repeat: Infinity }}
         />
       ))}
 
-      {/* Grid pattern overlay */}
       <div className="absolute inset-0 opacity-[0.015]" style={{
         backgroundImage: `linear-gradient(${activeColor} 1px, transparent 1px), linear-gradient(90deg, ${activeColor} 1px, transparent 1px)`,
         backgroundSize: '50px 50px',
@@ -281,169 +128,11 @@ function PremiumOceanBackground({ activeColor }: { activeColor: string }) {
 }
 
 // ═══════════════════════════════════════
-// Confetti System
+// Hero Letter Display
 // ═══════════════════════════════════════
-function ConfettiBurst({ trigger, x, y, colors }: { trigger: number; x: number; y: number; colors: string[] }) {
-  const [particles, setParticles] = useState<Array<{ id: number; angle: number; distance: number; color: string; size: number; rotation: number }>>([]);
-
-  useEffect(() => {
-    if (trigger === 0) return;
-    const newParticles = Array.from({ length: 30 }, (_, i) => ({
-      id: Date.now() + i,
-      angle: (Math.PI * 2 * i) / 30 + Math.random() * 0.3,
-      distance: 80 + Math.random() * 120,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      size: 6 + Math.random() * 8,
-      rotation: Math.random() * 720,
-    }));
-    setParticles(newParticles);
-    const t = setTimeout(() => setParticles([]), 1500);
-    return () => clearTimeout(t);
-  }, [trigger]);
-
+function HeroLetterDisplay({ letterData }: { letterData: Letter }) {
   return (
-    <div className="fixed pointer-events-none" style={{ left: x, top: y, zIndex: 9998 }}>
-      <AnimatePresence>
-        {particles.map(p => (
-          <motion.div
-            key={p.id}
-            initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
-            animate={{
-              x: Math.cos(p.angle) * p.distance,
-              y: Math.sin(p.angle) * p.distance,
-              scale: 0,
-              opacity: 0,
-              rotate: p.rotation,
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: [0.2, 0.8, 0.4, 1] }}
-            className="absolute"
-            style={{
-              width: p.size,
-              height: p.size,
-              background: p.color,
-              borderRadius: Math.random() > 0.5 ? '50%' : '2px',
-              boxShadow: `0 0 ${p.size}px ${p.color}99`,
-            }}
-          />
-        ))}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// كارل النسر — Premium
-// ═══════════════════════════════════════
-type KarlMood = 'idle' | 'happy' | 'sad' | 'celebrate';
-
-const ENCOURAGEMENTS = [
-  { de: 'Super!', ar: 'ممتاز!' }, { de: 'Toll!', ar: 'رائع!' },
-  { de: 'Wunderbar!', ar: 'مدهش!' }, { de: 'Klasse!', ar: 'تحفة!' },
-  { de: 'Bravo!', ar: 'برافو!' }, { de: 'Sehr gut!', ar: 'ممتاز جداً!' },
-  { de: 'Genial!', ar: 'عبقري!' }, { de: 'Fantastisch!', ar: 'خيالي!' },
-];
-
-const SAD_MESSAGES = [
-  { de: 'Versuch nochmal!', ar: 'جرب تاني!' },
-  { de: 'Du schaffst das!', ar: 'تقدر تعملها!' },
-  { de: 'Keine Sorge!', ar: 'متقلقش!' },
-];
-
-function KarlEagle({ mood, message }: { mood: KarlMood; message: { de: string; ar: string } | null }) {
-  return (
-    <div className="fixed pointer-events-none" style={{ zIndex: 50, bottom: 20, right: 20 }}>
-      <motion.div
-        animate={
-          mood === 'celebrate'
-            ? { y: [-12, 0, -12], rotate: [-15, 15, -15], scale: [1, 1.15, 1] }
-            : mood === 'happy'
-            ? { y: [-8, 0, -8], rotate: [-8, 8, -8] }
-            : mood === 'sad'
-            ? { y: [0, -3, 0], rotate: [-3, 3, -3] }
-            : { y: [-4, 4, -4] }
-        }
-        transition={{ duration: mood === 'celebrate' ? 0.5 : mood === 'happy' ? 0.8 : 2.5, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <div className="relative">
-          {/* Aura glow */}
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: mood === 'celebrate' ? 'radial-gradient(circle, #FFD70066, transparent 70%)'
-                : mood === 'happy' ? 'radial-gradient(circle, #58CC0266, transparent 70%)'
-                : mood === 'sad' ? 'radial-gradient(circle, #FF6B6B44, transparent 70%)'
-                : 'radial-gradient(circle, #4CC9F044, transparent 70%)',
-              filter: 'blur(15px)',
-              transform: 'scale(1.5)',
-            }}
-            animate={{ scale: [1.4, 1.7, 1.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-          <img
-            src="/characters/karl-3d.png"
-            alt="كارل"
-            style={{
-              width: 'clamp(85px, 9vw, 130px)',
-              height: 'clamp(85px, 9vw, 130px)',
-              objectFit: 'contain',
-              position: 'relative',
-              zIndex: 1,
-              filter: mood === 'celebrate'
-                ? 'drop-shadow(0 8px 20px rgba(255,215,0,0.8))'
-                : mood === 'happy'
-                ? 'drop-shadow(0 6px 16px rgba(88,204,2,0.7))'
-                : mood === 'sad'
-                ? 'drop-shadow(0 4px 12px rgba(255,107,107,0.5)) saturate(0.6)'
-                : 'drop-shadow(0 6px 14px rgba(76,201,240,0.5))',
-              transition: 'filter 0.4s ease',
-            }}
-            draggable={false}
-          />
-
-          <AnimatePresence>
-            {message && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.6, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.6, y: 10 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                className="absolute whitespace-nowrap"
-                style={{ bottom: '100%', right: '50%', transform: 'translateX(50%)', marginBottom: 12 }}
-              >
-                <div className="px-4 py-2.5 rounded-2xl shadow-2xl border-2 backdrop-blur-md"
-                  style={{
-                    background: mood === 'celebrate' || mood === 'happy'
-                      ? 'linear-gradient(135deg, rgba(88,204,2,0.95), rgba(76,201,240,0.95))'
-                      : 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(247,37,133,0.95))',
-                    borderColor: 'rgba(255,255,255,0.4)',
-                  }}>
-                  <div className="text-base font-black text-white text-center leading-tight">{message.de}</div>
-                  <div className="text-xs font-bold text-white/90 text-center mt-0.5">{message.ar}</div>
-                </div>
-                <div className="w-0 h-0 mx-auto" style={{
-                  borderLeft: '6px solid transparent',
-                  borderRight: '6px solid transparent',
-                  borderTop: `6px solid ${mood === 'celebrate' || mood === 'happy' ? 'rgba(88,204,2,0.95)' : 'rgba(255,107,107,0.95)'}`,
-                }} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// Hero Letter Display — احترافي
-// ═══════════════════════════════════════
-function HeroLetterDisplay({ letterData, size = 'large' }: { letterData: typeof LETTERS[0]; size?: 'large' | 'medium' }) {
-  const dimensions = size === 'large' ? { container: 260, fontSize: '11rem' } : { container: 200, fontSize: '8rem' };
-
-  return (
-    <div className="relative flex items-center justify-center" style={{ width: dimensions.container, height: dimensions.container }}>
-      {/* Orbital rings */}
+    <div className="relative flex items-center justify-center" style={{ width: 260, height: 260 }}>
       <motion.div
         className="absolute inset-0 rounded-full border-2"
         style={{ borderColor: `${letterData.color}33` }}
@@ -470,7 +159,6 @@ function HeroLetterDisplay({ letterData, size = 'large' }: { letterData: typeof 
         }} />
       </motion.div>
 
-      {/* Glow background */}
       <motion.div
         className="absolute inset-8 rounded-full blur-3xl"
         style={{ background: `radial-gradient(circle, ${letterData.color}66, transparent)` }}
@@ -478,7 +166,6 @@ function HeroLetterDisplay({ letterData, size = 'large' }: { letterData: typeof 
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* Main letter container — Glass morphism */}
       <motion.div
         animate={{ scale: [1, 1.04, 1], rotate: [-1, 1, -1] }}
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -488,23 +175,17 @@ function HeroLetterDisplay({ letterData, size = 'large' }: { letterData: typeof 
           background: `linear-gradient(145deg, ${letterData.gradient[0]}22, ${letterData.gradient[1]}11)`,
           backdropFilter: 'blur(20px)',
           border: `1px solid ${letterData.color}44`,
-          boxShadow: `
-            0 20px 60px ${letterData.color}33,
-            inset 0 1px 0 ${letterData.color}55,
-            inset 0 -1px 0 rgba(0,0,0,0.3)
-          `,
+          boxShadow: `0 20px 60px ${letterData.color}33, inset 0 1px 0 ${letterData.color}55, inset 0 -1px 0 rgba(0,0,0,0.3)`,
         }}
       >
-        {/* Inner highlight */}
         <div className="absolute top-0 left-0 right-0 h-1/2 rounded-t-[2.5rem]" style={{
           background: 'linear-gradient(180deg, rgba(255,255,255,0.1), transparent)',
         }} />
 
-        {/* The letter itself with gradient */}
         <span
           className="font-black relative z-10"
           style={{
-            fontSize: dimensions.fontSize,
+            fontSize: '11rem',
             background: `linear-gradient(180deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -517,32 +198,19 @@ function HeroLetterDisplay({ letterData, size = 'large' }: { letterData: typeof 
           {letterData.letter}
         </span>
 
-        {/* Reflection */}
         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-2/3 h-1 rounded-full opacity-60" style={{
           background: `radial-gradient(ellipse, ${letterData.color}88, transparent)`,
           filter: 'blur(2px)',
         }} />
       </motion.div>
 
-      {/* Floating sparkles */}
       {[...Array(6)].map((_, i) => (
         <motion.div
           key={i}
           className="absolute"
-          style={{
-            top: `${20 + Math.random() * 60}%`,
-            left: `${10 + Math.random() * 80}%`,
-          }}
-          animate={{
-            y: [0, -20, 0],
-            opacity: [0, 1, 0],
-            scale: [0, 1, 0],
-          }}
-          transition={{
-            duration: 2 + Math.random() * 2,
-            repeat: Infinity,
-            delay: i * 0.4,
-          }}
+          style={{ top: `${20 + Math.random() * 60}%`, left: `${10 + Math.random() * 80}%` }}
+          animate={{ y: [0, -20, 0], opacity: [0, 1, 0], scale: [0, 1, 0] }}
+          transition={{ duration: 2 + Math.random() * 2, repeat: Infinity, delay: i * 0.4 }}
         >
           <Sparkles size={12} style={{ color: letterData.color }} />
         </motion.div>
@@ -552,145 +220,13 @@ function HeroLetterDisplay({ letterData, size = 'large' }: { letterData: typeof 
 }
 
 // ═══════════════════════════════════════
-// Combo Display
+// PHASE 1 — تعلم الحرف
 // ═══════════════════════════════════════
-function ComboDisplay({ combo }: { combo: number }) {
-  if (combo < 2) return null;
-  return (
-    <AnimatePresence>
-      <motion.div
-        key={combo}
-        initial={{ scale: 0, y: 20, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        exit={{ scale: 0, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-        className="fixed top-32 left-1/2 transform -translate-x-1/2 z-40"
-      >
-        <div className="flex items-center gap-2 px-4 py-2 rounded-2xl backdrop-blur-md border-2 shadow-2xl"
-          style={{
-            background: combo >= 5 ? 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(255,165,0,0.95))'
-              : 'linear-gradient(135deg, rgba(255,215,0,0.95), rgba(255,165,0,0.95))',
-            borderColor: 'rgba(255,255,255,0.4)',
-            boxShadow: '0 8px 32px rgba(255,165,0,0.5)',
-          }}
-        >
-          <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 0.5, repeat: Infinity }}>
-            <Flame size={20} className="text-white" fill="white" />
-          </motion.div>
-          <span className="font-black text-white text-base">
-            {combo >= 5 ? `🔥 On Fire! x${combo}` : `Combo x${combo}!`}
-          </span>
-        </div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-// ═══════════════════════════════════════
-// Special Chars Keyboard
-// ═══════════════════════════════════════
-function SpecialCharsKeyboard({ chars, onChar, color }: { chars: string[]; onChar: (c: string) => void; color: string }) {
-  if (chars.length === 0) return null;
-  return (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2 justify-center flex-wrap">
-      {chars.map(c => (
-        <motion.button
-          key={c}
-          whileTap={{ scale: 0.85 }}
-          whileHover={{ scale: 1.08, y: -2 }}
-          onMouseDown={e => { e.preventDefault(); onChar(c); }}
-          className="w-12 h-12 rounded-2xl font-black text-2xl border-2 transition-all select-none"
-          style={{
-            borderColor: color,
-            background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-            color: 'white',
-            boxShadow: `0 4px 16px ${color}55, inset 0 1px 0 ${color}66`,
-            textShadow: `0 0 12px ${color}aa`,
-            backdropFilter: 'blur(10px)',
-          }}
-        >
-          {c}
-        </motion.button>
-      ))}
-    </motion.div>
-  );
-}
-
-// ═══════════════════════════════════════
-// Sound Wave Visualization
-// ═══════════════════════════════════════
-function SoundButton({ onClick, color, label }: { onClick: () => void; color: string; label: string }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const handleClick = () => {
-    setIsPlaying(true);
-    onClick();
-    setTimeout(() => setIsPlaying(false), 1500);
-  };
-
-  return (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
-      whileHover={{ scale: 1.03 }}
-      onClick={handleClick}
-      className="relative flex items-center gap-3 px-6 py-3.5 rounded-2xl font-black text-base border-2 transition-all overflow-hidden"
-      style={{
-        color: 'white',
-        borderColor: color,
-        background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-        boxShadow: `0 4px 20px ${color}44, inset 0 1px 0 ${color}66`,
-        backdropFilter: 'blur(10px)',
-      }}
-    >
-      {/* Pulse rings when playing */}
-      {isPlaying && (
-        <>
-          {[0, 0.2, 0.4].map((delay, i) => (
-            <motion.div
-              key={i}
-              className="absolute inset-0 rounded-2xl border-2 pointer-events-none"
-              style={{ borderColor: color }}
-              initial={{ scale: 1, opacity: 0.8 }}
-              animate={{ scale: 1.4, opacity: 0 }}
-              transition={{ duration: 1, delay, ease: 'easeOut' }}
-            />
-          ))}
-        </>
-      )}
-
-      <motion.div animate={isPlaying ? { rotate: [0, -10, 10, 0] } : {}} transition={{ duration: 0.4, repeat: 3 }}>
-        <Volume2 size={20} />
-      </motion.div>
-
-      {/* Sound bars */}
-      {isPlaying && (
-        <div className="flex items-center gap-0.5">
-          {[0, 0.1, 0.2, 0.3].map((delay, i) => (
-            <motion.div
-              key={i}
-              className="w-0.5 rounded-full"
-              style={{ background: 'white' }}
-              animate={{ height: [4, 16, 4] }}
-              transition={{ duration: 0.5, repeat: Infinity, delay }}
-            />
-          ))}
-        </div>
-      )}
-
-      {label}
-    </motion.button>
-  );
-}
-
-// ═══════════════════════════════════════
-// PHASE 1 — تعلم الحرف (Split Layout)
-// ═══════════════════════════════════════
-function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
-  letterData: typeof LETTERS[0];
+function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo }: {
+  letterData: Letter;
   onDone: () => void;
   onKarlReact: (mood: KarlMood) => void;
   onCombo: () => void;
-  combo: number;
 }) {
   const [input, setInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
@@ -736,12 +272,10 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
         className="w-full max-w-5xl mx-auto"
       >
         <div className="grid lg:grid-cols-5 gap-8 items-center">
-          {/* Left: Hero Letter */}
           <div className="lg:col-span-3 flex justify-center">
             <HeroLetterDisplay letterData={letterData} />
           </div>
 
-          {/* Right: Controls */}
           <div className="lg:col-span-2 space-y-5">
             <div className="text-center lg:text-right">
               <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${letterData.color}aa` }}>
@@ -756,25 +290,17 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
 
             <div className="space-y-3">
               <p className="text-center lg:text-right font-bold text-white/40 text-xs tracking-widest uppercase">اكتب الحرف</p>
-              <input
+              <GhostInput
                 ref={inputRef}
-                type="text"
                 value={input}
+                onChange={v => { setInput(v); setStatus('idle'); }}
+                onEnter={handleCheck}
+                ghostText={letterData.letter}
+                color={letterData.color}
+                status={status}
+                fontSize="3rem"
                 maxLength={1}
-                onChange={e => { setInput(e.target.value.toUpperCase()); setStatus('idle'); }}
-                onKeyDown={e => e.key === 'Enter' && input && handleCheck()}
-                placeholder={letterData.letter}
-                autoFocus
-                className="w-full text-center font-black py-5 rounded-2xl border-2 outline-none transition-all text-white placeholder:text-white/15"
-                style={{
-                  fontSize: '3rem',
-                  background: 'rgba(255,255,255,0.03)',
-                  backdropFilter: 'blur(10px)',
-                  borderColor: status === 'correct' ? '#58CC02' : status === 'wrong' ? '#FF4444' : `${letterData.color}55`,
-                  boxShadow: status === 'correct' ? '0 0 30px #58CC0266'
-                    : status === 'wrong' ? '0 0 30px #FF444466'
-                    : `inset 0 1px 0 ${letterData.color}33, 0 8px 30px ${letterData.color}22`,
-                }}
+                uppercase
               />
               <AnimatePresence>
                 {status !== 'idle' && (
@@ -802,9 +328,6 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
               }}
             >
               <span className="relative z-10">تحقق ✓</span>
-              <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity"
-                style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)' }}
-              />
             </motion.button>
           </div>
         </div>
@@ -814,14 +337,13 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
 }
 
 // ═══════════════════════════════════════
-// PHASE 2 — تعلم الكلمة (Split Layout)
+// PHASE 2 — تعلم الكلمة
 // ═══════════════════════════════════════
-function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
-  letterData: typeof LETTERS[0];
+function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo }: {
+  letterData: Letter;
   onDone: () => void;
   onKarlReact: (mood: KarlMood) => void;
   onCombo: () => void;
-  combo: number;
 }) {
   const [input, setInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
@@ -873,14 +395,12 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
         className="w-full max-w-5xl mx-auto"
       >
         <div className="grid lg:grid-cols-5 gap-8 items-center">
-          {/* Left: Word Card */}
           <div className="lg:col-span-3 flex flex-col items-center gap-5">
             <motion.div
               animate={{ y: [0, -8, 0], rotate: [-1, 1, -1] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               className="relative"
             >
-              {/* Outer glow */}
               <div className="absolute inset-0 rounded-[3rem] blur-3xl" style={{
                 background: `radial-gradient(circle, ${letterData.color}66, transparent)`,
                 transform: 'scale(1.3)',
@@ -894,7 +414,6 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
                   border: `2px solid ${letterData.color}55`,
                   boxShadow: `0 20px 60px ${letterData.color}44, inset 0 1px 0 ${letterData.color}66`,
                 }}>
-                {/* Inner shine */}
                 <div className="absolute top-0 left-0 right-0 h-1/2 rounded-t-[3rem]" style={{
                   background: 'linear-gradient(180deg, rgba(255,255,255,0.15), transparent)',
                 }} />
@@ -903,7 +422,6 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
                 </span>
               </div>
 
-              {/* Letter badge */}
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
@@ -935,7 +453,6 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
             <SoundButton onClick={() => speakWord(letterData.word)} color={letterData.color} label="استمع للكلمة" />
           </div>
 
-          {/* Right: Input */}
           <div className="lg:col-span-2 space-y-4">
             <div className="text-center lg:text-right">
               <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${letterData.color}aa` }}>
@@ -944,24 +461,15 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
               <div className="text-2xl font-black text-white">اكتب الكلمة</div>
             </div>
 
-            <input
+            <GhostInput
               ref={inputRef}
-              type="text"
               value={input}
-              onChange={e => { setInput(e.target.value); setStatus('idle'); }}
-              onKeyDown={e => e.key === 'Enter' && input && handleCheck()}
-              placeholder={letterData.word}
-              autoFocus
-              className="w-full text-center font-black py-4 rounded-2xl border-2 outline-none transition-all text-white placeholder:text-white/15"
-              style={{
-                fontSize: '1.8rem',
-                background: 'rgba(255,255,255,0.03)',
-                backdropFilter: 'blur(10px)',
-                borderColor: status === 'correct' ? '#58CC02' : status === 'wrong' ? '#FF4444' : `${letterData.color}55`,
-                boxShadow: status === 'correct' ? '0 0 30px #58CC0266'
-                  : status === 'wrong' ? '0 0 30px #FF444466'
-                  : `inset 0 1px 0 ${letterData.color}33, 0 8px 30px ${letterData.color}22`,
-              }}
+              onChange={v => { setInput(v); setStatus('idle'); }}
+              onEnter={handleCheck}
+              ghostText={letterData.word}
+              color={letterData.color}
+              status={status}
+              fontSize="1.8rem"
             />
 
             {requiredChars.length > 0 && (
@@ -990,7 +498,7 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
             <motion.button
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
               onClick={handleCheck} disabled={!input}
-              className="w-full py-4 rounded-2xl font-black text-lg text-white disabled:opacity-25 transition-all relative overflow-hidden"
+              className="w-full py-4 rounded-2xl font-black text-lg text-white disabled:opacity-25 transition-all"
               style={{
                 background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
                 boxShadow: `0 8px 30px ${letterData.color}55, inset 0 1px 0 rgba(255,255,255,0.3)`,
@@ -1006,13 +514,11 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, combo }: {
   );
 }
 
-interface FlyingStar { id: number; x: number; y: number; }
-
 // ═══════════════════════════════════════
 // اختبار الميناء
 // ═══════════════════════════════════════
 function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, onKarlReact, onCombo }: {
-  groupLetters: typeof LETTERS;
+  groupLetters: Letter[];
   totalStars: number;
   onPass: () => void;
   onFail: () => void;
@@ -1031,8 +537,6 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
 
   const currentLetter = groupLetters[currentIdx];
   const boxes = currentLetter ? (HARBOR_OBJECTS[currentLetter.letter] ?? []) : [];
-  const NAT_W = 1537;
-  const NAT_H = 1023;
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (showFeedback || finished || boxes.length === 0 || !currentLetter) return;
@@ -1040,9 +544,9 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
     const rect = containerRef.current.getBoundingClientRect();
     const containerW = rect.width;
     const containerH = rect.height;
-    const scale = Math.min(containerW / NAT_W, containerH / NAT_H);
-    const renderedW = NAT_W * scale;
-    const renderedH = NAT_H * scale;
+    const scale = Math.min(containerW / HARBOR_IMAGE.width, containerH / HARBOR_IMAGE.height);
+    const renderedW = HARBOR_IMAGE.width * scale;
+    const renderedH = HARBOR_IMAGE.height * scale;
     const offsetX = (containerW - renderedW) / 2;
     const offsetY = (containerH - renderedH) / 2;
     const clickX = e.clientX - rect.left - offsetX;
@@ -1154,10 +658,10 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
       <div
         ref={containerRef}
         className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl select-none"
-        style={{ aspectRatio: `${NAT_W}/${NAT_H}`, cursor: 'pointer', background: '#0a1628' }}
+        style={{ aspectRatio: `${HARBOR_IMAGE.width}/${HARBOR_IMAGE.height}`, cursor: 'pointer', background: '#0a1628' }}
         onClick={handleImageClick}
       >
-        <img src="/images/harbor-hamburg.png" alt="ميناء" className="w-full h-full"
+        <img src={HARBOR_IMAGE.src} alt="ميناء" className="w-full h-full"
           style={{ objectFit: 'contain', objectPosition: 'center', pointerEvents: 'none', display: 'block' }}
           draggable={false} />
 
@@ -1303,15 +807,47 @@ export default function GermanLetterLessonPage() {
   const [letterIdx, setLetterIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>('learn-letter');
   const [totalStars, setTotalStars] = useState(0);
+  const [isLoading, setIsLoading] = useState(true); // 🆕 حالة التحميل
+  const LESSON_ID = 'hamburg';
+
+  // 📥 جلب التقدم المحفوظ + استرجاع مكان الطالب
+  useEffect(() => {
+    const loadProgress = async () => {
+      const progress = await getLessonProgress(LESSON_ID);
+      if (progress) {
+        // استرجاع النجوم
+        setTotalStars(progress.stars);
+        
+        // 🆕 استرجاع مكان الطالب (لو الدرس مش متكمل)
+        if (!progress.completed) {
+          if (progress.current_group !== undefined && progress.current_group !== null) {
+            setGroupIdx(progress.current_group);
+          }
+          if (progress.current_letter !== undefined && progress.current_letter !== null) {
+            setLetterIdx(progress.current_letter);
+          }
+          if (progress.current_phase) {
+            setPhase(progress.current_phase as Phase);
+          }
+          console.log(`📍 الرجوع لمكانك: مجموعة ${progress.current_group}, حرف ${progress.current_letter}, مرحلة ${progress.current_phase}`);
+        }
+        
+          console.log('✅ تم تحميل التقدم:', progress);
+      }
+      setIsLoading(false); // 🆕 خلصنا التحميل
+    };
+    loadProgress();
+  }, []);
+
   const [flyingStars, setFlyingStars] = useState<FlyingStar[]>([]);
   const [karlMood, setKarlMood] = useState<KarlMood>('idle');
   const [karlMessage, setKarlMessage] = useState<{ de: string; ar: string } | null>(null);
   const [combo, setCombo] = useState(0);
 
-  const group = GROUPS[groupIdx];
+  const group = LETTER_GROUPS[groupIdx];
   const letterData = group?.letters[letterIdx];
   const totalLettersLearned = groupIdx * 6 + letterIdx;
-  const totalLetters = 26;
+  const totalLetters = LETTERS.length;
 
   const handleKarlReact = (mood: KarlMood) => {
     setKarlMood(mood);
@@ -1333,28 +869,98 @@ export default function GermanLetterLessonPage() {
 
   const resetCombo = () => setCombo(0);
 
-  const handleLetterDone = () => setPhase('learn-word');
+  // 🎯 حساب التقييم من 3 (بناءً على نسبة الإنجاز)
+  const calculateRating = (starsCount: number): number => {
+    const totalPossibleStars = LETTERS.length;
+    const progressRatio = starsCount / totalPossibleStars;
+    if (progressRatio >= 0.67) return 3;
+    if (progressRatio >= 0.34) return 2;
+    return 1;
+  };
+
+  // 💾 حفظ المكان الحالي في Supabase
+  const savePosition = (newGroup: number, newLetter: number, newPhase: Phase) => {
+    const rating = calculateRating(totalStars);
+    saveLessonProgress(LESSON_ID, rating, false, {
+      current_group: newGroup,
+      current_letter: newLetter,
+      current_phase: newPhase,
+    }).then(() => {
+      console.log(`📍 تم حفظ المكان: G${newGroup} L${newLetter} ${newPhase}`);
+    });
+  };
+
+  const handleLetterDone = () => {
+    setPhase('learn-word');
+    savePosition(groupIdx, letterIdx, 'learn-word');
+  };
+
   const handleWordDone = () => {
     const nextIdx = letterIdx + 1;
-    if (nextIdx < group.letters.length) { setLetterIdx(nextIdx); setPhase('learn-letter'); }
-    else setPhase('test');
+    if (nextIdx < group.letters.length) {
+      setLetterIdx(nextIdx);
+      setPhase('learn-letter');
+      savePosition(groupIdx, nextIdx, 'learn-letter');
+    } else {
+      setPhase('test');
+      savePosition(groupIdx, letterIdx, 'test');
+    }
   };
+
   const handleTestPass = () => setPhase('group-success');
   const handleTestFail = () => { resetCombo(); setPhase('group-fail'); };
+
   const handleGroupNext = () => {
-    if (groupIdx + 1 < GROUPS.length) { setGroupIdx(i => i + 1); setLetterIdx(0); setPhase('learn-letter'); }
-    else setPhase('all-done');
+    if (groupIdx + 1 < LETTER_GROUPS.length) {
+      const newGroupIdx = groupIdx + 1;
+      setGroupIdx(newGroupIdx);
+      setLetterIdx(0);
+      setPhase('learn-letter');
+      savePosition(newGroupIdx, 0, 'learn-letter');
+    } else {
+      setPhase('all-done');
+    }
   };
-  const handleRetry = () => { setLetterIdx(0); setPhase('learn-letter'); };
+
+  const handleRetry = () => {
+    setLetterIdx(0);
+    setPhase('learn-letter');
+    savePosition(groupIdx, 0, 'learn-letter');
+  };
 
   const handleStarEarned = (clientX: number, clientY: number) => {
     const id = Date.now() + Math.random();
-    setTotalStars(s => s + 1);
+    const newStarsCount = totalStars + 1;
+    setTotalStars(newStarsCount);
     setFlyingStars(prev => [...prev, { id, x: clientX, y: clientY }]);
     setTimeout(() => setFlyingStars(prev => prev.filter(s => s.id !== id)), 1000);
+    
+    // 🎯 احسب التقييم الجديد
+    const rating = calculateRating(newStarsCount);
+    
+    // 💾 حفظ التقييم + المكان في Supabase
+    saveLessonProgress(LESSON_ID, rating, false, {
+      current_group: groupIdx,
+      current_letter: letterIdx,
+      current_phase: phase,
+    }).then(() => {
+      console.log(`⭐ تقدمك: ${newStarsCount}/${LETTERS.length} نجمة → التقييم: ${rating}/3 | المكان: G${groupIdx} L${letterIdx} ${phase}`);
+    });
   };
 
-  if (!group || !letterData) return null;
+  // 🆕 لو لسه بيحمّل البيانات، اعرض شاشة تحميل
+if (isLoading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#07090D]">
+      <div className="text-center">
+        <div className="text-6xl mb-4 animate-pulse">⚓</div>
+        <p className="text-white font-bold">جاري تحميل تقدمك...</p>
+      </div>
+    </div>
+  );
+}
+
+if (!group || !letterData) return null;
 
   const phaseLabel: Record<Phase, string> = {
     'learn-letter': 'الحرف', 'learn-word': 'الكلمة', 'test': 'اختبار',
@@ -1366,35 +972,18 @@ export default function GermanLetterLessonPage() {
   return (
     <div className="min-h-screen text-white relative" style={{ fontFamily: "'Tajawal', sans-serif" }} dir="rtl">
       <PremiumOceanBackground activeColor={activeColor} />
-      <KarlEagle mood={karlMood} message={karlMessage} />
+      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" />
       <ComboDisplay combo={combo} />
+      <FlyingStars stars={flyingStars} />
 
-      <div className="fixed inset-0 pointer-events-none z-[9999]">
-        <AnimatePresence>
-          {flyingStars.map(star => (
-            <motion.div key={star.id}
-              initial={{ x: star.x - 20, y: star.y - 20, scale: 1.4, opacity: 1 }}
-              animate={{ x: star.x - 20, y: star.y - 150, scale: 0.2, opacity: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.9, ease: [0.2, 0.8, 0.4, 1] }}
-              style={{ position: 'absolute', top: 0, left: 0 }}>
-              <svg width="40" height="40" viewBox="0 0 40 40">
-                <polygon points="20,2 24.9,14.5 38.5,14.5 27.8,22.3 31.7,35.5 20,27.5 8.3,35.5 12.2,22.3 1.5,14.5 15.1,14.5"
-                  fill="#FFD700" stroke="#FFA500" strokeWidth="1" />
-              </svg>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {/* Premium Header */}
       <div className="fixed top-0 left-0 right-0 z-30 px-4 pt-4 pb-3"
         style={{ background: 'linear-gradient(to bottom, rgba(2,5,15,0.95) 70%, transparent)' }}>
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
             <button onClick={() => router.push('/character-and-map?from=lesson')}
-              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md"
-              style={{ background: 'rgba(255,255,255,0.05)' }}>
+              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md hover:bg-white/10"
+              style={{ background: 'rgba(255,255,255,0.05)' }}
+              title="ارجع للخريطة (تقدمك محفوظ)">
               <ArrowLeft size={20} />
             </button>
             <div className="flex-1">
@@ -1427,7 +1016,6 @@ export default function GermanLetterLessonPage() {
             </motion.div>
           </div>
 
-          {/* Letters mini-map */}
           <div className="flex gap-1.5 justify-center">
             {group.letters.map((l, i) => {
               const isDone = phase === 'test' || phase === 'group-success' || i < letterIdx || (i === letterIdx && phase === 'learn-word');
@@ -1452,14 +1040,13 @@ export default function GermanLetterLessonPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="pt-36 pb-32 px-6 min-h-screen flex flex-col justify-center relative" style={{ zIndex: 10 }}>
         <AnimatePresence mode="wait">
           {phase === 'learn-letter' && (
-            <LearnLetterPhase key={`ll-${groupIdx}-${letterIdx}`} letterData={letterData} onDone={handleLetterDone} onKarlReact={handleKarlReact} onCombo={handleCombo} combo={combo} />
+            <LearnLetterPhase key={`ll-${groupIdx}-${letterIdx}`} letterData={letterData} onDone={handleLetterDone} onKarlReact={handleKarlReact} onCombo={handleCombo} />
           )}
           {phase === 'learn-word' && (
-            <LearnWordPhase key={`lw-${groupIdx}-${letterIdx}`} letterData={letterData} onDone={handleWordDone} onKarlReact={handleKarlReact} onCombo={handleCombo} combo={combo} />
+            <LearnWordPhase key={`lw-${groupIdx}-${letterIdx}`} letterData={letterData} onDone={handleWordDone} onKarlReact={handleKarlReact} onCombo={handleCombo} />
           )}
           {phase === 'test' && (
             <motion.div key="test" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-3">
@@ -1496,7 +1083,11 @@ export default function GermanLetterLessonPage() {
               </div>
               <motion.button initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}
                 whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                onClick={() => router.push('/character-and-map')}
+                onClick={async () => {
+                  // 🏆 الدرس مكتمل = 3 نجوم كاملة + completed
+                  await saveLessonProgress(LESSON_ID, 3, true);
+                  router.push('/character-and-map?from=lesson');
+                }}
                 className="flex items-center gap-2 px-12 py-5 rounded-2xl font-black text-lg text-white"
                 style={{
                   background: 'linear-gradient(135deg, #58CC02, #096A02)',

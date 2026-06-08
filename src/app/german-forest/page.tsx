@@ -1,102 +1,33 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Volume2, Star, Check, X, Trophy, RotateCcw, Sparkles, Flame, Zap } from 'lucide-react';
+import { ArrowLeft, Volume2, Star, Check, X, Trophy, RotateCcw, Sparkles, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Flame } from 'lucide-react';
+import { saveLessonProgress, getLessonProgress } from '@/lib/playerData';
 
-// ═══════════════════════════════════════
-// البيانات
-// ═══════════════════════════════════════
-const SECTIONS = [
-  {
-    id: 'fruits',
-    title: 'الفواكه',
-    titleDe: 'Früchte',
-    emoji: '🍎',
-    accentColor: '#58CC02',
-    gradient: ['#58CC02', '#3A8C00'],
-    bgColors: ['#0a1408', '#0f2010', '#0a1408'],
-    particleEmoji: '🍃',
-    words: [
-      { word: 'Apfel',    wordAr: 'تفاحة',   emoji: '🍎', color: '#FF4D6D', gradient: ['#FF4D6D', '#C70039'] },
-      { word: 'Traube',   wordAr: 'عنب',     emoji: '🍇', color: '#7B2FBE', gradient: ['#7B2FBE', '#5A1F8E'] },
-      { word: 'Banane',   wordAr: 'موزة',    emoji: '🍌', color: '#FFD700', gradient: ['#FFD700', '#FFA500'] },
-      { word: 'Birne',    wordAr: 'كمثرى',   emoji: '🍐', color: '#A8D5A2', gradient: ['#A8D5A2', '#6FAE6A'] },
-      { word: 'Kirsche',  wordAr: 'كرز',     emoji: '🍒', color: '#C0392B', gradient: ['#C0392B', '#8B0000'] },
-      { word: 'Orange',   wordAr: 'برتقالة', emoji: '🍊', color: '#FF9500', gradient: ['#FF9500', '#E67E00'] },
-      { word: 'Zitrone',  wordAr: 'ليمونة',  emoji: '🍋', color: '#FFF44F', gradient: ['#FFF44F', '#E6D900'] },
-      { word: 'Erdbeere', wordAr: 'فراولة',  emoji: '🍓', color: '#FF4D6D', gradient: ['#FF4D6D', '#D63031'] },
-    ],
-  },
-  {
-    id: 'vegetables',
-    title: 'الخضروات',
-    titleDe: 'Gemüse',
-    emoji: '🥕',
-    accentColor: '#FF9500',
-    gradient: ['#FF9500', '#D17F00'],
-    bgColors: ['#0d1008', '#162010', '#0d1008'],
-    particleEmoji: '🍂',
-    words: [
-      { word: 'Karotte',   wordAr: 'جزرة',    emoji: '🥕', color: '#FF9500', gradient: ['#FF9500', '#E67E00'] },
-      { word: 'Tomate',    wordAr: 'طماطمة',  emoji: '🍅', color: '#FF4D6D', gradient: ['#FF4D6D', '#C0392B'] },
-      { word: 'Kuerbis',   wordAr: 'يقطينة',  emoji: '🎃', color: '#FF7A00', gradient: ['#FF7A00', '#D65A00'] },
-      { word: 'Aubergine', wordAr: 'باذنجان', emoji: '🍆', color: '#6B21A8', gradient: ['#6B21A8', '#4A1670'] },
-      { word: 'Mais',      wordAr: 'ذرة',     emoji: '🌽', color: '#FFD700', gradient: ['#FFD700', '#FFA500'] },
-      { word: 'Zucchini',  wordAr: 'كوسة',    emoji: '🥒', color: '#58CC02', gradient: ['#58CC02', '#3A8C00'] },
-      { word: 'Pilz',      wordAr: 'فطر',     emoji: '🍄', color: '#C77DFF', gradient: ['#C77DFF', '#9D4EDD'] },
-      { word: 'Paprika',   wordAr: 'فلفل',    emoji: '🫑', color: '#FF4D6D', gradient: ['#FF4D6D', '#C70039'] },
-    ],
-  },
-  {
-    id: 'animals',
-    title: 'الحيوانات',
-    titleDe: 'Tiere',
-    emoji: '🦊',
-    accentColor: '#FF9500',
-    gradient: ['#FF9500', '#8B4513'],
-    bgColors: ['#0e0a06', '#1a1008', '#0e0a06'],
-    particleEmoji: '✨',
-    words: [
-      { word: 'Fuchs',         wordAr: 'ثعلب',  emoji: '🦊', color: '#FF9500', gradient: ['#FF9500', '#E67E00'] },
-      { word: 'Igel',          wordAr: 'قنفذ',  emoji: '🦔', color: '#A0522D', gradient: ['#A0522D', '#6B3410'] },
-      { word: 'Eule',          wordAr: 'بومة',  emoji: '🦉', color: '#C8A96E', gradient: ['#C8A96E', '#8B7355'] },
-      { word: 'Reh',           wordAr: 'غزال',  emoji: '🦌', color: '#C8A96E', gradient: ['#C8A96E', '#8B6B3D'] },
-      { word: 'Wolf',          wordAr: 'ذئب',   emoji: '🐺', color: '#9B9B9B', gradient: ['#9B9B9B', '#6B6B6B'] },
-      { word: 'Hase',          wordAr: 'أرنب',  emoji: '🐇', color: '#F0F0F0', gradient: ['#F0F0F0', '#C0C0C0'] },
-      { word: 'Frosch',        wordAr: 'ضفدع',  emoji: '🐸', color: '#58CC02', gradient: ['#58CC02', '#3A8C00'] },
-      { word: 'Schmetterling', wordAr: 'فراشة', emoji: '🦋', color: '#4CC9F0', gradient: ['#4CC9F0', '#0984E3'] },
-    ],
-  },
-  {
-    id: 'colors',
-    title: 'الألوان',
-    titleDe: 'Farben',
-    emoji: '🎨',
-    accentColor: '#C77DFF',
-    gradient: ['#C77DFF', '#7209B7'],
-    bgColors: ['#0a0a1a', '#12082a', '#0a0a1a'],
-    particleEmoji: '🌈',
-    words: [
-      { word: 'Rot',     wordAr: 'أحمر',    emoji: '🔴', color: '#FF4D6D', gradient: ['#FF4D6D', '#C70039'] },
-      { word: 'Gelb',    wordAr: 'أصفر',    emoji: '🟡', color: '#FFD700', gradient: ['#FFD700', '#FFA500'] },
-      { word: 'Gruen',   wordAr: 'أخضر',    emoji: '🟢', color: '#58CC02', gradient: ['#58CC02', '#3A8C00'] },
-      { word: 'Blau',    wordAr: 'أزرق',    emoji: '🔵', color: '#4CC9F0', gradient: ['#4CC9F0', '#0984E3'] },
-      { word: 'Lila',    wordAr: 'بنفسجي',  emoji: '🟣', color: '#C77DFF', gradient: ['#C77DFF', '#7209B7'] },
-      { word: 'Orange',  wordAr: 'برتقالي', emoji: '🟠', color: '#FF9500', gradient: ['#FF9500', '#E67E00'] },
-      { word: 'Braun',   wordAr: 'بني',     emoji: '🟤', color: '#A0522D', gradient: ['#A0522D', '#6B3410'] },
-      { word: 'Weiss',   wordAr: 'أبيض',    emoji: '⚪', color: '#F0F0F0', gradient: ['#F0F0F0', '#A0A0A0'] },
-    ],
-  },
-];
+// 🎯 المكونات المشتركة
+import KarlEagle from '@/app/components/lesson/KarlEagle';
+import GhostInput from '@/app/components/lesson/GhostInput';
+import ConfettiBurst from '@/app/components/lesson/ConfettiBurst';
+import FlyingStars, { type FlyingStar } from '@/app/components/lesson/FlyingStars';
+import SoundButton from '@/app/components/lesson/SoundButton';
+import SpecialCharsKeyboard, { getRequiredSpecialChars } from '@/app/components/lesson/SpecialCharsKeyboard';
+
+// 🎯 الأنواع والرسائل المشتركة
+import type { KarlMood } from '@/lib/types/lesson';
+import { ENCOURAGEMENTS, SAD_MESSAGES } from '@/lib/types/lesson';
+
+// 🎯 الأصوات والنطق المشتركة
+import { playCoinSound, playBuzzSound, playComboSound } from '@/lib/audio/sounds';
+import { speakWord } from '@/lib/audio/speech';
+
+// 📦 البيانات من الملفات المنفصلة
+import { FOREST_SECTIONS, type ForestSection, type ForestWord } from '@/data/german/forest';
 
 type Box = { x: number; y: number; w: number; h: number };
 
-// ═══════════════════════════════════════
-// FOREST_OBJECTS - بدون تكرار
-// ═══════════════════════════════════════
 const FOREST_OBJECTS: Record<string, Box[]> = {
-  // الحيوانات
   Eule:           [{ x: 2.0,  y: 6.0,  w: 12.0, h: 22.0 }],
   Reh:            [{ x: 10.0, y: 35.0, w: 16.0, h: 32.0 }],
   Wolf:           [{ x: 37.0, y: 40.0, w: 12.0, h: 24.0 }],
@@ -105,7 +36,6 @@ const FOREST_OBJECTS: Record<string, Box[]> = {
   Schmetterling:  [{ x: 47.0, y: 56.0, w: 9.0,  h: 14.0 }],
   Frosch:         [{ x: 54.0, y: 80.0, w: 11.0, h: 14.0 }],
   Hase:           [{ x: 59.0, y: 60.0, w: 10.0, h: 16.0 }],
-  // الفواكه
   Apfel:          [{ x: 14.0, y: 1.0,  w: 11.0, h: 20.0 }],
   Traube:         [{ x: 25.0, y: 1.0,  w: 10.0, h: 18.0 }],
   Kirsche:        [{ x: 36.0, y: 1.0,  w: 8.0,  h: 14.0 }],
@@ -114,7 +44,6 @@ const FOREST_OBJECTS: Record<string, Box[]> = {
   Zitrone:        [{ x: 69.0, y: 1.0,  w: 8.0,  h: 16.0 }],
   Orange:         [{ x: 78.0, y: 1.0,  w: 10.0, h: 18.0 }],
   Erdbeere:       [{ x: 8.0,  y: 86.0, w: 16.0, h: 12.0 }],
-  // الخضروات
   Karotte:        [{ x: 65.0, y: 60.0, w: 20.0, h: 14.0 }],
   Tomate:         [{ x: 69.0, y: 70.0, w: 8.0,  h: 12.0 }],
   Kuerbis:        [{ x: 75.0, y: 70.0, w: 14.0, h: 20.0 }],
@@ -125,9 +54,6 @@ const FOREST_OBJECTS: Record<string, Box[]> = {
   Paprika:        [{ x: 91.0, y: 80.0, w: 9.0,  h: 18.0 }],
 };
 
-// ═══════════════════════════════════════
-// COLOR_OBJECTS - منفصلة عن الكلمات (عشان نتجنب التكرار)
-// ═══════════════════════════════════════
 const COLOR_OBJECTS: Record<string, Box[]> = {
   Rot: [
     { x: 14.0, y: 1.0,  w: 11.0, h: 20.0 },
@@ -189,9 +115,6 @@ const COLOR_OBJECTS: Record<string, Box[]> = {
   ],
 };
 
-// ═══════════════════════════════════════
-// Helper function - يجيب الـ boxes الصح حسب القسم
-// ═══════════════════════════════════════
 function getBoxesForWord(word: string, sectionId: string): Box[] {
   if (sectionId === 'colors') {
     return COLOR_OBJECTS[word] ?? [];
@@ -201,19 +124,6 @@ function getBoxesForWord(word: string, sectionId: string): Box[] {
 
 const NAT_W = 1920;
 const NAT_H = 1080;
-const ALL_SPECIAL_CHARS = ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'];
-
-function getRequiredSpecialChars(word: string): string[] {
-  const found = new Set<string>();
-  for (const char of word) {
-    if (ALL_SPECIAL_CHARS.includes(char)) {
-      found.add(char.toLowerCase());
-      const upper = char.toUpperCase();
-      if (upper !== char.toLowerCase()) found.add(upper);
-    }
-  }
-  return Array.from(found);
-}
 
 function normalizeGerman(s: string): string {
   return s.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
@@ -223,73 +133,12 @@ function compareWords(input: string, target: string): boolean {
   return normalizeGerman(input.trim()) === normalizeGerman(target);
 }
 
-type KarlMood = 'idle' | 'happy' | 'sad' | 'celebrate';
 type Phase = 'learn' | 'test' | 'section-success' | 'section-fail' | 'all-done';
 
 // ═══════════════════════════════════════
-// أصوات
+// خلفية الغابة
 // ═══════════════════════════════════════
-function speak(text: string) {
-  if (typeof window === 'undefined') return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'de-DE'; u.rate = 0.75; u.pitch = 1.1;
-  window.speechSynthesis.speak(u);
-}
-
-function playCoinSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [0, 0.1, 0.2].forEach((t, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(880 + i * 220, ctx.currentTime + t);
-      osc.frequency.exponentialRampToValueAtTime(1760 + i * 220, ctx.currentTime + t + 0.08);
-      gain.gain.setValueAtTime(0.18, ctx.currentTime + t);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.18);
-      osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.2);
-    });
-  } catch {}
-}
-
-function playBuzzSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
-  } catch {}
-}
-
-function playComboSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [523, 659, 784, 1047].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.08);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.3);
-      osc.start(ctx.currentTime + i * 0.08); osc.stop(ctx.currentTime + i * 0.08 + 0.3);
-    });
-  } catch {}
-}
-
-// ═══════════════════════════════════════
-// خلفية الغابة المتغيرة حسب القسم
-// ═══════════════════════════════════════
-function PremiumForestBackground({ section, activeColor }: { section: typeof SECTIONS[0]; activeColor: string }) {
+function PremiumForestBackground({ section, activeColor }: { section: ForestSection; activeColor: string }) {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number; rotation: number; xOffset1: number; xOffset2: number }>>([]);
   const [stars, setStars] = useState<Array<{ left: number; top: number; size: number; duration: number; delay: number }>>([]);
 
@@ -388,150 +237,6 @@ function PremiumForestBackground({ section, activeColor }: { section: typeof SEC
 }
 
 // ═══════════════════════════════════════
-// Confetti
-// ═══════════════════════════════════════
-function ConfettiBurst({ trigger, x, y, colors }: { trigger: number; x: number; y: number; colors: string[] }) {
-  const [particles, setParticles] = useState<Array<{ id: number; angle: number; distance: number; color: string; size: number; rotation: number; isCircle: boolean }>>([]);
-
-  useEffect(() => {
-    if (trigger === 0) return;
-    const newParticles = Array.from({ length: 30 }, (_, i) => ({
-      id: Date.now() + i,
-      angle: (Math.PI * 2 * i) / 30 + Math.random() * 0.3,
-      distance: 80 + Math.random() * 120,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      size: 6 + Math.random() * 8,
-      rotation: Math.random() * 720,
-      isCircle: Math.random() > 0.5,
-    }));
-    setParticles(newParticles);
-    const t = setTimeout(() => setParticles([]), 1500);
-    return () => clearTimeout(t);
-  }, [trigger]);
-
-  return (
-    <div className="fixed pointer-events-none" style={{ left: x, top: y, zIndex: 9998 }}>
-      <AnimatePresence>
-        {particles.map(p => (
-          <motion.div
-            key={p.id}
-            initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
-            animate={{
-              x: Math.cos(p.angle) * p.distance,
-              y: Math.sin(p.angle) * p.distance,
-              scale: 0, opacity: 0, rotate: p.rotation,
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: [0.2, 0.8, 0.4, 1] }}
-            className="absolute"
-            style={{
-              width: p.size, height: p.size,
-              background: p.color,
-              borderRadius: p.isCircle ? '50%' : '2px',
-              boxShadow: `0 0 ${p.size}px ${p.color}99`,
-            }}
-          />
-        ))}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// كارل النسر
-// ═══════════════════════════════════════
-const ENCOURAGEMENTS = [
-  { de: 'Super!', ar: 'ممتاز!' }, { de: 'Toll!', ar: 'رائع!' },
-  { de: 'Wunderbar!', ar: 'مدهش!' }, { de: 'Klasse!', ar: 'تحفة!' },
-  { de: 'Bravo!', ar: 'برافو!' }, { de: 'Sehr gut!', ar: 'ممتاز جداً!' },
-  { de: 'Genial!', ar: 'عبقري!' }, { de: 'Fantastisch!', ar: 'خيالي!' },
-];
-
-const SAD_MESSAGES = [
-  { de: 'Versuch nochmal!', ar: 'جرب تاني!' },
-  { de: 'Du schaffst das!', ar: 'تقدر تعملها!' },
-  { de: 'Keine Sorge!', ar: 'متقلقش!' },
-];
-
-function KarlEagle({ mood, message }: { mood: KarlMood; message: { de: string; ar: string } | null }) {
-  return (
-    <div className="fixed pointer-events-none" style={{ zIndex: 50, bottom: 20, right: 20 }}>
-      <motion.div
-        animate={
-          mood === 'celebrate' ? { y: [-12, 0, -12], rotate: [-15, 15, -15], scale: [1, 1.15, 1] }
-          : mood === 'happy' ? { y: [-8, 0, -8], rotate: [-8, 8, -8] }
-          : mood === 'sad' ? { y: [0, -3, 0], rotate: [-3, 3, -3] }
-          : { y: [-4, 4, -4] }
-        }
-        transition={{ duration: mood === 'celebrate' ? 0.5 : mood === 'happy' ? 0.8 : 2.5, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <div className="relative">
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: mood === 'celebrate' ? 'radial-gradient(circle, #FFD70066, transparent 70%)'
-                : mood === 'happy' ? 'radial-gradient(circle, #58CC0266, transparent 70%)'
-                : mood === 'sad' ? 'radial-gradient(circle, #FF6B6B44, transparent 70%)'
-                : 'radial-gradient(circle, #58CC0244, transparent 70%)',
-              filter: 'blur(15px)',
-              transform: 'scale(1.5)',
-            }}
-            animate={{ scale: [1.4, 1.7, 1.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-          <img
-            src="/characters/karl-3d.png"
-            alt="كارل"
-            style={{
-              width: 'clamp(85px, 9vw, 130px)',
-              height: 'clamp(85px, 9vw, 130px)',
-              objectFit: 'contain',
-              position: 'relative',
-              zIndex: 1,
-              filter: mood === 'celebrate' ? 'drop-shadow(0 8px 20px rgba(255,215,0,0.8))'
-                : mood === 'happy' ? 'drop-shadow(0 6px 16px rgba(88,204,2,0.7))'
-                : mood === 'sad' ? 'drop-shadow(0 4px 12px rgba(255,107,107,0.5)) saturate(0.6)'
-                : 'drop-shadow(0 6px 14px rgba(88,204,2,0.5))',
-              transition: 'filter 0.4s ease',
-            }}
-            draggable={false}
-          />
-
-          <AnimatePresence>
-            {message && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.6, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.6, y: 10 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                className="absolute whitespace-nowrap"
-                style={{ bottom: '100%', right: '50%', transform: 'translateX(50%)', marginBottom: 12 }}
-              >
-                <div className="px-4 py-2.5 rounded-2xl shadow-2xl border-2 backdrop-blur-md"
-                  style={{
-                    background: mood === 'celebrate' || mood === 'happy'
-                      ? 'linear-gradient(135deg, rgba(88,204,2,0.95), rgba(76,201,240,0.95))'
-                      : 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(247,37,133,0.95))',
-                    borderColor: 'rgba(255,255,255,0.4)',
-                  }}>
-                  <div className="text-base font-black text-white text-center leading-tight">{message.de}</div>
-                  <div className="text-xs font-bold text-white/90 text-center mt-0.5">{message.ar}</div>
-                </div>
-                <div className="w-0 h-0 mx-auto" style={{
-                  borderLeft: '6px solid transparent',
-                  borderRight: '6px solid transparent',
-                  borderTop: `6px solid ${mood === 'celebrate' || mood === 'happy' ? 'rgba(88,204,2,0.95)' : 'rgba(255,107,107,0.95)'}`,
-                }} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
 // Combo Badge
 // ═══════════════════════════════════════
 function ComboBadge({ combo }: { combo: number }) {
@@ -587,73 +292,9 @@ function StreakBadge({ streak }: { streak: number }) {
 }
 
 // ═══════════════════════════════════════
-// Sound Button
-// ═══════════════════════════════════════
-function SoundButton({ onClick, color, label }: { onClick: () => void; color: string; label: string }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const handleClick = () => {
-    setIsPlaying(true);
-    onClick();
-    setTimeout(() => setIsPlaying(false), 1500);
-  };
-
-  return (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
-      whileHover={{ scale: 1.03 }}
-      onClick={handleClick}
-      className="relative flex items-center gap-3 px-6 py-3.5 rounded-2xl font-black text-base border-2 transition-all overflow-hidden"
-      style={{
-        color: 'white',
-        borderColor: color,
-        background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-        boxShadow: `0 4px 20px ${color}44, inset 0 1px 0 ${color}66`,
-        backdropFilter: 'blur(10px)',
-      }}
-    >
-      {isPlaying && (
-        <>
-          {[0, 0.2, 0.4].map((delay, i) => (
-            <motion.div
-              key={i}
-              className="absolute inset-0 rounded-2xl border-2 pointer-events-none"
-              style={{ borderColor: color }}
-              initial={{ scale: 1, opacity: 0.8 }}
-              animate={{ scale: 1.4, opacity: 0 }}
-              transition={{ duration: 1, delay, ease: 'easeOut' }}
-            />
-          ))}
-        </>
-      )}
-
-      <motion.div animate={isPlaying ? { rotate: [0, -10, 10, 0] } : {}} transition={{ duration: 0.4, repeat: 3 }}>
-        <Volume2 size={20} />
-      </motion.div>
-
-      {isPlaying && (
-        <div className="flex items-center gap-0.5">
-          {[0, 0.1, 0.2, 0.3].map((delay, i) => (
-            <motion.div
-              key={i}
-              className="w-0.5 rounded-full"
-              style={{ background: 'white' }}
-              animate={{ height: [4, 16, 4] }}
-              transition={{ duration: 0.5, repeat: Infinity, delay }}
-            />
-          ))}
-        </div>
-      )}
-
-      {label}
-    </motion.button>
-  );
-}
-
-// ═══════════════════════════════════════
 // Hero Word Display
 // ═══════════════════════════════════════
-function HeroWordDisplay({ wordData }: { wordData: typeof SECTIONS[0]['words'][0] }) {
+function HeroWordDisplay({ wordData }: { wordData: ForestWord }) {
   const [sparkles, setSparkles] = useState<Array<{ top: number; left: number; delay: number; duration: number }>>([]);
 
   useEffect(() => {
@@ -764,40 +405,10 @@ function HeroWordDisplay({ wordData }: { wordData: typeof SECTIONS[0]['words'][0
 }
 
 // ═══════════════════════════════════════
-// Special Chars Keyboard
-// ═══════════════════════════════════════
-function SpecialCharsKeyboard({ chars, onChar, color }: { chars: string[]; onChar: (c: string) => void; color: string }) {
-  if (chars.length === 0) return null;
-  return (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2 justify-center flex-wrap">
-      {chars.map(c => (
-        <motion.button
-          key={c}
-          whileTap={{ scale: 0.85 }}
-          whileHover={{ scale: 1.08, y: -2 }}
-          onMouseDown={e => { e.preventDefault(); onChar(c); }}
-          className="w-12 h-12 rounded-2xl font-black text-2xl border-2 transition-all select-none"
-          style={{
-            borderColor: color,
-            background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-            color: 'white',
-            boxShadow: `0 4px 16px ${color}55, inset 0 1px 0 ${color}66`,
-            textShadow: `0 0 12px ${color}aa`,
-            backdropFilter: 'blur(10px)',
-          }}
-        >
-          {c}
-        </motion.button>
-      ))}
-    </motion.div>
-  );
-}
-
-// ═══════════════════════════════════════
 // Phase 1 — تعلم الكلمة
 // ═══════════════════════════════════════
 function LearnCardPhase({ wordData, sectionTitle, onDone, onKarlReact, onCombo, onStreak, onStarEarned }: {
-  wordData: typeof SECTIONS[0]['words'][0];
+  wordData: ForestWord;
   sectionTitle: string;
   onDone: () => void;
   onKarlReact: (mood: KarlMood) => void;
@@ -815,14 +426,14 @@ function LearnCardPhase({ wordData, sectionTitle, onDone, onKarlReact, onCombo, 
   useEffect(() => {
     setInput('');
     setStatus('idle');
-    const t = setTimeout(() => speak(wordData.word), 500);
+    const t = setTimeout(() => speakWord(wordData.word), 500);
     return () => clearTimeout(t);
   }, [wordData.word]);
 
   const handleCheck = (e?: React.MouseEvent) => {
     if (compareWords(input, wordData.word)) {
       setStatus('correct');
-      speak(wordData.word);
+      speakWord(wordData.word);
       playCoinSound();
       onCombo();
       onStreak(true);
@@ -869,13 +480,13 @@ function LearnCardPhase({ wordData, sectionTitle, onDone, onKarlReact, onCombo, 
         <div className="grid lg:grid-cols-5 gap-8 items-center">
           <div className="lg:col-span-3 flex flex-col items-center gap-4">
             <motion.div
-              onClick={() => speak(wordData.word)}
+              onClick={() => speakWord(wordData.word)}
               whileTap={{ scale: 0.97 }}
               className="cursor-pointer"
             >
               <HeroWordDisplay wordData={wordData} />
             </motion.div>
-            <SoundButton onClick={() => speak(wordData.word)} color={wordData.color} label="استمع للكلمة" />
+            <SoundButton onClick={() => speakWord(wordData.word)} color={wordData.color} label="استمع للكلمة" />
           </div>
 
           <div className="lg:col-span-2 space-y-4">
@@ -887,48 +498,16 @@ function LearnCardPhase({ wordData, sectionTitle, onDone, onKarlReact, onCombo, 
               <div className="text-sm font-bold text-white/40 mt-1">بالألمانية</div>
             </div>
 
-            <div className="relative">
-              {!input && (
-                <span
-                  className="absolute inset-0 flex items-center justify-center font-black tracking-wider pointer-events-none select-none"
-                  style={{
-                    fontSize: '1.8rem',
-                    color: `${wordData.color}55`,
-                    fontFamily: 'monospace',
-                    direction: 'ltr',
-                    letterSpacing: '0.1em',
-                    zIndex: 1,
-                    textShadow: `0 0 12px ${wordData.color}33`,
-                  }}
-                >
-                  {wordData.word}
-                </span>
-              )}
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={e => { setInput(e.target.value); setStatus('idle'); }}
-                onKeyDown={e => e.key === 'Enter' && input && handleCheck()}
-                autoFocus
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                className="relative w-full text-center font-black py-5 rounded-2xl border-2 outline-none transition-all text-white"
-                style={{
-                  fontSize: '1.8rem',
-                  direction: 'ltr',
-                  background: 'rgba(255,255,255,0.03)',
-                  backdropFilter: 'blur(10px)',
-                  borderColor: status === 'correct' ? '#22c55e' : status === 'wrong' ? '#ef4444' : `${wordData.color}55`,
-                  boxShadow: status === 'correct' ? '0 0 30px #22c55e66'
-                    : status === 'wrong' ? '0 0 30px #ef444466'
-                    : `inset 0 1px 0 ${wordData.color}33, 0 8px 30px ${wordData.color}22`,
-                  zIndex: 2,
-                }}
-              />
-            </div>
+            <GhostInput
+              ref={inputRef}
+              value={input}
+              onChange={v => { setInput(v); setStatus('idle'); }}
+              onEnter={handleCheck}
+              ghostText={wordData.word}
+              color={wordData.color}
+              status={status}
+              fontSize="1.8rem"
+            />
 
             {requiredChars.length > 0 && (
               <div className="space-y-2 pt-1">
@@ -985,7 +564,7 @@ function ForestTest({
   onCombo,
   onStreak,
 }: {
-  sectionWords: typeof SECTIONS[0]['words'];
+  sectionWords: ForestWord[];
   sectionId: string;
   onPass: () => void;
   onFail: () => void;
@@ -1009,7 +588,6 @@ function ForestTest({
 
   const currentWord = sectionWords[currentIdx];
   const isColors = sectionId === 'colors';
-  // ✅ استخدام الـ helper function الجديدة
   const boxes = currentWord ? getBoxesForWord(currentWord.word, sectionId) : [];
 
   useEffect(() => {
@@ -1051,7 +629,7 @@ function ForestTest({
     setTimeout(() => setClickEffect(null), 600);
 
     if (hit) {
-      speak(currentWord.word);
+      speakWord(currentWord.word);
       playCoinSound();
       onCombo();
       onStreak(true);
@@ -1115,7 +693,7 @@ function ForestTest({
                   <p className="font-black text-white text-xl leading-tight">{currentWord.word}</p>
                   <p className="font-bold text-sm" style={{ color: currentWord.color }}>{currentWord.wordAr}</p>
                 </div>
-                <button onClick={() => speak(currentWord.word)}
+                <button onClick={() => speakWord(currentWord.word)}
                   className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 border-2 transition-all active:scale-90"
                   style={{
                     borderColor: `${currentWord.color}66`,
@@ -1270,7 +848,7 @@ function ForestTest({
 // ═══════════════════════════════════════
 // شاشات نجاح وفشل
 // ═══════════════════════════════════════
-function SectionSuccess({ section, onNext, isLast }: { section: typeof SECTIONS[0]; onNext: () => void; isLast: boolean }) {
+function SectionSuccess({ section, onNext, isLast }: { section: ForestSection; onNext: () => void; isLast: boolean }) {
   return (
     <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-6 text-center py-8 max-w-md mx-auto">
       <motion.div animate={{ rotate: [0, -12, 12, -8, 8, 0], scale: [1, 1.3, 1] }} transition={{ duration: 1, delay: 0.2 }} className="text-9xl">{section.emoji}</motion.div>
@@ -1293,7 +871,7 @@ function SectionSuccess({ section, onNext, isLast }: { section: typeof SECTIONS[
           background: isLast ? 'linear-gradient(135deg, #58CC02, #096A02)' : `linear-gradient(135deg, ${section.gradient[0]}, ${section.gradient[1]})`,
           boxShadow: `0 10px 40px ${section.accentColor}55`,
         }}>
-        {isLast ? '🏆 العودة للخريطة' : `${SECTIONS[SECTIONS.indexOf(section) + 1]?.emoji} القسم الجاي`}
+        {isLast ? '🏆 العودة للخريطة' : `${FOREST_SECTIONS[FOREST_SECTIONS.indexOf(section) + 1]?.emoji} القسم الجاي`}
       </motion.button>
     </motion.div>
   );
@@ -1325,17 +903,48 @@ export default function GermanForestPage() {
   const [wordIdx, setWordIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>('learn');
   const [totalStars, setTotalStars] = useState(0);
-  const [flyingStars, setFlyingStars] = useState<{ id: number; startX: number; startY: number }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const LESSON_ID = 'center';
+
+  const totalWordsAll = FOREST_SECTIONS.reduce((a, s) => a + s.words.length, 0);
+
+  useEffect(() => {
+    const loadProgress = async () => {
+      const progress = await getLessonProgress(LESSON_ID);
+      if (progress) {
+        setTotalStars(progress.stars);
+        
+        if (!progress.completed) {
+          if (progress.current_group !== undefined && progress.current_group !== null) {
+            setSectionIdx(progress.current_group);
+          }
+          if (progress.current_letter !== undefined && progress.current_letter !== null) {
+            setWordIdx(progress.current_letter);
+          }
+          if (progress.current_phase) {
+            setPhase(progress.current_phase as Phase);
+          }
+          console.log(`📍 الرجوع لمكانك: قسم ${progress.current_group}, كلمة ${progress.current_letter}, مرحلة ${progress.current_phase}`);
+        }
+        
+        console.log('✅ تم تحميل التقدم:', progress);
+      }
+      setIsLoading(false);
+    };
+    loadProgress();
+  }, []);
+
+  const [flyingStars, setFlyingStars] = useState<FlyingStar[]>([]);
   const [karlMood, setKarlMood] = useState<KarlMood>('idle');
   const [karlMessage, setKarlMessage] = useState<{ de: string; ar: string } | null>(null);
   const [combo, setCombo] = useState(0);
   const [streak, setStreak] = useState(0);
   const starBarRef = useRef<HTMLDivElement>(null);
 
-  const section = SECTIONS[sectionIdx];
+  const section = FOREST_SECTIONS[sectionIdx];
   const wordData = section?.words[wordIdx];
-  const totalWords = SECTIONS.reduce((a, s) => a + s.words.length, 0);
-  const learnedWords = SECTIONS.slice(0, sectionIdx).reduce((a, s) => a + s.words.length, 0) + wordIdx;
+  const totalWords = totalWordsAll;
+  const learnedWords = FOREST_SECTIONS.slice(0, sectionIdx).reduce((a, s) => a + s.words.length, 0) + wordIdx;
 
   const handleKarlReact = (mood: KarlMood) => {
     setKarlMood(mood);
@@ -1363,33 +972,98 @@ export default function GermanForestPage() {
     }
   };
 
+  const calculateRating = (starsCount: number): number => {
+    const totalPossibleStars = totalWordsAll * 2;
+    const progressRatio = starsCount / totalPossibleStars;
+    if (progressRatio >= 0.67) return 3;
+    if (progressRatio >= 0.34) return 2;
+    return 1;
+  };
+
+  const savePosition = (newSection: number, newWord: number, newPhase: Phase, starsToSave?: number) => {
+    const stars = starsToSave !== undefined ? starsToSave : totalStars;
+    const rating = calculateRating(stars);
+    saveLessonProgress(LESSON_ID, rating, false, {
+      current_group: newSection,
+      current_letter: newWord,
+      current_phase: newPhase,
+    }).then(() => {
+      console.log(`📍 تم حفظ المكان: S${newSection} W${newWord} ${newPhase} | نجوم: ${stars} → تقييم: ${rating}/3`);
+    });
+  };
+
   const handleWordDone = () => {
     const nextIdx = wordIdx + 1;
-    if (nextIdx < section.words.length) setWordIdx(nextIdx);
-    else setPhase('test');
+    if (nextIdx < section.words.length) {
+      setWordIdx(nextIdx);
+      savePosition(sectionIdx, nextIdx, 'learn');
+    } else {
+      setPhase('test');
+      savePosition(sectionIdx, wordIdx, 'test');
+    }
   };
 
-  const handleTestPass = () => setPhase('section-success');
-  const handleTestFail = () => { setCombo(0); setStreak(0); setPhase('section-fail'); };
+  const handleTestPass = () => {
+    setPhase('section-success');
+    savePosition(sectionIdx, wordIdx, 'section-success');
+  };
+  
+  const handleTestFail = () => {
+    setCombo(0);
+    setStreak(0);
+    setPhase('section-fail');
+  };
 
   const handleSectionNext = () => {
-    if (sectionIdx + 1 < SECTIONS.length) {
-      setSectionIdx(i => i + 1); setWordIdx(0); setPhase('learn');
-    } else setPhase('all-done');
+    if (sectionIdx + 1 < FOREST_SECTIONS.length) {
+      const newSectionIdx = sectionIdx + 1;
+      setSectionIdx(newSectionIdx);
+      setWordIdx(0);
+      setPhase('learn');
+      savePosition(newSectionIdx, 0, 'learn');
+    } else {
+      setPhase('all-done');
+    }
   };
 
-  const handleRetry = () => { setWordIdx(0); setPhase('learn'); };
+  const handleRetry = () => {
+    setWordIdx(0);
+    setPhase('learn');
+    savePosition(sectionIdx, 0, 'learn');
+  };
 
   const handleStarEarned = useCallback((x: number, y: number) => {
-    setTotalStars(s => s + 1);
+    setTotalStars(s => {
+      const newCount = s + 1;
+      const rating = calculateRating(newCount);
+      saveLessonProgress(LESSON_ID, rating, false, {
+        current_group: sectionIdx,
+        current_letter: wordIdx,
+        current_phase: phase,
+      }).then(() => {
+        console.log(`⭐ تقدمك: ${newCount}/${totalWordsAll * 2} → تقييم: ${rating}/3`);
+      });
+      return newCount;
+    });
     const id = Date.now() + Math.random();
-    setFlyingStars(prev => [...prev, { id, startX: x, startY: y }]);
+    setFlyingStars(prev => [...prev, { id, x, y }]);
     setTimeout(() => setFlyingStars(prev => prev.filter(s => s.id !== id)), 900);
-  }, []);
+  }, [sectionIdx, wordIdx, phase, totalWordsAll]);
 
   const phaseLabel: Record<Phase, string> = {
     learn: 'تعلم', test: 'اختبار', 'section-success': '🎉', 'section-fail': '😅', 'all-done': '🌳',
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#070b07]">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">🌲</div>
+          <p className="text-white font-bold">جاري تحميل تقدمك...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!section) return null;
 
@@ -1398,38 +1072,16 @@ export default function GermanForestPage() {
   return (
     <div className="min-h-screen text-white relative" style={{ fontFamily: "'Tajawal', sans-serif" }} dir="rtl">
       <PremiumForestBackground section={section} activeColor={activeColor} />
-      <KarlEagle mood={karlMood} message={karlMessage} />
-
-      <div className="fixed inset-0 pointer-events-none z-[9999]">
-        <AnimatePresence>
-          {flyingStars.map(star => {
-            const target = starBarRef.current?.getBoundingClientRect();
-            const endX = target ? target.left + target.width / 2 : (typeof window !== 'undefined' ? window.innerWidth / 2 : 0);
-            const endY = target ? target.top + target.height / 2 : 60;
-            return (
-              <motion.div
-                key={star.id}
-                initial={{ x: star.startX - 20, y: star.startY - 20, scale: 1.8, opacity: 1 }}
-                animate={{ x: endX - 20, y: endY - 20, scale: 0.4, opacity: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.75, ease: [0.3, 0.7, 0.4, 1] }}
-                style={{ position: 'absolute', top: 0, left: 0 }}
-              >
-                <svg width="40" height="40" viewBox="0 0 40 40">
-                  <polygon points="20,2 24.9,14.5 38.5,14.5 27.8,22.3 31.7,35.5 20,27.5 8.3,35.5 12.2,22.3 1.5,14.5 15.1,14.5" fill="#FFD700" stroke="#FFA500" strokeWidth="1" />
-                </svg>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
+      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor={section.accentColor} />
+      <FlyingStars stars={flyingStars} targetRef={starBarRef} />
 
       <div className="fixed top-0 left-0 right-0 z-30 px-4 pt-4 pb-3" style={{ background: 'linear-gradient(to bottom, rgba(7,11,7,0.97) 80%, transparent)' }}>
         <div className="max-w-7xl mx-auto space-y-2">
           <div className="flex items-center gap-3">
             <button onClick={() => router.push('/character-and-map?from=lesson')}
-              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md"
-              style={{ background: 'rgba(255,255,255,0.05)' }}>
+              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md hover:bg-white/10"
+              style={{ background: 'rgba(255,255,255,0.05)' }}
+              title="ارجع للخريطة (تقدمك محفوظ)">
               <ArrowLeft size={20} />
             </button>
             <div className="flex-1">
@@ -1468,7 +1120,7 @@ export default function GermanForestPage() {
           </div>
 
           <div className="flex gap-1.5 justify-center">
-            {SECTIONS.map((s, i) => {
+            {FOREST_SECTIONS.map((s, i) => {
               const done = i < sectionIdx || (i === sectionIdx && (phase === 'section-success' || phase === 'all-done'));
               const current = i === sectionIdx;
               return (
@@ -1526,7 +1178,7 @@ export default function GermanForestPage() {
           )}
 
           {phase === 'section-success' && (
-            <SectionSuccess key="section-success" section={section} onNext={handleSectionNext} isLast={sectionIdx === SECTIONS.length - 1} />
+            <SectionSuccess key="section-success" section={section} onNext={handleSectionNext} isLast={sectionIdx === FOREST_SECTIONS.length - 1} />
           )}
 
           {phase === 'section-fail' && (
@@ -1555,7 +1207,11 @@ export default function GermanForestPage() {
               </div>
               <motion.button
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}
-                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={() => router.push('/character-and-map?from=lesson')}
+                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} 
+                onClick={async () => {
+                  await saveLessonProgress(LESSON_ID, 3, true);
+                  router.push('/character-and-map?from=lesson');
+                }}
                 className="flex items-center gap-2 px-12 py-5 rounded-2xl font-black text-lg text-white"
                 style={{ background: 'linear-gradient(135deg, #58CC02, #096A02)', boxShadow: '0 10px 40px rgba(88,204,2,0.4)' }}>
                 <Trophy size={24} /> العودة للخريطة

@@ -1,9 +1,25 @@
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Volume2, Star, Check, X, Trophy, RotateCcw, Sparkles, Flame, Mic, MicOff, SkipForward, Crown } from 'lucide-react';
+import { ArrowLeft, Volume2, Star, Check, Trophy, Mic, SkipForward, Crown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { saveLessonProgress, getLessonProgress } from '@/lib/playerData';
 import WordBuilder from '../components/WordBuilder';
+
+// 🎯 المكونات المشتركة
+import KarlEagle from '@/app/components/lesson/KarlEagle';
+import ConfettiBurst from '@/app/components/lesson/ConfettiBurst';
+
+// 🎯 الأنواع والرسائل المشتركة
+import type { KarlMood } from '@/lib/types/lesson';
+import { ENCOURAGEMENTS, SAD_MESSAGES } from '@/lib/types/lesson';
+
+// 🎯 الأصوات والنطق المشتركة
+import { playCoinSound, playBuzzSound, playRoyalSound } from '@/lib/audio/sounds';
+import { speakSentence } from '@/lib/audio/speech';
+
+// 📦 البيانات من الملفات المنفصلة
+import { CASTLE_GROUPS, type Sentence } from '@/data/german/castle';
 
 // ═══════════════════════════════════════
 // 🎤 Speech Recognition Types
@@ -18,191 +34,7 @@ interface SpeechRecognitionEvent {
   };
 }
 
-// ═══════════════════════════════════════
-// البيانات - 3 مجموعات من الجمل
-// ═══════════════════════════════════════
-type Sentence = {
-  de: (name: string) => string;
-  ar: (name: string) => string;
-  emoji: string;
-  color: string;
-  gradient: string[];
-  words: (name: string) => string[];
-};
-
-const GROUP_1_INTRO: Sentence[] = [
-  {
-    de: (n) => `Ich heiße ${n}`,
-    ar: (n) => `اسمي ${n}`,
-    emoji: '😊',
-    color: '#FFD700',
-    gradient: ['#FFD700', '#FFA500'],
-    words: (n) => ['Ich', 'heiße', n],
-  },
-  {
-    de: () => `Ich bin acht Jahre alt`,
-    ar: () => `عمري ثماني سنوات`,
-    emoji: '🎂',
-    color: '#FF6B6B',
-    gradient: ['#FF6B6B', '#FF8E53'],
-    words: () => ['Ich', 'bin', 'acht', 'Jahre', 'alt'],
-  },
-  {
-    de: () => `Ich komme aus Ägypten`,
-    ar: () => `أنا من مصر`,
-    emoji: '🇪🇬',
-    color: '#4CC9F0',
-    gradient: ['#4CC9F0', '#0984E3'],
-    words: () => ['Ich', 'komme', 'aus', 'Ägypten'],
-  },
-  {
-    de: () => `Ich liebe Deutsch`,
-    ar: () => `أنا أحب الألمانية`,
-    emoji: '❤️',
-    color: '#F72585',
-    gradient: ['#F72585', '#B5179E'],
-    words: () => ['Ich', 'liebe', 'Deutsch'],
-  },
-];
-
-const GROUP_2_THINGS: Sentence[] = [
-  {
-    de: () => `Das ist meine Mutter`,
-    ar: () => `هذه أمي`,
-    emoji: '👩',
-    color: '#00CEC9',
-    gradient: ['#00CEC9', '#00B0AF'],
-    words: () => ['Das', 'ist', 'meine', 'Mutter'],
-  },
-  {
-    de: (n) => `${n} isst einen Apfel`,
-    ar: (n) => `${n} يأكل تفاحة`,
-    emoji: '🍎',
-    color: '#FF4D6D',
-    gradient: ['#FF4D6D', '#C70039'],
-    words: (n) => [n, 'isst', 'einen', 'Apfel'],
-  },
-  {
-    de: () => `Der Hund ist braun`,
-    ar: () => `الكلب بني`,
-    emoji: '🐕',
-    color: '#A0522D',
-    gradient: ['#A0522D', '#6B3410'],
-    words: () => ['Der', 'Hund', 'ist', 'braun'],
-  },
-  {
-    de: () => `Die Sonne ist gelb`,
-    ar: () => `الشمس صفراء`,
-    emoji: '☀️',
-    color: '#FFD700',
-    gradient: ['#FFD700', '#FFA500'],
-    words: () => ['Die', 'Sonne', 'ist', 'gelb'],
-  },
-];
-
-const GROUP_3_CONVERSATION: Sentence[] = [
-  {
-    de: (n) => `Hallo ${n}, wie geht es dir?`,
-    ar: (n) => `أهلاً ${n}، كيف حالك؟`,
-    emoji: '👋',
-    color: '#9D4EDD',
-    gradient: ['#9D4EDD', '#7209B7'],
-    words: (n) => ['Hallo', n, 'wie', 'geht', 'es', 'dir'],
-  },
-  {
-    de: () => `Mir geht es gut, danke`,
-    ar: () => `أنا بخير، شكراً`,
-    emoji: '😄',
-    color: '#58CC02',
-    gradient: ['#58CC02', '#3A8C00'],
-    words: () => ['Mir', 'geht', 'es', 'gut', 'danke'],
-  },
-  {
-    de: () => `Danke schön`,
-    ar: () => `شكراً جزيلاً`,
-    emoji: '🙏',
-    color: '#FFD700',
-    gradient: ['#FFD700', '#FFA500'],
-    words: () => ['Danke', 'schön'],
-  },
-  {
-    de: (n) => `Auf Wiedersehen, ${n}!`,
-    ar: (n) => `مع السلامة ${n}!`,
-    emoji: '👋',
-    color: '#FF6B6B',
-    gradient: ['#FF6B6B', '#FF8E53'],
-    words: (n) => ['Auf', 'Wiedersehen', n],
-  },
-];
-
-const GROUPS = [
-  { sentences: GROUP_1_INTRO,        title: 'عرّف بنفسك',         icon: '😊', accentColor: '#FFD700' },
-  { sentences: GROUP_2_THINGS,       title: 'تكلم عن الأشياء',    icon: '🍎', accentColor: '#FF4D6D' },
-  { sentences: GROUP_3_CONVERSATION, title: 'محادثات يومية',       icon: '💬', accentColor: '#9D4EDD' },
-];
-
 type Phase = 'learn' | 'speak' | 'group-success' | 'all-done';
-type KarlMood = 'idle' | 'happy' | 'sad' | 'celebrate';
-
-// ═══════════════════════════════════════
-// 🔊 أصوات
-// ═══════════════════════════════════════
-function speak(text: string) {
-  if (typeof window === 'undefined') return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'de-DE'; u.rate = 0.75; u.pitch = 1.1;
-  window.speechSynthesis.speak(u);
-}
-
-function playCoinSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [0, 0.1, 0.2].forEach((t, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(880 + i * 220, ctx.currentTime + t);
-      osc.frequency.exponentialRampToValueAtTime(1760 + i * 220, ctx.currentTime + t + 0.08);
-      gain.gain.setValueAtTime(0.18, ctx.currentTime + t);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.18);
-      osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.2);
-    });
-  } catch {}
-}
-
-function playBuzzSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
-  } catch {}
-}
-
-function playRoyalSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [523, 659, 784, 1047, 1319].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.4);
-      osc.start(ctx.currentTime + i * 0.1); osc.stop(ctx.currentTime + i * 0.1 + 0.4);
-    });
-  } catch {}
-}
 
 // ═══════════════════════════════════════
 // 🏰 خلفية القلعة الملكية
@@ -298,144 +130,7 @@ function RoyalCastleBackground({ activeColor }: { activeColor: string }) {
 }
 
 // ═══════════════════════════════════════
-// 🎉 Confetti
-// ═══════════════════════════════════════
-function ConfettiBurst({ trigger, x, y, colors }: { trigger: number; x: number; y: number; colors: string[] }) {
-  const [particles, setParticles] = useState<Array<{ id: number; angle: number; distance: number; color: string; size: number; rotation: number; isCircle: boolean }>>([]);
-
-  useEffect(() => {
-    if (trigger === 0) return;
-    const newParticles = Array.from({ length: 35 }, (_, i) => ({
-      id: Date.now() + i,
-      angle: (Math.PI * 2 * i) / 35 + Math.random() * 0.3,
-      distance: 80 + Math.random() * 130,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      size: 6 + Math.random() * 8,
-      rotation: Math.random() * 720,
-      isCircle: Math.random() > 0.5,
-    }));
-    setParticles(newParticles);
-    const t = setTimeout(() => setParticles([]), 1500);
-    return () => clearTimeout(t);
-  }, [trigger]);
-
-  return (
-    <div className="fixed pointer-events-none" style={{ left: x, top: y, zIndex: 9998 }}>
-      <AnimatePresence>
-        {particles.map(p => (
-          <motion.div
-            key={p.id}
-            initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
-            animate={{
-              x: Math.cos(p.angle) * p.distance,
-              y: Math.sin(p.angle) * p.distance,
-              scale: 0, opacity: 0, rotate: p.rotation,
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: [0.2, 0.8, 0.4, 1] }}
-            className="absolute"
-            style={{
-              width: p.size, height: p.size,
-              background: p.color,
-              borderRadius: p.isCircle ? '50%' : '2px',
-              boxShadow: `0 0 ${p.size}px ${p.color}99`,
-            }}
-          />
-        ))}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// 🦅 كارل النسر
-// ═══════════════════════════════════════
-const ENCOURAGEMENTS = [
-  { de: 'Super!', ar: 'ممتاز!' }, { de: 'Toll!', ar: 'رائع!' },
-  { de: 'Wunderbar!', ar: 'مدهش!' }, { de: 'Klasse!', ar: 'تحفة!' },
-  { de: 'Bravo!', ar: 'برافو!' }, { de: 'Perfekt!', ar: 'مثالي!' },
-];
-
-const SAD_MESSAGES = [
-  { de: 'Versuch nochmal!', ar: 'جرب تاني!' },
-  { de: 'Du schaffst das!', ar: 'تقدر تعملها!' },
-];
-
-function KarlEagle({ mood, message }: { mood: KarlMood; message: { de: string; ar: string } | null }) {
-  return (
-    <div className="fixed pointer-events-none" style={{ zIndex: 50, bottom: 20, right: 20 }}>
-      <motion.div
-        animate={
-          mood === 'celebrate' ? { y: [-12, 0, -12], rotate: [-15, 15, -15], scale: [1, 1.15, 1] }
-          : mood === 'happy' ? { y: [-8, 0, -8], rotate: [-8, 8, -8] }
-          : mood === 'sad' ? { y: [0, -3, 0], rotate: [-3, 3, -3] }
-          : { y: [-4, 4, -4] }
-        }
-        transition={{ duration: mood === 'celebrate' ? 0.5 : mood === 'happy' ? 0.8 : 2.5, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <div className="relative">
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: mood === 'celebrate' ? 'radial-gradient(circle, #FFD70066, transparent 70%)'
-                : mood === 'happy' ? 'radial-gradient(circle, #58CC0266, transparent 70%)'
-                : mood === 'sad' ? 'radial-gradient(circle, #FF6B6B44, transparent 70%)'
-                : 'radial-gradient(circle, #FFD70044, transparent 70%)',
-              filter: 'blur(15px)',
-              transform: 'scale(1.5)',
-            }}
-            animate={{ scale: [1.4, 1.7, 1.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-          <img
-            src="/characters/karl-3d.png"
-            alt="كارل"
-            style={{
-              width: 'clamp(85px, 9vw, 130px)',
-              height: 'clamp(85px, 9vw, 130px)',
-              objectFit: 'contain',
-              position: 'relative',
-              zIndex: 1,
-              filter: mood === 'celebrate' ? 'drop-shadow(0 8px 20px rgba(255,215,0,0.8))'
-                : mood === 'happy' ? 'drop-shadow(0 6px 16px rgba(88,204,2,0.7))'
-                : mood === 'sad' ? 'drop-shadow(0 4px 12px rgba(255,107,107,0.5)) saturate(0.6)'
-                : 'drop-shadow(0 6px 14px rgba(255,215,0,0.5))',
-              transition: 'filter 0.4s ease',
-            }}
-            draggable={false}
-          />
-
-          <AnimatePresence>
-            {message && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.6, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.6, y: 10 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                className="absolute whitespace-nowrap"
-                style={{ bottom: '100%', right: '50%', transform: 'translateX(50%)', marginBottom: 12 }}
-              >
-                <div className="px-4 py-2.5 rounded-2xl shadow-2xl border-2 backdrop-blur-md"
-                  style={{
-                    background: mood === 'celebrate' || mood === 'happy'
-                      ? 'linear-gradient(135deg, rgba(88,204,2,0.95), rgba(76,201,240,0.95))'
-                      : 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(247,37,133,0.95))',
-                    borderColor: 'rgba(255,255,255,0.4)',
-                  }}>
-                  <div className="text-base font-black text-white text-center leading-tight">{message.de}</div>
-                  <div className="text-xs font-bold text-white/90 text-center mt-0.5">{message.ar}</div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// 🎤 مكون النطق بالصوت (Speech Recognition)
+// 🎤 مكون النطق بالصوت
 // ═══════════════════════════════════════
 function SpeakingPractice({ targetSentence, color, gradient, onSuccess, onSkip }: {
   targetSentence: string;
@@ -583,7 +278,7 @@ function SpeakingPractice({ targetSentence, color, gradient, onSuccess, onSkip }
         <p className="text-3xl font-black text-white mb-2" style={{ textShadow: `0 0 20px ${color}88`, direction: 'ltr' }}>
           {targetSentence}
         </p>
-        <button onClick={() => speak(targetSentence)}
+        <button onClick={() => speakSentence(targetSentence)}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 bg-white/5 text-white/70 hover:bg-white/10 transition-all text-sm font-bold">
           <Volume2 size={14} /> اسمع النطق الصح
         </button>
@@ -624,8 +319,6 @@ function SpeakingPractice({ targetSentence, color, gradient, onSuccess, onSkip }
 
           {status === 'success' ? (
             <Check size={56} className="text-white" strokeWidth={3} />
-          ) : isListening ? (
-            <Mic size={56} className="text-white" />
           ) : (
             <Mic size={56} className="text-white" />
           )}
@@ -690,7 +383,7 @@ function SpeakingPractice({ targetSentence, color, gradient, onSuccess, onSkip }
 }
 
 // ═══════════════════════════════════════
-// 📝 مرحلة التعلم (Listen + Word Builder)
+// 📝 مرحلة التعلم
 // ═══════════════════════════════════════
 function LearnSentencePhase({ sentence, heroName, onWriteDone }: {
   sentence: Sentence;
@@ -701,12 +394,12 @@ function LearnSentencePhase({ sentence, heroName, onWriteDone }: {
   const targetAr = sentence.ar(heroName);
 
   useEffect(() => {
-    const t = setTimeout(() => speak(targetDe), 500);
+    const t = setTimeout(() => speakSentence(targetDe), 500);
     return () => clearTimeout(t);
   }, [targetDe]);
 
   const handleCorrect = () => {
-    speak(targetDe);
+    speakSentence(targetDe);
     playCoinSound();
     onWriteDone();
   };
@@ -743,7 +436,7 @@ function LearnSentencePhase({ sentence, heroName, onWriteDone }: {
           {targetAr}
         </div>
 
-        <button onClick={() => speak(targetDe)}
+        <button onClick={() => speakSentence(targetDe)}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all text-sm font-black"
           style={{
             color: 'white',
@@ -781,21 +474,54 @@ export default function GermanCastleLessonPage() {
   const [sentenceIdx, setSentenceIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>('learn');
   const [totalStars, setTotalStars] = useState(0);
-  const [karlMood, setKarlMood] = useState<KarlMood>('idle');
-  const [karlMessage, setKarlMessage] = useState<{ de: string; ar: string } | null>(null);
-  const [confettiTrigger, setConfettiTrigger] = useState(0);
-  const [confettiPos, setConfettiPos] = useState({ x: 0, y: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+  const LESSON_ID = 'neuschwanstein';
+
+  // إجمالي الجمل (نحسبه عشان calculateRating)
+  const totalSentencesAll = CASTLE_GROUPS.reduce((a, g) => a + g.sentences.length, 0);
+
+  // 📥 جلب التقدم + استرجاع المكان
+  useEffect(() => {
+    const loadProgress = async () => {
+      const progress = await getLessonProgress(LESSON_ID);
+      if (progress) {
+        setTotalStars(progress.stars);
+        
+        if (!progress.completed) {
+          if (progress.current_group !== undefined && progress.current_group !== null) {
+            setGroupIdx(progress.current_group);
+          }
+          if (progress.current_letter !== undefined && progress.current_letter !== null) {
+            setSentenceIdx(progress.current_letter);
+          }
+          if (progress.current_phase) {
+            setPhase(progress.current_phase as Phase);
+          }
+          console.log(`📍 الرجوع لمكانك: مجموعة ${progress.current_group}, جملة ${progress.current_letter}, مرحلة ${progress.current_phase}`);
+        }
+        
+        console.log('✅ تم تحميل التقدم:', progress);
+      }
+      setIsLoading(false);
+    };
+    loadProgress();
+  }, []);
 
   useEffect(() => {
     const savedName = localStorage.getItem('heroName');
     if (savedName) setHeroName(savedName);
   }, []);
 
-  const group = GROUPS[groupIdx];
+  const [karlMood, setKarlMood] = useState<KarlMood>('idle');
+  const [karlMessage, setKarlMessage] = useState<{ de: string; ar: string } | null>(null);
+  const [confettiTrigger] = useState(0);
+  const [confettiPos] = useState({ x: 0, y: 0 });
+
+  const group = CASTLE_GROUPS[groupIdx];
   const sentence = group?.sentences[sentenceIdx];
 
-  const totalSentences = GROUPS.reduce((a, g) => a + g.sentences.length, 0);
-  const learnedSentences = GROUPS.slice(0, groupIdx).reduce((a, g) => a + g.sentences.length, 0) + sentenceIdx;
+  const totalSentences = totalSentencesAll;
+  const learnedSentences = CASTLE_GROUPS.slice(0, groupIdx).reduce((a, g) => a + g.sentences.length, 0) + sentenceIdx;
 
   const handleKarlReact = (mood: KarlMood) => {
     setKarlMood(mood);
@@ -807,15 +533,42 @@ export default function GermanCastleLessonPage() {
     setTimeout(() => { setKarlMood('idle'); setKarlMessage(null); }, 2500);
   };
 
+  // 🎯 حساب التقييم من 3
+  const calculateRating = (starsCount: number): number => {
+    // كل جملة فيها نجمتين كحد أقصى (writing + speaking)
+    const totalPossibleStars = totalSentencesAll * 2;
+    const progressRatio = starsCount / totalPossibleStars;
+    if (progressRatio >= 0.67) return 3;
+    if (progressRatio >= 0.34) return 2;
+    return 1;
+  };
+
+  // 💾 حفظ المكان الحالي
+  const savePosition = (newGroup: number, newSentence: number, newPhase: Phase, starsToSave?: number) => {
+    const stars = starsToSave !== undefined ? starsToSave : totalStars;
+    const rating = calculateRating(stars);
+    saveLessonProgress(LESSON_ID, rating, false, {
+      current_group: newGroup,
+      current_letter: newSentence,
+      current_phase: newPhase,
+    }).then(() => {
+      console.log(`📍 تم حفظ المكان: G${newGroup} S${newSentence} ${newPhase} | نجوم: ${stars} → تقييم: ${rating}/3`);
+    });
+  };
+
   const handleWriteDone = () => {
     handleKarlReact('happy');
-    setTotalStars(s => s + 1);
+    const newStars = totalStars + 1;
+    setTotalStars(newStars);
     setPhase('speak');
+    savePosition(groupIdx, sentenceIdx, 'speak', newStars);
   };
 
   const handleSpeakDone = (gainedStar: boolean) => {
+    let newStars = totalStars;
     if (gainedStar) {
-      setTotalStars(s => s + 1);
+      newStars = totalStars + 1;
+      setTotalStars(newStars);
       handleKarlReact('celebrate');
     }
 
@@ -824,22 +577,38 @@ export default function GermanCastleLessonPage() {
       if (nextIdx < group.sentences.length) {
         setSentenceIdx(nextIdx);
         setPhase('learn');
+        savePosition(groupIdx, nextIdx, 'learn', newStars);
       } else {
         setPhase('group-success');
+        savePosition(groupIdx, sentenceIdx, 'group-success', newStars);
       }
     }, gainedStar ? 1000 : 300);
   };
 
   const handleGroupNext = () => {
-    if (groupIdx + 1 < GROUPS.length) {
-      setGroupIdx(i => i + 1);
+    if (groupIdx + 1 < CASTLE_GROUPS.length) {
+      const newGroupIdx = groupIdx + 1;
+      setGroupIdx(newGroupIdx);
       setSentenceIdx(0);
       setPhase('learn');
+      savePosition(newGroupIdx, 0, 'learn');
     } else {
       playRoyalSound();
       setPhase('all-done');
     }
   };
+
+  // 🆕 شاشة تحميل
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#050210]">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">🏰</div>
+          <p className="text-white font-bold">جاري تحميل تقدمك...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!group || !sentence) return null;
 
@@ -851,7 +620,7 @@ export default function GermanCastleLessonPage() {
   return (
     <div className="min-h-screen text-white relative" style={{ fontFamily: "'Tajawal', sans-serif" }} dir="rtl">
       <RoyalCastleBackground activeColor={activeColor} />
-      <KarlEagle mood={karlMood} message={karlMessage} />
+      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#FFD700" />
       <ConfettiBurst trigger={confettiTrigger} x={confettiPos.x} y={confettiPos.y} colors={['#FFD700', '#FF6B6B', '#9D4EDD', '#FFFFFF']} />
 
       <div className="fixed top-0 left-0 right-0 z-30 px-4 pt-4 pb-3"
@@ -859,8 +628,9 @@ export default function GermanCastleLessonPage() {
         <div className="max-w-6xl mx-auto space-y-3">
           <div className="flex items-center gap-3">
             <button onClick={() => router.push('/character-and-map?from=lesson')}
-              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md"
-              style={{ background: 'rgba(255,255,255,0.05)' }}>
+              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md hover:bg-white/10"
+              style={{ background: 'rgba(255,255,255,0.05)' }}
+              title="ارجع للخريطة (تقدمك محفوظ)">
               <ArrowLeft size={20} />
             </button>
             <div className="flex-1">
@@ -889,7 +659,7 @@ export default function GermanCastleLessonPage() {
           </div>
 
           <div className="flex gap-1.5 justify-center">
-            {GROUPS.map((g, i) => {
+            {CASTLE_GROUPS.map((g, i) => {
               const done = i < groupIdx || (i === groupIdx && phase === 'all-done');
               const current = i === groupIdx;
               return (
@@ -955,7 +725,7 @@ export default function GermanCastleLessonPage() {
                   background: `linear-gradient(135deg, ${group.accentColor}, #FFD700)`,
                   boxShadow: `0 10px 40px ${group.accentColor}55`,
                 }}>
-                {groupIdx + 1 < GROUPS.length ? 'المجموعة التالية 🚀' : 'شوف شهادتك 👑'}
+                {groupIdx + 1 < CASTLE_GROUPS.length ? 'المجموعة التالية 🚀' : 'شوف شهادتك 👑'}
               </motion.button>
             </motion.div>
           )}
@@ -1022,7 +792,11 @@ export default function GermanCastleLessonPage() {
 
               <motion.button
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                onClick={() => router.push('/character-and-map?from=lesson')}
+                onClick={async () => {
+                  // 🏆 الدرس مكتمل = 3 نجوم كاملة + completed
+                  await saveLessonProgress(LESSON_ID, 3, true);
+                  router.push('/character-and-map?from=lesson');
+                }}
                 className="flex items-center gap-2 px-12 py-5 rounded-2xl font-black text-lg text-white"
                 style={{
                   background: 'linear-gradient(135deg, #FFD700, #FFA500)',

@@ -1,64 +1,29 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Volume2, Star, Check, X, Trophy, RotateCcw, Sparkles, Flame } from 'lucide-react';
+import { ArrowLeft, Volume2, Star, Check, X, Trophy, RotateCcw, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { saveLessonProgress, getLessonProgress } from '@/lib/playerData';
 
-// ═══════════════════════════════════════
-// البيانات - 3 مجموعات
-// ═══════════════════════════════════════
-const WEATHER = [
-  { word: 'die Sonne',     wordAr: 'الشمس',      emoji: '☀️', color: '#FFD700', gradient: ['#FFD700', '#FFA500'] },
-  { word: 'der Regen',     wordAr: 'المطر',      emoji: '🌧️', color: '#4CC9F0', gradient: ['#4CC9F0', '#0984E3'] },
-  { word: 'der Schnee',    wordAr: 'الثلج',      emoji: '❄️', color: '#B5EAEA', gradient: ['#B5EAEA', '#74B9FF'] },
-  { word: 'der Wind',      wordAr: 'الرياح',     emoji: '💨', color: '#A8E6CF', gradient: ['#A8E6CF', '#56C596'] },
-  { word: 'die Wolke',     wordAr: 'السحابة',    emoji: '☁️', color: '#CFD8DC', gradient: ['#CFD8DC', '#90A4AE'] },
-  { word: 'der Donner',    wordAr: 'الرعد',      emoji: '⚡', color: '#FFB74D', gradient: ['#FFB74D', '#FF8F00'] },
-  { word: 'der Regenbogen',wordAr: 'قوس قزح',    emoji: '🌈', color: '#FF6B9D', gradient: ['#FF6B9D', '#C44569'] },
-  { word: 'Es ist heiß',   wordAr: 'الجو حار',   emoji: '🥵', color: '#FF6B6B', gradient: ['#FF6B6B', '#E84545'] },
-  { word: 'Es ist kalt',   wordAr: 'الجو بارد',  emoji: '🥶', color: '#4FC3F7', gradient: ['#4FC3F7', '#0288D1'] },
-];
+// 🎯 المكونات المشتركة
+import KarlEagle from '@/app/components/lesson/KarlEagle';
+import GhostInput from '@/app/components/lesson/GhostInput';
+import ConfettiBurst from '@/app/components/lesson/ConfettiBurst';
+import ComboDisplay from '@/app/components/lesson/ComboDisplay';
+import FlyingStars, { type FlyingStar } from '@/app/components/lesson/FlyingStars';
+import SoundButton from '@/app/components/lesson/SoundButton';
+import SpecialCharsKeyboard, { getRequiredSpecialChars } from '@/app/components/lesson/SpecialCharsKeyboard';
 
-const WEEKDAYS = [
-  { word: 'Montag',     wordAr: 'الاثنين',  emoji: '1️⃣', color: '#FF6B6B', gradient: ['#FF6B6B', '#E84545'], dayNum: 1 },
-  { word: 'Dienstag',   wordAr: 'الثلاثاء', emoji: '2️⃣', color: '#FFA94D', gradient: ['#FFA94D', '#E67E00'], dayNum: 2 },
-  { word: 'Mittwoch',   wordAr: 'الأربعاء', emoji: '3️⃣', color: '#FFD93D', gradient: ['#FFD93D', '#F1B400'], dayNum: 3 },
-  { word: 'Donnerstag', wordAr: 'الخميس',   emoji: '4️⃣', color: '#58CC02', gradient: ['#58CC02', '#3A8C00'], dayNum: 4 },
-  { word: 'Freitag',    wordAr: 'الجمعة',   emoji: '5️⃣', color: '#4CC9F0', gradient: ['#4CC9F0', '#0984E3'], dayNum: 5 },
-  { word: 'Samstag',    wordAr: 'السبت',    emoji: '6️⃣', color: '#845EC2', gradient: ['#845EC2', '#5F3DC4'], dayNum: 6 },
-  { word: 'Sonntag',    wordAr: 'الأحد',    emoji: '7️⃣', color: '#F72585', gradient: ['#F72585', '#C2185B'], dayNum: 7 },
-];
+// 🎯 الأنواع والرسائل المشتركة
+import type { KarlMood } from '@/lib/types/lesson';
+import { ENCOURAGEMENTS, SAD_MESSAGES } from '@/lib/types/lesson';
 
-const NATURE = [
-  { word: 'der Berg',    wordAr: 'الجبل',    emoji: '⛰️', color: '#8D6E63', gradient: ['#8D6E63', '#5D4037'] },
-  { word: 'der See',     wordAr: 'البحيرة',  emoji: '🏞️', color: '#4CC9F0', gradient: ['#4CC9F0', '#0984E3'] },
-  { word: 'der Baum',    wordAr: 'الشجرة',   emoji: '🌳', color: '#58CC02', gradient: ['#58CC02', '#3A8C00'] },
-  { word: 'die Blume',   wordAr: 'الوردة',   emoji: '🌸', color: '#FF6B9D', gradient: ['#FF6B9D', '#C44569'] },
-  { word: 'der Fluss',   wordAr: 'النهر',    emoji: '🌊', color: '#4FC3F7', gradient: ['#4FC3F7', '#0288D1'] },
-  { word: 'der Wald',    wordAr: 'الغابة',   emoji: '🌲', color: '#2D6A4F', gradient: ['#2D6A4F', '#1B4332'] },
-  { word: 'der Himmel',  wordAr: 'السماء',   emoji: '🌌', color: '#6C5CE7', gradient: ['#6C5CE7', '#4834D4'] },
-  { word: 'der Stern',   wordAr: 'النجمة',   emoji: '⭐', color: '#FFD700', gradient: ['#FFD700', '#FFA500'] },
-];
+// 🎯 الأصوات والنطق المشتركة
+import { playCoinSound, playBuzzSound, playComboSound } from '@/lib/audio/sounds';
+import { speakWord } from '@/lib/audio/speech';
 
-const GROUPS = [
-  { items: WEATHER,  title: 'الطقس',          titleDe: 'Wetter',      groupId: 0, icon: '🌤️', testType: 'quiz'  as const },
-  { items: WEEKDAYS, title: 'أيام الأسبوع',   titleDe: 'Wochentage',  groupId: 1, icon: '📅', testType: 'order' as const },
-  { items: NATURE,   title: 'الطبيعة',        titleDe: 'Natur',       groupId: 2, icon: '🏔️', testType: 'match' as const },
-];
-
-const ALL_SPECIAL_CHARS = ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'];
-
-function getRequiredSpecialChars(word: string): string[] {
-  const found = new Set<string>();
-  for (const char of word) {
-    if (ALL_SPECIAL_CHARS.includes(char)) {
-      found.add(char.toLowerCase());
-      const upper = char.toUpperCase();
-      if (upper !== char.toLowerCase()) found.add(upper);
-    }
-  }
-  return Array.from(found);
-}
+// 📦 البيانات من الملفات المنفصلة
+import { LAKE_GROUPS, type LakeWord, type WeekDay } from '@/data/german/lake';
 
 function normalizeGerman(s: string): string {
   return s.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/\s+/g, ' ').trim();
@@ -68,72 +33,10 @@ function compareWords(input: string, target: string): boolean {
   return normalizeGerman(input) === normalizeGerman(target);
 }
 
-type KarlMood = 'idle' | 'happy' | 'sad' | 'celebrate';
 type Phase = 'learn-word' | 'test' | 'group-success' | 'group-fail' | 'all-done';
-interface FlyingStar { id: number; x: number; y: number; }
 
 // ═══════════════════════════════════════
-// أصوات
-// ═══════════════════════════════════════
-function speakWord(word: string) {
-  if (typeof window === 'undefined') return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(word);
-  u.lang = 'de-DE'; u.rate = 0.7; u.pitch = 1.1;
-  window.speechSynthesis.speak(u);
-}
-
-function playCoinSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [0, 0.1, 0.2].forEach((t, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(880 + i * 220, ctx.currentTime + t);
-      osc.frequency.exponentialRampToValueAtTime(1760 + i * 220, ctx.currentTime + t + 0.08);
-      gain.gain.setValueAtTime(0.18, ctx.currentTime + t);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.18);
-      osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.2);
-    });
-  } catch {}
-}
-
-function playBuzzSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
-  } catch {}
-}
-
-function playComboSound() {
-  if (typeof window === 'undefined') return;
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    [523, 659, 784, 1047].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.08);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.3);
-      osc.start(ctx.currentTime + i * 0.08); osc.stop(ctx.currentTime + i * 0.08 + 0.3);
-    });
-  } catch {}
-}
-
-// ═══════════════════════════════════════
-// خلفية بحيرة الملوك - ثيم مائي/جبلي ✅
+// خلفية البحيرة
 // ═══════════════════════════════════════
 function LakeBackground({ activeColor }: { activeColor: string }) {
   const [bubbles, setBubbles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number; xOffset: number }>>([]);
@@ -172,12 +75,10 @@ function LakeBackground({ activeColor }: { activeColor: string }) {
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      {/* خلفية ليلية مائية */}
       <div className="absolute inset-0" style={{
         background: 'radial-gradient(ellipse at 50% 0%, #0a1f3a 0%, #051428 50%, #020812 100%)',
       }} />
 
-      {/* Aurora علوية */}
       <motion.div
         className="absolute inset-0 opacity-40"
         style={{ background: `radial-gradient(ellipse 90% 50% at 50% 0%, ${activeColor}44, transparent 70%)` }}
@@ -185,7 +86,6 @@ function LakeBackground({ activeColor }: { activeColor: string }) {
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* انعكاس البحيرة السفلي */}
       <motion.div
         className="absolute bottom-0 left-0 right-0 h-2/5 opacity-50"
         style={{ background: `linear-gradient(to top, ${activeColor}33, ${activeColor}11 50%, transparent)` }}
@@ -193,7 +93,6 @@ function LakeBackground({ activeColor }: { activeColor: string }) {
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* موجة سفلية */}
       <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1200 200" preserveAspectRatio="none" style={{ height: '30%', opacity: 0.15 }}>
         <motion.path
           d="M0,100 C300,150 600,50 1200,100 L1200,200 L0,200 Z"
@@ -209,7 +108,6 @@ function LakeBackground({ activeColor }: { activeColor: string }) {
         />
       </svg>
 
-      {/* فقاعات صاعدة */}
       {bubbles.map(b => (
         <motion.div
           key={b.id}
@@ -236,7 +134,6 @@ function LakeBackground({ activeColor }: { activeColor: string }) {
         />
       ))}
 
-      {/* تموجات على سطح البحيرة */}
       {ripples.map(r => (
         <motion.div
           key={r.id}
@@ -261,7 +158,6 @@ function LakeBackground({ activeColor }: { activeColor: string }) {
         />
       ))}
 
-      {/* نجوم */}
       {stars.map((s, i) => (
         <motion.div
           key={`star-${i}`}
@@ -278,7 +174,6 @@ function LakeBackground({ activeColor }: { activeColor: string }) {
         />
       ))}
 
-      {/* Grid pattern */}
       <div className="absolute inset-0 opacity-[0.015]" style={{
         backgroundImage: `linear-gradient(${activeColor} 1px, transparent 1px), linear-gradient(90deg, ${activeColor} 1px, transparent 1px)`,
         backgroundSize: '50px 50px',
@@ -288,188 +183,9 @@ function LakeBackground({ activeColor }: { activeColor: string }) {
 }
 
 // ═══════════════════════════════════════
-// Confetti
-// ═══════════════════════════════════════
-function ConfettiBurst({ trigger, x, y, colors }: { trigger: number; x: number; y: number; colors: string[] }) {
-  const [particles, setParticles] = useState<Array<{ id: number; angle: number; distance: number; color: string; size: number; rotation: number; isCircle: boolean }>>([]);
-
-  useEffect(() => {
-    if (trigger === 0) return;
-    const newParticles = Array.from({ length: 30 }, (_, i) => ({
-      id: Date.now() + i,
-      angle: (Math.PI * 2 * i) / 30 + Math.random() * 0.3,
-      distance: 80 + Math.random() * 120,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      size: 6 + Math.random() * 8,
-      rotation: Math.random() * 720,
-      isCircle: Math.random() > 0.5,
-    }));
-    setParticles(newParticles);
-    const t = setTimeout(() => setParticles([]), 1500);
-    return () => clearTimeout(t);
-  }, [trigger]);
-
-  return (
-    <div className="fixed pointer-events-none" style={{ left: x, top: y, zIndex: 9998 }}>
-      <AnimatePresence>
-        {particles.map(p => (
-          <motion.div
-            key={p.id}
-            initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
-            animate={{
-              x: Math.cos(p.angle) * p.distance,
-              y: Math.sin(p.angle) * p.distance,
-              scale: 0, opacity: 0, rotate: p.rotation,
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: [0.2, 0.8, 0.4, 1] }}
-            className="absolute"
-            style={{
-              width: p.size, height: p.size,
-              background: p.color,
-              borderRadius: p.isCircle ? '50%' : '2px',
-              boxShadow: `0 0 ${p.size}px ${p.color}99`,
-            }}
-          />
-        ))}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// كارل النسر
-// ═══════════════════════════════════════
-const ENCOURAGEMENTS = [
-  { de: 'Super!', ar: 'ممتاز!' }, { de: 'Toll!', ar: 'رائع!' },
-  { de: 'Wunderbar!', ar: 'مدهش!' }, { de: 'Klasse!', ar: 'تحفة!' },
-  { de: 'Bravo!', ar: 'برافو!' }, { de: 'Sehr gut!', ar: 'ممتاز جداً!' },
-  { de: 'Genial!', ar: 'عبقري!' }, { de: 'Fantastisch!', ar: 'خيالي!' },
-];
-
-const SAD_MESSAGES = [
-  { de: 'Versuch nochmal!', ar: 'جرب تاني!' },
-  { de: 'Du schaffst das!', ar: 'تقدر تعملها!' },
-  { de: 'Keine Sorge!', ar: 'متقلقش!' },
-];
-
-function KarlEagle({ mood, message }: { mood: KarlMood; message: { de: string; ar: string } | null }) {
-  return (
-    <div className="fixed pointer-events-none" style={{ zIndex: 50, bottom: 20, right: 20 }}>
-      <motion.div
-        animate={
-          mood === 'celebrate' ? { y: [-12, 0, -12], rotate: [-15, 15, -15], scale: [1, 1.15, 1] }
-          : mood === 'happy' ? { y: [-8, 0, -8], rotate: [-8, 8, -8] }
-          : mood === 'sad' ? { y: [0, -3, 0], rotate: [-3, 3, -3] }
-          : { y: [-4, 4, -4] }
-        }
-        transition={{ duration: mood === 'celebrate' ? 0.5 : mood === 'happy' ? 0.8 : 2.5, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <div className="relative">
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: mood === 'celebrate' ? 'radial-gradient(circle, #FFD70066, transparent 70%)'
-                : mood === 'happy' ? 'radial-gradient(circle, #58CC0266, transparent 70%)'
-                : mood === 'sad' ? 'radial-gradient(circle, #FF6B6B44, transparent 70%)'
-                : 'radial-gradient(circle, #06D6A044, transparent 70%)',
-              filter: 'blur(15px)',
-              transform: 'scale(1.5)',
-            }}
-            animate={{ scale: [1.4, 1.7, 1.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-          <img
-            src="/characters/karl-3d.png"
-            alt="كارل"
-            style={{
-              width: 'clamp(85px, 9vw, 130px)',
-              height: 'clamp(85px, 9vw, 130px)',
-              objectFit: 'contain',
-              position: 'relative',
-              zIndex: 1,
-              filter: mood === 'celebrate' ? 'drop-shadow(0 8px 20px rgba(255,215,0,0.8))'
-                : mood === 'happy' ? 'drop-shadow(0 6px 16px rgba(88,204,2,0.7))'
-                : mood === 'sad' ? 'drop-shadow(0 4px 12px rgba(255,107,107,0.5)) saturate(0.6)'
-                : 'drop-shadow(0 6px 14px rgba(6,214,160,0.5))',
-              transition: 'filter 0.4s ease',
-            }}
-            draggable={false}
-          />
-
-          <AnimatePresence>
-            {message && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.6, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.6, y: 10 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                className="absolute whitespace-nowrap"
-                style={{ bottom: '100%', right: '50%', transform: 'translateX(50%)', marginBottom: 12 }}
-              >
-                <div className="px-4 py-2.5 rounded-2xl shadow-2xl border-2 backdrop-blur-md"
-                  style={{
-                    background: mood === 'celebrate' || mood === 'happy'
-                      ? 'linear-gradient(135deg, rgba(88,204,2,0.95), rgba(76,201,240,0.95))'
-                      : 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(247,37,133,0.95))',
-                    borderColor: 'rgba(255,255,255,0.4)',
-                  }}>
-                  <div className="text-base font-black text-white text-center leading-tight">{message.de}</div>
-                  <div className="text-xs font-bold text-white/90 text-center mt-0.5">{message.ar}</div>
-                </div>
-                <div className="w-0 h-0 mx-auto" style={{
-                  borderLeft: '6px solid transparent',
-                  borderRight: '6px solid transparent',
-                  borderTop: `6px solid ${mood === 'celebrate' || mood === 'happy' ? 'rgba(88,204,2,0.95)' : 'rgba(255,107,107,0.95)'}`,
-                }} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// Combo Display — أسفل الشاشة على اليسار
-// ═══════════════════════════════════════
-function ComboDisplay({ combo }: { combo: number }) {
-  if (combo < 2) return null;
-  return (
-    <AnimatePresence>
-      <motion.div
-        key={combo}
-        initial={{ scale: 0, y: 20, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        exit={{ scale: 0, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-        className="fixed bottom-6 left-6 z-40"
-      >
-        <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl backdrop-blur-md border-2 shadow-2xl"
-          style={{
-            background: combo >= 5 ? 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(255,165,0,0.95))'
-              : 'linear-gradient(135deg, rgba(255,215,0,0.95), rgba(255,165,0,0.95))',
-            borderColor: 'rgba(255,255,255,0.4)',
-            boxShadow: '0 4px 20px rgba(255,165,0,0.4)',
-          }}
-        >
-          <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 0.5, repeat: Infinity }}>
-            <Flame size={14} className="text-white" fill="white" />
-          </motion.div>
-          <span className="font-black text-white text-xs">
-            {combo >= 5 ? `🔥 x${combo}` : `Combo x${combo}`}
-          </span>
-        </div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-// ═══════════════════════════════════════
 // Hero Word Display
 // ═══════════════════════════════════════
-function HeroWordDisplay({ itemData }: { itemData: typeof WEATHER[0] }) {
+function HeroWordDisplay({ itemData }: { itemData: LakeWord }) {
   const [sparkles, setSparkles] = useState<Array<{ top: number; left: number; delay: number }>>([]);
 
   useEffect(() => {
@@ -559,99 +275,10 @@ function HeroWordDisplay({ itemData }: { itemData: typeof WEATHER[0] }) {
 }
 
 // ═══════════════════════════════════════
-// Special Chars Keyboard
-// ═══════════════════════════════════════
-function SpecialCharsKeyboard({ chars, onChar, color }: { chars: string[]; onChar: (c: string) => void; color: string }) {
-  if (chars.length === 0) return null;
-  return (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2 justify-center flex-wrap">
-      {chars.map(c => (
-        <motion.button
-          key={c}
-          whileTap={{ scale: 0.85 }}
-          whileHover={{ scale: 1.08, y: -2 }}
-          onMouseDown={e => { e.preventDefault(); onChar(c); }}
-          className="w-12 h-12 rounded-2xl font-black text-2xl border-2 transition-all select-none"
-          style={{
-            borderColor: color,
-            background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-            color: 'white',
-            boxShadow: `0 4px 16px ${color}55, inset 0 1px 0 ${color}66`,
-            textShadow: `0 0 12px ${color}aa`,
-            backdropFilter: 'blur(10px)',
-          }}
-        >
-          {c}
-        </motion.button>
-      ))}
-    </motion.div>
-  );
-}
-
-// ═══════════════════════════════════════
-// Sound Button
-// ═══════════════════════════════════════
-function SoundButton({ onClick, color, label }: { onClick: () => void; color: string; label: string }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const handleClick = () => {
-    setIsPlaying(true);
-    onClick();
-    setTimeout(() => setIsPlaying(false), 1500);
-  };
-
-  return (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
-      whileHover={{ scale: 1.03 }}
-      onClick={handleClick}
-      className="relative flex items-center gap-3 px-6 py-3.5 rounded-2xl font-black text-base border-2 transition-all overflow-hidden"
-      style={{
-        color: 'white',
-        borderColor: color,
-        background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-        boxShadow: `0 4px 20px ${color}44, inset 0 1px 0 ${color}66`,
-        backdropFilter: 'blur(10px)',
-      }}
-    >
-      {isPlaying && (
-        <>
-          {[0, 0.2, 0.4].map((delay, i) => (
-            <motion.div
-              key={i}
-              className="absolute inset-0 rounded-2xl border-2 pointer-events-none"
-              style={{ borderColor: color }}
-              initial={{ scale: 1, opacity: 0.8 }}
-              animate={{ scale: 1.4, opacity: 0 }}
-              transition={{ duration: 1, delay, ease: 'easeOut' }}
-            />
-          ))}
-        </>
-      )}
-      <motion.div animate={isPlaying ? { rotate: [0, -10, 10, 0] } : {}} transition={{ duration: 0.4, repeat: 3 }}>
-        <Volume2 size={20} />
-      </motion.div>
-      {isPlaying && (
-        <div className="flex items-center gap-0.5">
-          {[0, 0.1, 0.2, 0.3].map((delay, i) => (
-            <motion.div
-              key={i}
-              className="w-0.5 rounded-full"
-              style={{ background: 'white' }}
-              animate={{ height: [4, 16, 4] }}
-              transition={{ duration: 0.5, repeat: Infinity, delay }}
-            />
-          ))}
-        </div>
-      )}
-      {label}
-    </motion.button>
-  );
-}// ═══════════════════════════════════════
 // PHASE 1 — تعلم الكلمة
 // ═══════════════════════════════════════
 function LearnWordPhase({ itemData, groupTitle, onDone, onKarlReact, onCombo, onStarEarned }: {
-  itemData: typeof WEATHER[0];
+  itemData: LakeWord;
   groupTitle: string;
   onDone: () => void;
   onKarlReact: (mood: KarlMood) => void;
@@ -713,7 +340,6 @@ function LearnWordPhase({ itemData, groupTitle, onDone, onKarlReact, onCombo, on
         className="w-full max-w-5xl mx-auto"
       >
         <div className="grid lg:grid-cols-5 gap-8 items-center">
-          {/* Left: Hero */}
           <div className="lg:col-span-3 flex flex-col items-center gap-5">
             <motion.div onClick={() => speakWord(itemData.word)} whileTap={{ scale: 0.97 }} className="cursor-pointer">
               <HeroWordDisplay itemData={itemData} />
@@ -731,7 +357,6 @@ function LearnWordPhase({ itemData, groupTitle, onDone, onKarlReact, onCombo, on
             <SoundButton onClick={() => speakWord(itemData.word)} color={itemData.color} label="استمع للكلمة" />
           </div>
 
-          {/* Right: Input */}
           <div className="lg:col-span-2 space-y-4">
             <div className="text-center lg:text-right">
               <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${itemData.color}aa` }}>
@@ -740,34 +365,16 @@ function LearnWordPhase({ itemData, groupTitle, onDone, onKarlReact, onCombo, on
               <div className="text-2xl font-black text-white">اكتب الكلمة</div>
             </div>
 
-            <div className="relative">
-              {!input && (
-                <span className="absolute inset-0 flex items-center justify-center font-black pointer-events-none select-none"
-                  style={{ fontSize: '1.4rem', color: `${itemData.color}44`, direction: 'ltr', zIndex: 1 }}>
-                  {itemData.word}
-                </span>
-              )}
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={e => { setInput(e.target.value); setStatus('idle'); }}
-                onKeyDown={e => e.key === 'Enter' && input && handleCheck()}
-                autoFocus autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
-                className="relative w-full text-center font-black py-4 rounded-2xl border-2 outline-none transition-all text-white"
-                style={{
-                  fontSize: '1.4rem',
-                  direction: 'ltr',
-                  background: 'rgba(255,255,255,0.03)',
-                  backdropFilter: 'blur(10px)',
-                  zIndex: 2,
-                  borderColor: status === 'correct' ? '#58CC02' : status === 'wrong' ? '#FF4444' : `${itemData.color}55`,
-                  boxShadow: status === 'correct' ? '0 0 30px #58CC0266'
-                    : status === 'wrong' ? '0 0 30px #FF444466'
-                    : `inset 0 1px 0 ${itemData.color}33, 0 8px 30px ${itemData.color}22`,
-                }}
-              />
-            </div>
+            <GhostInput
+              ref={inputRef}
+              value={input}
+              onChange={v => { setInput(v); setStatus('idle'); }}
+              onEnter={handleCheck}
+              ghostText={itemData.word}
+              color={itemData.color}
+              status={status}
+              fontSize="1.4rem"
+            />
 
             {requiredChars.length > 0 && (
               <div className="space-y-2">
@@ -810,14 +417,14 @@ function LearnWordPhase({ itemData, groupTitle, onDone, onKarlReact, onCombo, on
 }
 
 // ═══════════════════════════════════════
-// TEST 1 — Quiz (اختيار من متعدد) للطقس
+// TEST 1 — Quiz
 // ═══════════════════════════════════════
 interface QuizQuestion {
   word: string; wordAr: string; emoji: string; color: string; gradient: string[];
   options: string[]; correctAnswer: string;
 }
 
-function generateQuiz(items: typeof WEATHER): QuizQuestion[] {
+function generateQuiz(items: LakeWord[]): QuizQuestion[] {
   return items.map(item => {
     const wrong = items
       .filter(i => i.word !== item.word)
@@ -834,7 +441,7 @@ function generateQuiz(items: typeof WEATHER): QuizQuestion[] {
 }
 
 function QuizTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }: {
-  items: typeof WEATHER;
+  items: LakeWord[];
   onPass: () => void; onFail: () => void;
   onStarEarned: (x: number, y: number) => void;
   onKarlReact: (mood: KarlMood) => void;
@@ -878,7 +485,6 @@ function QuizTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }:
     <>
       <ConfettiBurst trigger={confettiTrigger} x={confettiPos.x} y={confettiPos.y} colors={['#FFD700', '#4CC9F0', '#FF6B6B', '#FFFFFF']} />
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-5 w-full max-w-2xl mx-auto">
-        {/* header */}
         <div className="flex items-center justify-between">
           <span className="text-xs font-black uppercase tracking-widest text-white/30">
             {idx + 1} / {questions.length}
@@ -888,7 +494,6 @@ function QuizTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }:
           </span>
         </div>
 
-        {/* progress */}
         <div className="flex gap-1.5">
           {questions.map((_, i) => (
             <div key={i} className="flex-1 h-2 rounded-full transition-all duration-300"
@@ -896,7 +501,6 @@ function QuizTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }:
           ))}
         </div>
 
-        {/* question card */}
         <AnimatePresence mode="wait">
           <motion.div
             key={idx}
@@ -922,7 +526,6 @@ function QuizTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }:
           </motion.div>
         </AnimatePresence>
 
-        {/* options */}
         <div className="grid grid-cols-2 gap-3">
           {q.options.map((opt, i) => {
             const isSelected = selected === opt;
@@ -956,7 +559,7 @@ function QuizTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }:
 }
 
 // ═══════════════════════════════════════
-// TEST 2 — ترتيب أيام الأسبوع
+// TEST 2 — Order Days
 // ═══════════════════════════════════════
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -968,14 +571,14 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function OrderTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }: {
-  items: typeof WEEKDAYS;
+  items: WeekDay[];
   onPass: () => void; onFail: () => void;
   onStarEarned: (x: number, y: number) => void;
   onKarlReact: (mood: KarlMood) => void;
   onCombo: () => void;
 }) {
-  const [shuffled, setShuffled] = useState(() => shuffle(items));
-  const [placed, setPlaced] = useState<(typeof WEEKDAYS[0] | null)[]>(Array(items.length).fill(null));
+  const [shuffled] = useState(() => shuffle(items));
+  const [placed, setPlaced] = useState<(WeekDay | null)[]>(Array(items.length).fill(null));
   const [dragging, setDragging] = useState<number | null>(null);
   const [overSlot, setOverSlot] = useState<number | null>(null);
   const [wrongs, setWrongs] = useState(0);
@@ -985,14 +588,13 @@ function OrderTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
   const [confettiPos, setConfettiPos] = useState({ x: 0, y: 0 });
   const [done, setDone] = useState(false);
 
-  // touch drag
   const touchDragging = useRef<number | null>(null);
   const touchCloneRef = useRef<HTMLElement | null>(null);
   const touchOffRef = useRef({ x: 0, y: 0 });
 
   const available = shuffled.filter(item => !placed.some(p => p?.word === item.word));
 
-  const doPlace = (dayItem: typeof WEEKDAYS[0], slotIdx: number, cx: number, cy: number) => {
+  const doPlace = (dayItem: WeekDay, slotIdx: number, cx: number, cy: number) => {
     if (correct.has(slotIdx)) return;
     const expected = items[slotIdx];
     if (dayItem.word === expected.word) {
@@ -1020,7 +622,6 @@ function OrderTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
     }
   };
 
-  // desktop drag
   const handleDragStart = (idx: number) => setDragging(idx);
   const handleDragEnd = () => { setDragging(null); setOverSlot(null); };
   const handleDrop = (e: React.DragEvent, slotIdx: number) => {
@@ -1029,7 +630,6 @@ function OrderTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
     setDragging(null);
   };
 
-  // touch drag
   const onTouchStart = (e: React.TouchEvent, idx: number) => {
     touchDragging.current = idx;
     const card = e.currentTarget as HTMLElement;
@@ -1082,7 +682,6 @@ function OrderTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
           )}
         </div>
 
-        {/* slots */}
         <div className="grid grid-cols-7 gap-1.5">
           {items.map((day, slotIdx) => {
             const isCorrect = correct.has(slotIdx);
@@ -1129,7 +728,6 @@ function OrderTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
           })}
         </div>
 
-        {/* available cards */}
         <div className="flex flex-wrap gap-2.5 justify-center pt-2">
           {available.map((day, idx) => (
             <motion.div
@@ -1176,10 +774,10 @@ function OrderTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
 }
 
 // ═══════════════════════════════════════
-// TEST 3 — Match Game (الطبيعة)
+// TEST 3 — Match
 // ═══════════════════════════════════════
 function MatchTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }: {
-  items: typeof NATURE;
+  items: LakeWord[];
   onPass: () => void; onFail: () => void;
   onStarEarned: (x: number, y: number) => void;
   onKarlReact: (mood: KarlMood) => void;
@@ -1226,7 +824,6 @@ function MatchTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
     }
   };
 
-  // desktop
   const handleDragStart = (word: string) => setDragging(word);
   const handleDragEnd = () => { setDragging(null); setOverTarget(null); };
   const handleDrop = (e: React.DragEvent, toWord: string) => {
@@ -1235,7 +832,6 @@ function MatchTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
     setDragging(null);
   };
 
-  // touch
   const onTouchStart = (e: React.TouchEvent, word: string) => {
     if (matched.has(word)) return;
     touchDragging.current = word;
@@ -1288,7 +884,6 @@ function MatchTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
           )}
         </div>
 
-        {/* progress */}
         <div className="flex gap-1.5 justify-center">
           {items.map(item => (
             <motion.div key={item.word}
@@ -1299,9 +894,7 @@ function MatchTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
           ))}
         </div>
 
-        {/* board */}
         <div className="grid gap-2.5" style={{ gridTemplateColumns: '1fr 40px 1fr' }} dir="rtl">
-          {/* header */}
           <div className="text-center text-xs font-black text-white/30 tracking-widest uppercase pb-1">الكلمة</div>
           <div />
           <div className="text-center text-xs font-black text-white/30 tracking-widest uppercase pb-1">الإيموجي</div>
@@ -1316,7 +909,6 @@ function MatchTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
 
             return (
               <div key={`row-${i}`} className="contents">
-                {/* word card (draggable) */}
                 <motion.div
                   draggable={!isWordMatched}
                   onDragStart={() => handleDragStart(item.word)}
@@ -1340,12 +932,10 @@ function MatchTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
                   {isWordMatched && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-xs" style={{ color: item.color }}>✓</motion.span>}
                 </motion.div>
 
-                {/* divider */}
                 <div className="flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
                 </div>
 
-                {/* emoji card (drop target) */}
                 <motion.div
                   data-match-target={emojiItem.word}
                   onDragOver={e => { e.preventDefault(); if (!isEmojiMatched) setOverTarget(emojiItem.word); }}
@@ -1378,7 +968,7 @@ function MatchTest({ items, onPass, onFail, onStarEarned, onKarlReact, onCombo }
 // ═══════════════════════════════════════
 // شاشات نجاح وفشل
 // ═══════════════════════════════════════
-function SuccessScreen({ group, onNext, isLast }: { group: typeof GROUPS[0]; onNext: () => void; isLast: boolean }) {
+function SuccessScreen({ group, onNext, isLast }: { group: typeof LAKE_GROUPS[0]; onNext: () => void; isLast: boolean }) {
   return (
     <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col items-center gap-6 text-center py-8 max-w-md mx-auto">
@@ -1432,16 +1022,49 @@ export default function GermanLakeLessonPage() {
   const [itemIdx, setItemIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>('learn-word');
   const [totalStars, setTotalStars] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const LESSON_ID = 'lake';
+
+  // إجمالي العناصر (للـ calculateRating)
+  const totalItemsAll = LAKE_GROUPS.reduce((s, g) => s + g.items.length, 0);
+
+  // 📥 جلب التقدم + استرجاع المكان
+  useEffect(() => {
+    const loadProgress = async () => {
+      const progress = await getLessonProgress(LESSON_ID);
+      if (progress) {
+        setTotalStars(progress.stars);
+        
+        if (!progress.completed) {
+          if (progress.current_group !== undefined && progress.current_group !== null) {
+            setGroupIdx(progress.current_group);
+          }
+          if (progress.current_letter !== undefined && progress.current_letter !== null) {
+            setItemIdx(progress.current_letter);
+          }
+          if (progress.current_phase) {
+            setPhase(progress.current_phase as Phase);
+          }
+          console.log(`📍 الرجوع لمكانك: مجموعة ${progress.current_group}, عنصر ${progress.current_letter}, مرحلة ${progress.current_phase}`);
+        }
+        
+        console.log('✅ تم تحميل التقدم:', progress);
+      }
+      setIsLoading(false);
+    };
+    loadProgress();
+  }, []);
+
   const [flyingStars, setFlyingStars] = useState<FlyingStar[]>([]);
   const [karlMood, setKarlMood] = useState<KarlMood>('idle');
   const [karlMessage, setKarlMessage] = useState<{ de: string; ar: string } | null>(null);
   const [combo, setCombo] = useState(0);
   const starBarRef = useRef<HTMLDivElement>(null);
 
-  const group = GROUPS[groupIdx];
+  const group = LAKE_GROUPS[groupIdx];
   const itemData = group?.items[itemIdx];
-  const totalItems = GROUPS.reduce((s, g) => s + g.items.length, 0);
-  const learnedItems = GROUPS.slice(0, groupIdx).reduce((s, g) => s + g.items.length, 0) + itemIdx;
+  const totalItems = totalItemsAll;
+  const learnedItems = LAKE_GROUPS.slice(0, groupIdx).reduce((s, g) => s + g.items.length, 0) + itemIdx;
 
   const handleKarlReact = (mood: KarlMood) => {
     setKarlMood(mood);
@@ -1460,32 +1083,85 @@ export default function GermanLakeLessonPage() {
     });
   };
 
+  // 🎯 حساب التقييم من 3
+  const calculateRating = (starsCount: number): number => {
+    const totalPossibleStars = totalItemsAll * 2;
+    const progressRatio = starsCount / totalPossibleStars;
+    if (progressRatio >= 0.67) return 3;
+    if (progressRatio >= 0.34) return 2;
+    return 1;
+  };
+
+  // 💾 حفظ المكان
+  const savePosition = (newGroup: number, newItem: number, newPhase: Phase, starsToSave?: number) => {
+    const stars = starsToSave !== undefined ? starsToSave : totalStars;
+    const rating = calculateRating(stars);
+    saveLessonProgress(LESSON_ID, rating, false, {
+      current_group: newGroup,
+      current_letter: newItem,
+      current_phase: newPhase,
+    }).then(() => {
+      console.log(`📍 تم حفظ المكان: G${newGroup} I${newItem} ${newPhase} | نجوم: ${stars} → تقييم: ${rating}/3`);
+    });
+  };
+
   const handleStarEarned = useCallback((x: number, y: number) => {
-    setTotalStars(s => s + 1);
+    setTotalStars(s => {
+      const newCount = s + 1;
+      const rating = calculateRating(newCount);
+      saveLessonProgress(LESSON_ID, rating, false, {
+        current_group: groupIdx,
+        current_letter: itemIdx,
+        current_phase: phase,
+      }).then(() => {
+        console.log(`⭐ تقدمك: ${newCount}/${totalItemsAll * 2} → تقييم: ${rating}/3`);
+      });
+      return newCount;
+    });
     const id = Date.now() + Math.random();
-    const target = starBarRef.current?.getBoundingClientRect();
-    const endX = target ? target.left + target.width / 2 : (typeof window !== 'undefined' ? window.innerWidth / 2 : 0);
-    const endY = target ? target.top + target.height / 2 : 60;
     setFlyingStars(prev => [...prev, { id, x, y }]);
     setTimeout(() => setFlyingStars(prev => prev.filter(s => s.id !== id)), 900);
-  }, []);
+  }, [groupIdx, itemIdx, phase, totalItemsAll]);
 
   const handleWordDone = () => {
     const next = itemIdx + 1;
-    if (next < group.items.length) { setItemIdx(next); setPhase('learn-word'); }
-    else setPhase('test');
+    if (next < group.items.length) {
+      setItemIdx(next);
+      setPhase('learn-word');
+      savePosition(groupIdx, next, 'learn-word');
+    } else {
+      setPhase('test');
+      savePosition(groupIdx, itemIdx, 'test');
+    }
   };
 
-  const handleTestPass = () => setPhase('group-success');
-  const handleTestFail = () => { setCombo(0); setPhase('group-fail'); };
+  const handleTestPass = () => {
+    setPhase('group-success');
+    savePosition(groupIdx, itemIdx, 'group-success');
+  };
+  
+  const handleTestFail = () => {
+    setCombo(0);
+    setPhase('group-fail');
+  };
 
   const handleGroupNext = () => {
-    if (groupIdx + 1 < GROUPS.length) {
-      setGroupIdx(i => i + 1); setItemIdx(0); setPhase('learn-word');
-    } else setPhase('all-done');
+    if (groupIdx + 1 < LAKE_GROUPS.length) {
+      const newGroupIdx = groupIdx + 1;
+      setGroupIdx(newGroupIdx);
+      setItemIdx(0);
+      setPhase('learn-word');
+      savePosition(newGroupIdx, 0, 'learn-word');
+    } else {
+      setPhase('all-done');
+    }
   };
 
-  const handleRetry = () => { setItemIdx(0); setPhase('learn-word'); };
+  const handleRetry = () => {
+    setItemIdx(0);
+    setPhase('learn-word');
+    savePosition(groupIdx, 0, 'learn-word');
+  };
 
   const phaseLabel: Record<Phase, string> = {
     'learn-word': 'تعلم', 'test': 'اختبار',
@@ -1493,45 +1169,36 @@ export default function GermanLakeLessonPage() {
   };
 
   const activeColor = itemData?.color ?? '#06D6A0';
+
+  // 🆕 شاشة تحميل
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#020812]">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">🏞️</div>
+          <p className="text-white font-bold">جاري تحميل تقدمك...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!group) return null;
 
   return (
     <div className="min-h-screen text-white relative" style={{ fontFamily: "'Tajawal', sans-serif" }} dir="rtl">
       <LakeBackground activeColor={activeColor} />
-      <KarlEagle mood={karlMood} message={karlMessage} />
-      <ComboDisplay combo={combo} />
+      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#06D6A0" />
+      <ComboDisplay combo={combo} position="bottom-left" />
+      <FlyingStars stars={flyingStars} targetRef={starBarRef} />
 
-      {/* Flying Stars */}
-      <div className="fixed inset-0 pointer-events-none z-[9999]">
-        <AnimatePresence>
-          {flyingStars.map(star => {
-            const target = starBarRef.current?.getBoundingClientRect();
-            const endX = target ? target.left + target.width / 2 : (typeof window !== 'undefined' ? window.innerWidth / 2 : 0);
-            const endY = target ? target.top + target.height / 2 : 60;
-            return (
-              <motion.div key={star.id}
-                initial={{ x: star.x - 20, y: star.y - 20, scale: 1.8, opacity: 1 }}
-                animate={{ x: endX - 20, y: endY - 20, scale: 0.4, opacity: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.75, ease: [0.3, 0.7, 0.4, 1] }}
-                style={{ position: 'absolute', top: 0, left: 0 }}>
-                <svg width="40" height="40" viewBox="0 0 40 40">
-                  <polygon points="20,2 24.9,14.5 38.5,14.5 27.8,22.3 31.7,35.5 20,27.5 8.3,35.5 12.2,22.3 1.5,14.5 15.1,14.5" fill="#FFD700" stroke="#FFA500" strokeWidth="1" />
-                </svg>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
-
-      {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-30 px-4 pt-4 pb-3"
         style={{ background: 'linear-gradient(to bottom, rgba(2,8,20,0.97) 80%, transparent)' }}>
         <div className="max-w-6xl mx-auto space-y-2">
           <div className="flex items-center gap-3">
             <button onClick={() => router.push('/character-and-map?from=lesson')}
-              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 backdrop-blur-md"
-              style={{ background: 'rgba(255,255,255,0.05)' }}>
+              className="p-2.5 rounded-xl border border-white/10 text-white flex-shrink-0 backdrop-blur-md hover:bg-white/10"
+              style={{ background: 'rgba(255,255,255,0.05)' }}
+              title="ارجع للخريطة (تقدمك محفوظ)">
               <ArrowLeft size={20} />
             </button>
             <div className="flex-1">
@@ -1561,9 +1228,8 @@ export default function GermanLakeLessonPage() {
             </motion.div>
           </div>
 
-          {/* Groups nav */}
           <div className="flex gap-1.5 justify-center">
-            {GROUPS.map((g, i) => {
+            {LAKE_GROUPS.map((g, i) => {
               const done = i < groupIdx || (i === groupIdx && (phase === 'group-success' || phase === 'all-done'));
               const current = i === groupIdx;
               return (
@@ -1580,7 +1246,6 @@ export default function GermanLakeLessonPage() {
             })}
           </div>
 
-          {/* Words mini-map */}
           {phase === 'learn-word' && itemData && (
             <div className="flex gap-1 justify-center flex-wrap">
               {group.items.map((item, i) => {
@@ -1603,7 +1268,6 @@ export default function GermanLakeLessonPage() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="pt-40 pb-32 px-6 min-h-screen flex flex-col justify-center relative" style={{ zIndex: 10 }}>
         <AnimatePresence mode="wait">
 
@@ -1625,7 +1289,7 @@ export default function GermanLakeLessonPage() {
                 <div className="text-xs font-black text-white/30 uppercase tracking-widest mb-1">اختبار {group.title}</div>
                 <h2 className="text-3xl font-black text-white">اختر الإجابة الصحيحة! 🎯</h2>
               </div>
-              <QuizTest items={group.items as typeof WEATHER} onPass={handleTestPass} onFail={handleTestFail}
+              <QuizTest items={group.items} onPass={handleTestPass} onFail={handleTestFail}
                 onStarEarned={handleStarEarned} onKarlReact={handleKarlReact} onCombo={handleCombo} />
             </motion.div>
           )}
@@ -1636,7 +1300,7 @@ export default function GermanLakeLessonPage() {
                 <div className="text-xs font-black text-white/30 uppercase tracking-widest mb-1">اختبار {group.title}</div>
                 <h2 className="text-3xl font-black text-white">رتّب أيام الأسبوع! 📅</h2>
               </div>
-              <OrderTest items={group.items as typeof WEEKDAYS} onPass={handleTestPass} onFail={handleTestFail}
+              <OrderTest items={group.items as WeekDay[]} onPass={handleTestPass} onFail={handleTestFail}
                 onStarEarned={handleStarEarned} onKarlReact={handleKarlReact} onCombo={handleCombo} />
             </motion.div>
           )}
@@ -1647,13 +1311,13 @@ export default function GermanLakeLessonPage() {
                 <div className="text-xs font-black text-white/30 uppercase tracking-widest mb-1">اختبار {group.title}</div>
                 <h2 className="text-3xl font-black text-white">طابق الكلمة بالإيموجي! 🏔️</h2>
               </div>
-              <MatchTest items={group.items as typeof NATURE} onPass={handleTestPass} onFail={handleTestFail}
+              <MatchTest items={group.items} onPass={handleTestPass} onFail={handleTestFail}
                 onStarEarned={handleStarEarned} onKarlReact={handleKarlReact} onCombo={handleCombo} />
             </motion.div>
           )}
 
           {phase === 'group-success' && (
-            <SuccessScreen key="success" group={group} onNext={handleGroupNext} isLast={groupIdx === GROUPS.length - 1} />
+            <SuccessScreen key="success" group={group} onNext={handleGroupNext} isLast={groupIdx === LAKE_GROUPS.length - 1} />
           )}
 
           {phase === 'group-fail' && (
@@ -1684,7 +1348,11 @@ export default function GermanLakeLessonPage() {
               <motion.button
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}
                 whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                onClick={() => router.push('/character-and-map')}
+                onClick={async () => {
+                  // 🏆 الدرس مكتمل = 3 نجوم كاملة + completed
+                  await saveLessonProgress(LESSON_ID, 3, true);
+                  router.push('/character-and-map?from=lesson');
+                }}
                 className="flex items-center gap-2 px-12 py-5 rounded-2xl font-black text-lg text-white"
                 style={{ background: 'linear-gradient(135deg, #06D6A0, #0984E3)', boxShadow: '0 10px 40px rgba(6,214,160,0.4)' }}>
                 <Trophy size={24} /> العودة للخريطة
