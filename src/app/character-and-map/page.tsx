@@ -154,11 +154,9 @@ export default function CharacterAndMapPage() {
   const [clickedCoords, setClickedCoords] = useState<{ x: number; y: number } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   
-  // 📱 كشف نوع الجهاز
   const [isMobileView, setIsMobileView] = useState(false);
   const [mounted, setMounted] = useState(false);
   
-  // 🗺️ Pan & Zoom States
   const [mapScale, setMapScale] = useState(1);
   const [mapPosition, setMapPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -168,7 +166,6 @@ export default function CharacterAndMapPage() {
   
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // 🎯 دمج البيانات حسب نوع الجهاز
   const LANDMARKS = LANDMARKS_BASE.map(landmark => {
     const coords = isMobileView ? COORDS_MOBILE[landmark.id] : COORDS_DESKTOP[landmark.id];
     return { ...landmark, ...coords };
@@ -176,7 +173,6 @@ export default function CharacterAndMapPage() {
 
   const mapImage = isMobileView ? '/maps/map-mobile.jpeg' : '/maps/german-map.png';
 
-  // 📱 كشف نوع الشاشة
   useEffect(() => {
     setMounted(true);
     const checkDevice = () => {
@@ -196,7 +192,6 @@ export default function CharacterAndMapPage() {
     };
   }, []);
 
-  // ⭐ استرجاع اللاعب
   useEffect(() => {
     const loadPlayer = async () => {
       const player = await getPlayer();
@@ -223,7 +218,6 @@ export default function CharacterAndMapPage() {
     }
   }, []);
 
-  // 📥 تحميل التقدم من Supabase
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({});
   const [unlockedLesson, setUnlockedLesson] = useState(1);
 
@@ -270,7 +264,6 @@ export default function CharacterAndMapPage() {
     { id: 'girl', name: 'البطلة العبقرية', color: '#F72585', img: '/characters/girl-3d.png' },
   ];
 
-  // 🦅 تحريك كارل للمعلم الحالي
   useEffect(() => {
     const current = LANDMARKS.find(l => l.lesson === unlockedLesson);
     if (current) {
@@ -278,7 +271,6 @@ export default function CharacterAndMapPage() {
     }
   }, [unlockedLesson, isMobileView]);
 
-  // 📱 ريسيت الزووم لما الجهاز يتغير
   useEffect(() => {
     setMapScale(1);
     setMapPosition({ x: 0, y: 0 });
@@ -334,7 +326,6 @@ export default function CharacterAndMapPage() {
     router.push(selectedLandmark.route);
   };
 
-  // 🐛 Debug Click
   const handleMapClickForDebug = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!debugMode || !mapRef.current) return;
     const rect = mapRef.current.getBoundingClientRect();
@@ -344,7 +335,6 @@ export default function CharacterAndMapPage() {
     console.log(`📍 [${isMobileView ? '📱 MOBILE' : '🖥️ DESKTOP'}] Clicked at: x=${x.toFixed(1)}%, y=${y.toFixed(1)}%`);
   };
 
-  // 🖱️ Mouse Drag
   const handleMouseDown = (e: React.MouseEvent) => {
     if (debugMode || e.button !== 0) return;
     setIsDragging(true);
@@ -378,7 +368,6 @@ export default function CharacterAndMapPage() {
     setMapScale(prev => Math.max(0.5, Math.min(3, prev + delta)));
   };
 
-  // 📱 Touch
   const getDistance = (touches: React.TouchList) => {
     const dx = touches[0].clientX - touches[1].clientX;
     const dy = touches[0].clientY - touches[1].clientY;
@@ -436,7 +425,6 @@ export default function CharacterAndMapPage() {
     setMapPosition({ x: 0, y: 0 });
   };
 
-  // ═════ منع التحميل قبل ما نعرف نوع الجهاز ═════
   if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#07090D]">
@@ -536,7 +524,6 @@ export default function CharacterAndMapPage() {
   return (
     <div className="relative w-full min-h-screen overflow-hidden" style={{ background: '#07090D', fontFamily: "'Tajawal', sans-serif" }}>
 
-      {/* 🐛 Debug Bar */}
       {debugMode && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 text-black px-4 py-2 flex items-center justify-between text-xs font-black">
           <span>🐛 [{isMobileView ? '📱 MOBILE' : '🖥️ DESKTOP'}] اضغط على الخريطة لمعرفة الإحداثيات</span>
@@ -548,7 +535,6 @@ export default function CharacterAndMapPage() {
         </div>
       )}
 
-      {/* Header */}
       <div className="fixed left-0 right-0 z-30 flex items-center justify-between px-4 py-3"
         style={{ 
           background: 'linear-gradient(to bottom, rgba(7,9,13,0.95), transparent)', 
@@ -591,7 +577,6 @@ export default function CharacterAndMapPage() {
         </div>
       </div>
 
-      {/* Map Container */}
       <div 
         className="w-full min-h-screen flex items-center justify-center bg-[#07090D] overflow-hidden" 
         style={{ paddingTop: debugMode ? '96px' : '64px' }}
@@ -614,7 +599,7 @@ export default function CharacterAndMapPage() {
             height: isMobileView ? 'calc(100vh - 64px)' : 'auto',
             aspectRatio: isMobileView ? 'auto' : '16 / 9',
             cursor: debugMode ? 'crosshair' : (isDragging ? 'grabbing' : 'grab'),
-            touchAction: 'none',
+            touchAction: 'manipulation',
             transform: `scale(${mapScale}) translate(${mapPosition.x / mapScale}px, ${mapPosition.y / mapScale}px)`,
             transformOrigin: 'center center',
             transition: isDragging ? 'none' : 'transform 0.2s ease-out',
@@ -623,12 +608,11 @@ export default function CharacterAndMapPage() {
           <img 
             src={mapImage}
             alt="خريطة ألمانيا" 
-            className="absolute inset-0 w-full h-full pointer-events-none select-none" 
+            className="absolute inset-0 w-full h-full pointer-events-none" 
             style={{ objectFit: isMobileView ? 'cover' : 'contain', display: 'block' }}
             draggable={false} 
           />
 
-          {/* Glow effects */}
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none"
             viewBox="0 0 100 100"
@@ -677,7 +661,6 @@ export default function CharacterAndMapPage() {
             })}
           </svg>
 
-          {/* Debug boxes */}
           {debugMode && LANDMARKS.map(l => (
             <div key={`debug-${l.id}`} className="absolute pointer-events-none border-2 border-dashed flex items-center justify-center"
               style={{
@@ -695,14 +678,12 @@ export default function CharacterAndMapPage() {
             </div>
           ))}
 
-          {/* Landmarks */}
           {LANDMARKS.map((landmark, index) => {
             const locked = isLocked(landmark.lesson);
             const stars = getStars(landmark.id);
 
             return (
               <div key={landmark.id}>
-                {/* Click Area */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -721,7 +702,6 @@ export default function CharacterAndMapPage() {
                   }}
                 />
 
-                {/* ⭐ النجوم - تظهر فوق المعالم المفتوحة */}
                 {!locked && stars > 0 && (
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
@@ -750,7 +730,6 @@ export default function CharacterAndMapPage() {
                   </motion.div>
                 )}
 
-                {/* 🔒 القفل - يظهر فوق المعالم المقفولة */}
                 {locked && (
                   <motion.div
                     initial={{ scale: 0, opacity: 0, y: 10 }}
@@ -811,7 +790,6 @@ export default function CharacterAndMapPage() {
                   </motion.div>
                 )}
 
-                {/* Tooltip */}
                 <AnimatePresence>
                   {hoveredLandmark?.id === landmark.id && !locked && (
                     <motion.div
@@ -856,7 +834,6 @@ export default function CharacterAndMapPage() {
             );
           })}
 
-          {/* Karl Eagle */}
           <motion.div
             className="absolute pointer-events-none"
             style={{ zIndex: 25 }}
@@ -887,7 +864,6 @@ export default function CharacterAndMapPage() {
         </div>
       </div>
 
-      {/* Landmark Modal */}
       <AnimatePresence>
         {selectedLandmark && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -938,7 +914,6 @@ export default function CharacterAndMapPage() {
         )}
       </AnimatePresence>
 
-      {/* Intro tooltip */}
       <AnimatePresence>
         {showIntro && !debugMode && (
           <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }} transition={{ delay: 0.5 }}
