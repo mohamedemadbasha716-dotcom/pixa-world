@@ -30,7 +30,7 @@ import type { KarlMood } from '@/lib/types/lesson';
 import { ENCOURAGEMENTS, SAD_MESSAGES } from '@/lib/types/lesson';
 
 // ═══════════════════════════════════════
-// 🛠️ Helper Functions (محلية - مش محتاجين ملفات خارجية)
+// 🛠️ Helper Functions (محلية)
 // ═══════════════════════════════════════
 type FlyingStar = { id: number; x: number; y: number };
 
@@ -634,7 +634,7 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: 
 }
 
 // ═══════════════════════════════════════
-// اختبار الميناء (Responsive)
+// اختبار الميناء (Responsive) - الصورة كاملة الشاشة
 // ═══════════════════════════════════════
 function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, onKarlReact, onCombo, isMobile }: {
   groupLetters: Letter[];
@@ -669,11 +669,25 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
     const containerW = rect.width;
     const containerH = rect.height;
 
-    const scale = Math.min(containerW / harborImage.width, containerH / harborImage.height);
-    const renderedW = harborImage.width * scale;
-    const renderedH = harborImage.height * scale;
-    const offsetX = (containerW - renderedW) / 2;
-    const offsetY = (containerH - renderedH) / 2;
+    // 📱 على الموبايل: cover (الصورة تملى الكونتينر)
+    // 🖥️ على الديسكتوب: contain (الصورة كاملة بدون قص)
+    const useFit: 'cover' | 'contain' = isMobile ? 'cover' : 'contain';
+    
+    let renderedW: number, renderedH: number, offsetX: number, offsetY: number;
+    
+    if (useFit === 'cover') {
+      const scale = Math.max(containerW / harborImage.width, containerH / harborImage.height);
+      renderedW = harborImage.width * scale;
+      renderedH = harborImage.height * scale;
+      offsetX = (containerW - renderedW) / 2;
+      offsetY = (containerH - renderedH) / 2;
+    } else {
+      const scale = Math.min(containerW / harborImage.width, containerH / harborImage.height);
+      renderedW = harborImage.width * scale;
+      renderedH = harborImage.height * scale;
+      offsetX = (containerW - renderedW) / 2;
+      offsetY = (containerH - renderedH) / 2;
+    }
 
     const clickX = e.clientX - rect.left - offsetX;
     const clickY = e.clientY - rect.top - offsetY;
@@ -688,8 +702,8 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
       pctY >= b.y && pctY <= b.y + b.h
     );
 
-    const relX = ((clickX + offsetX) / containerW) * 100;
-    const relY = ((clickY + offsetY) / containerH) * 100;
+    const relX = ((e.clientX - rect.left) / containerW) * 100;
+    const relY = ((e.clientY - rect.top) / containerH) * 100;
 
     setClickEffect({ x: relX, y: relY, correct: hit });
     setTimeout(() => setClickEffect(null), 700);
@@ -726,10 +740,14 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
         if (newWrong >= 5) onFail();
       }, 700);
     }
-  }, [showFeedback, finished, boxes, currentLetter, harborImage, currentIdx, groupLetters.length, wrong, onCombo, onKarlReact, onStarEarned, onPass, onFail]);
+  }, [showFeedback, finished, boxes, currentLetter, harborImage, isMobile, currentIdx, groupLetters.length, wrong, onCombo, onKarlReact, onStarEarned, onPass, onFail]);
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-2 w-full max-w-5xl mx-auto px-2">
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      className={`flex flex-col gap-2 w-full max-w-5xl mx-auto ${isMobile ? 'px-1' : 'px-2'}`}
+    >
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-1">
           {Array.from({ length: Math.min(totalStars, isMobile ? 5 : 8) }).map((_, i) => (
@@ -791,21 +809,30 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
         )}
       </AnimatePresence>
 
+      {/* 🖼️ الصورة - كاملة الشاشة على الموبايل */}
       <div
         ref={containerRef}
         className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10"
         style={{ 
-          aspectRatio: `${harborImage.width}/${harborImage.height}`, 
           cursor: 'pointer', 
           background: '#0a1628',
-          minHeight: isMobile ? '40vh' : 'min(60vh, 400px)',
-          maxHeight: isMobile ? '50vh' : 'none',
+          height: isMobile ? '70vh' : 'auto',
+          minHeight: isMobile ? '500px' : 'min(60vh, 400px)',
+          aspectRatio: isMobile ? 'auto' : `${harborImage.width}/${harborImage.height}`,
         }}
         onClick={handleImageClick}
       >
-        <img src={harborImage.src} alt="ميناء" className="w-full h-full"
-          style={{ objectFit: 'contain', pointerEvents: 'none', display: 'block' }}
-          draggable={false} />
+        <img 
+          src={harborImage.src} 
+          alt="ميناء" 
+          className="w-full h-full"
+          style={{ 
+            objectFit: isMobile ? 'cover' : 'contain', 
+            pointerEvents: 'none', 
+            display: 'block',
+          }}
+          draggable={false} 
+        />
 
         <AnimatePresence>
           {showHint && boxes.length > 0 && currentLetter && boxes.map((b, idx) => (
@@ -1149,11 +1176,11 @@ export default function GermanLetterLessonPage() {
       </div>
 
       <div 
-        className="px-2 min-h-screen flex flex-col justify-center relative" 
+        className={`${isMobile ? 'px-0' : 'px-2'} min-h-screen flex flex-col justify-center relative`}
         style={{ 
           zIndex: 10,
           paddingTop: isMobile ? '110px' : '140px',
-          paddingBottom: isMobile ? '90px' : '130px',
+          paddingBottom: isMobile ? '20px' : '130px',
         }}>
         <AnimatePresence mode="wait">
           {phase === 'learn-letter' && (
