@@ -634,7 +634,7 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: 
 }
 
 // ═══════════════════════════════════════
-// اختبار الميناء (Responsive) - الصورة كاملة الشاشة
+// اختبار الميناء (Responsive)
 // ═══════════════════════════════════════
 function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, onKarlReact, onCombo, isMobile }: {
   groupLetters: Letter[];
@@ -669,25 +669,12 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
     const containerW = rect.width;
     const containerH = rect.height;
 
-    // 📱 على الموبايل: cover (الصورة تملى الكونتينر)
-    // 🖥️ على الديسكتوب: contain (الصورة كاملة بدون قص)
-    const useFit: 'cover' | 'contain' = isMobile ? 'cover' : 'contain';
-    
-    let renderedW: number, renderedH: number, offsetX: number, offsetY: number;
-    
-    if (useFit === 'cover') {
-      const scale = Math.max(containerW / harborImage.width, containerH / harborImage.height);
-      renderedW = harborImage.width * scale;
-      renderedH = harborImage.height * scale;
-      offsetX = (containerW - renderedW) / 2;
-      offsetY = (containerH - renderedH) / 2;
-    } else {
-      const scale = Math.min(containerW / harborImage.width, containerH / harborImage.height);
-      renderedW = harborImage.width * scale;
-      renderedH = harborImage.height * scale;
-      offsetX = (containerW - renderedW) / 2;
-      offsetY = (containerH - renderedH) / 2;
-    }
+    // ✅ نستخدم contain دايماً - الإحداثيات تبقى مظبوطة
+    const scale = Math.min(containerW / harborImage.width, containerH / harborImage.height);
+    const renderedW = harborImage.width * scale;
+    const renderedH = harborImage.height * scale;
+    const offsetX = (containerW - renderedW) / 2;
+    const offsetY = (containerH - renderedH) / 2;
 
     const clickX = e.clientX - rect.left - offsetX;
     const clickY = e.clientY - rect.top - offsetY;
@@ -740,7 +727,7 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
         if (newWrong >= 5) onFail();
       }, 700);
     }
-  }, [showFeedback, finished, boxes, currentLetter, harborImage, isMobile, currentIdx, groupLetters.length, wrong, onCombo, onKarlReact, onStarEarned, onPass, onFail]);
+  }, [showFeedback, finished, boxes, currentLetter, harborImage, currentIdx, groupLetters.length, wrong, onCombo, onKarlReact, onStarEarned, onPass, onFail]);
 
   return (
     <motion.div 
@@ -809,16 +796,14 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
         )}
       </AnimatePresence>
 
-      {/* 🖼️ الصورة - كاملة الشاشة على الموبايل */}
+      {/* 🖼️ الصورة - بنسبتها الأصلية على الموبايل والديسكتوب */}
       <div
         ref={containerRef}
         className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10"
         style={{ 
           cursor: 'pointer', 
           background: '#0a1628',
-          height: isMobile ? '70vh' : 'auto',
-          minHeight: isMobile ? '500px' : 'min(60vh, 400px)',
-          aspectRatio: isMobile ? 'auto' : `${harborImage.width}/${harborImage.height}`,
+          aspectRatio: `${harborImage.width}/${harborImage.height}`,
         }}
         onClick={handleImageClick}
       >
@@ -827,7 +812,7 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
           alt="ميناء" 
           className="w-full h-full"
           style={{ 
-            objectFit: isMobile ? 'cover' : 'contain', 
+            objectFit: 'contain', 
             pointerEvents: 'none', 
             display: 'block',
           }}
@@ -1176,7 +1161,7 @@ export default function GermanLetterLessonPage() {
       </div>
 
       <div 
-        className={`${isMobile ? 'px-0' : 'px-2'} min-h-screen flex flex-col justify-center relative`}
+        className={`${isMobile ? 'px-1' : 'px-2'} min-h-screen flex flex-col justify-center relative`}
         style={{ 
           zIndex: 10,
           paddingTop: isMobile ? '110px' : '140px',
