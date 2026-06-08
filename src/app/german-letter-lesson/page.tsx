@@ -245,55 +245,29 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }
         {isMobile ? (
           <div className="flex flex-col items-center gap-3 px-3">
             <HeroLetterDisplay letterData={letterData} isMobile={true} />
-
             <div className="text-center">
               <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: `${letterData.color}aa` }}>
                 Buchstabe · الحرف
               </div>
               <div className="text-xl font-black text-white mt-0.5">تعلم {letterData.letter}</div>
             </div>
-
             <SoundButton onClick={() => speakLetter(letterData.letter)} color={letterData.color} label="استمع" />
-
             <div className="w-full space-y-2">
               <p className="text-center font-bold text-white/40 text-[10px] tracking-widest uppercase">اكتب الحرف</p>
-              <GhostInput
-                ref={inputRef}
-                value={input}
-                onChange={v => { setInput(v); setStatus('idle'); }}
-                onEnter={handleCheck}
-                ghostText={letterData.letter}
-                color={letterData.color}
-                status={status}
-                fontSize="2.5rem"
-                maxLength={1}
-                uppercase
-              />
+              <GhostInput ref={inputRef} value={input} onChange={v => { setInput(v); setStatus('idle'); }} onEnter={handleCheck} ghostText={letterData.letter} color={letterData.color} status={status} fontSize="2.5rem" maxLength={1} uppercase />
               <AnimatePresence>
                 {status !== 'idle' && (
                   <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                     className="flex items-center justify-center gap-2 font-black text-xs py-2 rounded-xl"
-                    style={{
-                      background: status === 'correct' ? 'rgba(88,204,2,0.18)' : 'rgba(255,68,68,0.18)',
-                      color: status === 'correct' ? '#58CC02' : '#FF6B6B',
-                      border: `1px solid ${status === 'correct' ? '#58CC0244' : '#FF444444'}`,
-                    }}>
+                    style={{ background: status === 'correct' ? 'rgba(88,204,2,0.18)' : 'rgba(255,68,68,0.18)', color: status === 'correct' ? '#58CC02' : '#FF6B6B', border: `1px solid ${status === 'correct' ? '#58CC0244' : '#FF444444'}` }}>
                     {status === 'correct' ? <><Check size={14} /> ممتاز!</> : <><X size={14} /> جرب تاني</>}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-              onClick={handleCheck} disabled={!input}
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleCheck} disabled={!input}
               className="w-full py-3 rounded-2xl font-black text-base text-white disabled:opacity-25 transition-all"
-              style={{
-                background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
-                boxShadow: `0 6px 20px ${letterData.color}55`,
-                borderBottom: `3px solid ${letterData.color}77`,
-              }}
-            >
+              style={{ background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`, boxShadow: `0 6px 20px ${letterData.color}55`, borderBottom: `3px solid ${letterData.color}77` }}>
               تحقق ✓
             </motion.button>
           </div>
@@ -302,58 +276,30 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }
             <div className="lg:col-span-3 flex justify-center">
               <HeroLetterDisplay letterData={letterData} isMobile={false} />
             </div>
-
             <div className="lg:col-span-2 space-y-5">
               <div className="text-center lg:text-right">
-                <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${letterData.color}aa` }}>
-                  Buchstabe · الحرف
-                </div>
+                <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${letterData.color}aa` }}>Buchstabe · الحرف</div>
                 <div className="text-3xl font-black text-white">تعلم {letterData.letter}</div>
               </div>
-
               <div className="flex justify-center lg:justify-start">
                 <SoundButton onClick={() => speakLetter(letterData.letter)} color={letterData.color} label="استمع للحرف" />
               </div>
-
               <div className="space-y-3">
                 <p className="text-center lg:text-right font-bold text-white/40 text-xs tracking-widest uppercase">اكتب الحرف</p>
-                <GhostInput
-                  ref={inputRef}
-                  value={input}
-                  onChange={v => { setInput(v); setStatus('idle'); }}
-                  onEnter={handleCheck}
-                  ghostText={letterData.letter}
-                  color={letterData.color}
-                  status={status}
-                  fontSize="3rem"
-                  maxLength={1}
-                  uppercase
-                />
+                <GhostInput ref={inputRef} value={input} onChange={v => { setInput(v); setStatus('idle'); }} onEnter={handleCheck} ghostText={letterData.letter} color={letterData.color} status={status} fontSize="3rem" maxLength={1} uppercase />
                 <AnimatePresence>
                   {status !== 'idle' && (
                     <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                       className="flex items-center justify-center gap-2 font-black text-sm py-2.5 rounded-xl backdrop-blur-sm"
-                      style={{
-                        background: status === 'correct' ? 'rgba(88,204,2,0.18)' : 'rgba(255,68,68,0.18)',
-                        color: status === 'correct' ? '#58CC02' : '#FF6B6B',
-                        border: `1px solid ${status === 'correct' ? '#58CC0244' : '#FF444444'}`,
-                      }}>
+                      style={{ background: status === 'correct' ? 'rgba(88,204,2,0.18)' : 'rgba(255,68,68,0.18)', color: status === 'correct' ? '#58CC02' : '#FF6B6B', border: `1px solid ${status === 'correct' ? '#58CC0244' : '#FF444444'}` }}>
                       {status === 'correct' ? <><Check size={16} /> ممتاز!</> : <><X size={16} /> جرب تاني</>}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-
-              <motion.button
-                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-                onClick={handleCheck} disabled={!input}
+              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleCheck} disabled={!input}
                 className="w-full py-4 rounded-2xl font-black text-lg text-white disabled:opacity-25 transition-all"
-                style={{
-                  background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
-                  boxShadow: `0 8px 30px ${letterData.color}55, inset 0 1px 0 rgba(255,255,255,0.3)`,
-                  borderBottom: `4px solid ${letterData.color}77`,
-                }}
-              >
+                style={{ background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`, boxShadow: `0 8px 30px ${letterData.color}55, inset 0 1px 0 rgba(255,255,255,0.3)`, borderBottom: `4px solid ${letterData.color}77` }}>
                 تحقق ✓
               </motion.button>
             </div>
@@ -428,201 +374,79 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: 
       >
         {isMobile ? (
           <div className="flex flex-col items-center gap-3 px-3">
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-              className="relative"
-            >
-              <div className="absolute inset-0 rounded-[2rem] blur-2xl" style={{
-                background: `radial-gradient(circle, ${letterData.color}66, transparent)`,
-                transform: 'scale(1.2)',
-              }} />
-
-              <div className="relative rounded-[2rem] flex items-center justify-center"
-                style={{
-                  width: emojiSize, height: emojiSize,
-                  background: `linear-gradient(145deg, ${letterData.gradient[0]}22, ${letterData.gradient[1]}11)`,
-                  border: `2px solid ${letterData.color}55`,
-                  boxShadow: `0 15px 40px ${letterData.color}44`,
-                }}>
-                <span style={{ fontSize: emojiFontSize, filter: `drop-shadow(0 4px 12px ${letterData.color}aa)` }}>
-                  {letterData.emoji}
-                </span>
+            <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} className="relative">
+              <div className="absolute inset-0 rounded-[2rem] blur-2xl" style={{ background: `radial-gradient(circle, ${letterData.color}66, transparent)`, transform: 'scale(1.2)' }} />
+              <div className="relative rounded-[2rem] flex items-center justify-center" style={{ width: emojiSize, height: emojiSize, background: `linear-gradient(145deg, ${letterData.gradient[0]}22, ${letterData.gradient[1]}11)`, border: `2px solid ${letterData.color}55`, boxShadow: `0 15px 40px ${letterData.color}44` }}>
+                <span style={{ fontSize: emojiFontSize, filter: `drop-shadow(0 4px 12px ${letterData.color}aa)` }}>{letterData.emoji}</span>
               </div>
-
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="absolute -top-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg border-2 shadow-2xl"
-                style={{
-                  background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
-                  borderColor: 'rgba(255,255,255,0.4)',
-                  color: 'white',
-                }}
-              >
+              <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} className="absolute -top-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg border-2 shadow-2xl" style={{ background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`, borderColor: 'rgba(255,255,255,0.4)', color: 'white' }}>
                 {letterData.letter}
               </motion.div>
             </motion.div>
-
             <div className="text-center">
-              <div className="font-black text-3xl text-white" style={{
-                textShadow: `0 0 30px ${letterData.color}88`,
-              }}>
-                {letterData.word}
-              </div>
+              <div className="font-black text-3xl text-white" style={{ textShadow: `0 0 30px ${letterData.color}88` }}>{letterData.word}</div>
               <div className="font-bold text-sm" style={{ color: letterData.color }}>{letterData.wordAr}</div>
             </div>
-
             <SoundButton onClick={() => speakWord(letterData.word)} color={letterData.color} label="استمع" />
-
             <div className="w-full space-y-2">
-              <GhostInput
-                ref={inputRef}
-                value={input}
-                onChange={v => { setInput(v); setStatus('idle'); }}
-                onEnter={handleCheck}
-                ghostText={letterData.word}
-                color={letterData.color}
-                status={status}
-                fontSize="1.4rem"
-              />
-
-              {requiredChars.length > 0 && (
-                <SpecialCharsKeyboard chars={requiredChars} onChar={handleSpecialChar} color={letterData.color} />
-              )}
-
+              <GhostInput ref={inputRef} value={input} onChange={v => { setInput(v); setStatus('idle'); }} onEnter={handleCheck} ghostText={letterData.word} color={letterData.color} status={status} fontSize="1.4rem" />
+              {requiredChars.length > 0 && <SpecialCharsKeyboard chars={requiredChars} onChar={handleSpecialChar} color={letterData.color} />}
               <AnimatePresence>
                 {status !== 'idle' && (
-                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                    className="flex items-center justify-center gap-2 font-black text-xs py-2 rounded-xl"
-                    style={{
-                      background: status === 'correct' ? 'rgba(88,204,2,0.18)' : 'rgba(255,68,68,0.18)',
-                      color: status === 'correct' ? '#58CC02' : '#FF6B6B',
-                      border: `1px solid ${status === 'correct' ? '#58CC0244' : '#FF444444'}`,
-                    }}>
+                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-center justify-center gap-2 font-black text-xs py-2 rounded-xl"
+                    style={{ background: status === 'correct' ? 'rgba(88,204,2,0.18)' : 'rgba(255,68,68,0.18)', color: status === 'correct' ? '#58CC02' : '#FF6B6B', border: `1px solid ${status === 'correct' ? '#58CC0244' : '#FF444444'}` }}>
                     {status === 'correct' ? <><Check size={14} /> ممتاز!</> : <><X size={14} /> جرب تاني</>}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-              onClick={handleCheck} disabled={!input}
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleCheck} disabled={!input}
               className="w-full py-3 rounded-2xl font-black text-base text-white disabled:opacity-25 transition-all"
-              style={{
-                background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
-                boxShadow: `0 6px 20px ${letterData.color}55`,
-                borderBottom: `3px solid ${letterData.color}77`,
-              }}
-            >
+              style={{ background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`, boxShadow: `0 6px 20px ${letterData.color}55`, borderBottom: `3px solid ${letterData.color}77` }}>
               تحقق ✓
             </motion.button>
           </div>
         ) : (
           <div className="grid lg:grid-cols-5 gap-8 items-center">
             <div className="lg:col-span-3 flex flex-col items-center gap-5">
-              <motion.div
-                animate={{ y: [0, -8, 0], rotate: [-1, 1, -1] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                className="relative"
-              >
-                <div className="absolute inset-0 rounded-[3rem] blur-3xl" style={{
-                  background: `radial-gradient(circle, ${letterData.color}66, transparent)`,
-                  transform: 'scale(1.3)',
-                }} />
-
-                <div className="relative rounded-[3rem] flex items-center justify-center"
-                  style={{
-                    width: 220, height: 220,
-                    background: `linear-gradient(145deg, ${letterData.gradient[0]}22, ${letterData.gradient[1]}11)`,
-                    backdropFilter: 'blur(20px)',
-                    border: `2px solid ${letterData.color}55`,
-                    boxShadow: `0 20px 60px ${letterData.color}44`,
-                  }}>
-                  <span style={{ fontSize: '8rem', filter: `drop-shadow(0 6px 20px ${letterData.color}aa)` }}>
-                    {letterData.emoji}
-                  </span>
+              <motion.div animate={{ y: [0, -8, 0], rotate: [-1, 1, -1] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} className="relative">
+                <div className="absolute inset-0 rounded-[3rem] blur-3xl" style={{ background: `radial-gradient(circle, ${letterData.color}66, transparent)`, transform: 'scale(1.3)' }} />
+                <div className="relative rounded-[3rem] flex items-center justify-center" style={{ width: 220, height: 220, background: `linear-gradient(145deg, ${letterData.gradient[0]}22, ${letterData.gradient[1]}11)`, backdropFilter: 'blur(20px)', border: `2px solid ${letterData.color}55`, boxShadow: `0 20px 60px ${letterData.color}44` }}>
+                  <span style={{ fontSize: '8rem', filter: `drop-shadow(0 6px 20px ${letterData.color}aa)` }}>{letterData.emoji}</span>
                 </div>
-
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute -top-3 -right-3 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl border-2 shadow-2xl"
-                  style={{
-                    background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
-                    borderColor: 'rgba(255,255,255,0.4)',
-                    color: 'white',
-                  }}
-                >
+                <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} className="absolute -top-3 -right-3 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl border-2 shadow-2xl" style={{ background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`, borderColor: 'rgba(255,255,255,0.4)', color: 'white' }}>
                   {letterData.letter}
                 </motion.div>
               </motion.div>
-
               <div className="text-center">
-                <div className="font-black text-5xl text-white mb-1" style={{
-                  textShadow: `0 0 40px ${letterData.color}88`,
-                }}>
-                  {letterData.word}
-                </div>
+                <div className="font-black text-5xl text-white mb-1" style={{ textShadow: `0 0 40px ${letterData.color}88` }}>{letterData.word}</div>
                 <div className="font-bold text-lg" style={{ color: letterData.color }}>{letterData.wordAr}</div>
               </div>
-
               <SoundButton onClick={() => speakWord(letterData.word)} color={letterData.color} label="استمع للكلمة" />
             </div>
-
             <div className="lg:col-span-2 space-y-4">
               <div className="text-center lg:text-right">
-                <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${letterData.color}aa` }}>
-                  Wort · الكلمة
-                </div>
+                <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${letterData.color}aa` }}>Wort · الكلمة</div>
                 <div className="text-2xl font-black text-white">اكتب الكلمة</div>
               </div>
-
-              <GhostInput
-                ref={inputRef}
-                value={input}
-                onChange={v => { setInput(v); setStatus('idle'); }}
-                onEnter={handleCheck}
-                ghostText={letterData.word}
-                color={letterData.color}
-                status={status}
-                fontSize="1.8rem"
-              />
-
+              <GhostInput ref={inputRef} value={input} onChange={v => { setInput(v); setStatus('idle'); }} onEnter={handleCheck} ghostText={letterData.word} color={letterData.color} status={status} fontSize="1.8rem" />
               {requiredChars.length > 0 && (
                 <div className="space-y-2 pt-1">
-                  <p className="text-center text-[10px] font-black text-white/40 tracking-widest uppercase">
-                    💡 الحروف الخاصة
-                  </p>
+                  <p className="text-center text-[10px] font-black text-white/40 tracking-widest uppercase">💡 الحروف الخاصة</p>
                   <SpecialCharsKeyboard chars={requiredChars} onChar={handleSpecialChar} color={letterData.color} />
                 </div>
               )}
-
               <AnimatePresence>
                 {status !== 'idle' && (
-                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                    className="flex items-center justify-center gap-2 font-black text-sm py-2.5 rounded-xl"
-                    style={{
-                      background: status === 'correct' ? 'rgba(88,204,2,0.18)' : 'rgba(255,68,68,0.18)',
-                      color: status === 'correct' ? '#58CC02' : '#FF6B6B',
-                      border: `1px solid ${status === 'correct' ? '#58CC0244' : '#FF444444'}`,
-                    }}>
+                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-center justify-center gap-2 font-black text-sm py-2.5 rounded-xl"
+                    style={{ background: status === 'correct' ? 'rgba(88,204,2,0.18)' : 'rgba(255,68,68,0.18)', color: status === 'correct' ? '#58CC02' : '#FF6B6B', border: `1px solid ${status === 'correct' ? '#58CC0244' : '#FF444444'}` }}>
                     {status === 'correct' ? <><Check size={16} /> ممتاز!</> : <><X size={16} /> جرب تاني</>}
                   </motion.div>
                 )}
               </AnimatePresence>
-
-              <motion.button
-                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-                onClick={handleCheck} disabled={!input}
+              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleCheck} disabled={!input}
                 className="w-full py-4 rounded-2xl font-black text-lg text-white disabled:opacity-25 transition-all"
-                style={{
-                  background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
-                  boxShadow: `0 8px 30px ${letterData.color}55`,
-                  borderBottom: `4px solid ${letterData.color}77`,
-                }}
-              >
+                style={{ background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`, boxShadow: `0 8px 30px ${letterData.color}55`, borderBottom: `4px solid ${letterData.color}77` }}>
                 تحقق ✓
               </motion.button>
             </div>
@@ -634,7 +458,7 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: 
 }
 
 // ═══════════════════════════════════════
-// 🎴 كارت الحرف الجانبي (Sidebar Card)
+// 🎴 كارت الحرف الجانبي
 // ═══════════════════════════════════════
 function SideLetterCard({ currentLetter, boxes, isMobile, onSpeak }: {
   currentLetter: Letter;
@@ -645,41 +469,31 @@ function SideLetterCard({ currentLetter, boxes, isMobile, onSpeak }: {
   return (
     <motion.div 
       key={currentLetter.letter}
-      initial={{ opacity: 0, scale: 0.95, x: 20 }} 
+      initial={{ opacity: 0, scale: 0.95, x: -20 }} 
       animate={{ opacity: 1, scale: 1, x: 0 }} 
-      exit={{ opacity: 0, scale: 0.95, x: -20 }}
+      exit={{ opacity: 0, scale: 0.95, x: 20 }}
       className="relative rounded-2xl overflow-hidden backdrop-blur-md flex flex-col items-center gap-3 p-4"
       style={{
         background: `linear-gradient(180deg, ${currentLetter.color}25, ${currentLetter.color}08)`,
         border: `1.5px solid ${currentLetter.color}50`,
         boxShadow: `0 8px 32px ${currentLetter.color}30`,
-        width: isMobile ? '100%' : '220px',
+        width: isMobile ? '100%' : '200px',
       }}
     >
-      {/* Decorative glow */}
-      <div 
-        className="absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full blur-3xl opacity-40 pointer-events-none"
-        style={{ background: currentLetter.color }}
-      />
+      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full blur-3xl opacity-40 pointer-events-none" style={{ background: currentLetter.color }} />
 
-      {/* 1️⃣ السطر الأول: ابحث عن حرف X + أيقونة */}
       <div className="flex items-center gap-1.5 justify-center relative z-10">
         <Search size={14} style={{ color: currentLetter.color }} />
-        <span 
-          className="text-xs font-bold"
-          style={{ color: `${currentLetter.color}dd` }}
-        >
+        <span className="text-xs font-bold" style={{ color: `${currentLetter.color}dd` }}>
           ابحث عن حرف {currentLetter.letter}
         </span>
         {boxes.length > 1 && (
-          <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black" 
-            style={{ background: `${currentLetter.color}33`, color: currentLetter.color }}>
+          <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black" style={{ background: `${currentLetter.color}33`, color: currentLetter.color }}>
             ×{boxes.length}
           </span>
         )}
       </div>
 
-      {/* 2️⃣ الحرف الكبير */}
       <motion.div 
         animate={{ scale: [1, 1.05, 1] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
@@ -693,41 +507,20 @@ function SideLetterCard({ currentLetter, boxes, isMobile, onSpeak }: {
         }}
       >
         {currentLetter.letter}
-        {/* Sparkle */}
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-          className="absolute -top-2 -right-2"
-        >
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: 'linear' }} className="absolute -top-2 -right-2">
           <Sparkles size={20} style={{ color: '#FFD700' }} />
         </motion.div>
       </motion.div>
 
-      {/* 3️⃣ الكلمة بالعربي */}
-      <div 
-        className="font-black text-white text-lg text-center relative z-10"
-        style={{ textShadow: `0 2px 8px ${currentLetter.color}66` }}
-      >
+      <div className="font-black text-white text-lg text-center relative z-10" style={{ textShadow: `0 2px 8px ${currentLetter.color}66` }}>
         {currentLetter.wordAr}
       </div>
 
-      {/* 4️⃣ الكلمة بالألماني + الأيقونة */}
-      <div className="flex items-center gap-2 justify-center relative z-10 px-3 py-2 rounded-xl"
-        style={{ 
-          background: `${currentLetter.color}15`,
-          border: `1px solid ${currentLetter.color}33`,
-        }}
-      >
+      <div className="flex items-center gap-2 justify-center relative z-10 px-3 py-2 rounded-xl" style={{ background: `${currentLetter.color}15`, border: `1px solid ${currentLetter.color}33` }}>
         <span className="text-2xl">{currentLetter.emoji}</span>
-        <span 
-          className="font-black text-base"
-          style={{ color: currentLetter.color }}
-        >
-          {currentLetter.word}
-        </span>
+        <span className="font-black text-base" style={{ color: currentLetter.color }}>{currentLetter.word}</span>
       </div>
 
-      {/* 5️⃣ زر الصوت */}
       <motion.button 
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -748,7 +541,7 @@ function SideLetterCard({ currentLetter, boxes, isMobile, onSpeak }: {
 }
 
 // ═══════════════════════════════════════
-// اختبار الميناء - Layout جديد (الصورة + الكارت جنبها)
+// اختبار الميناء - الصورة كبيرة + الكارت على اليمين
 // ═══════════════════════════════════════
 function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, onKarlReact, onCombo, isMobile }: {
   groupLetters: Letter[];
@@ -783,11 +576,25 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
     const containerW = rect.width;
     const containerH = rect.height;
 
-    const scale = Math.min(containerW / harborImage.width, containerH / harborImage.height);
-    const renderedW = harborImage.width * scale;
-    const renderedH = harborImage.height * scale;
-    const offsetX = (containerW - renderedW) / 2;
-    const offsetY = (containerH - renderedH) / 2;
+    // ✅ نستخدم cover لما الصورة تملى الإطار، ونحسب الإحداثيات بناءً على الجزء الظاهر
+    const imgRatio = harborImage.width / harborImage.height;
+    const boxRatio = containerW / containerH;
+    
+    let renderedW: number, renderedH: number, offsetX: number, offsetY: number;
+    
+    if (imgRatio > boxRatio) {
+      // الصورة أعرض من الإطار - cover يقص من الجوانب
+      renderedH = containerH;
+      renderedW = containerH * imgRatio;
+      offsetX = (containerW - renderedW) / 2;
+      offsetY = 0;
+    } else {
+      // الصورة أطول من الإطار - cover يقص من فوق وتحت
+      renderedW = containerW;
+      renderedH = containerW / imgRatio;
+      offsetX = 0;
+      offsetY = (containerH - renderedH) / 2;
+    }
 
     const clickX = e.clientX - rect.left - offsetX;
     const clickY = e.clientY - rect.top - offsetY;
@@ -842,16 +649,14 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
     }
   }, [showFeedback, finished, boxes, currentLetter, harborImage, currentIdx, groupLetters.length, wrong, onCombo, onKarlReact, onStarEarned, onPass, onFail]);
 
-  // 🖼️ مكون الصورة
+  // 🖼️ مكون الصورة - الصورة تملى الإطار كامل
   const ImageBox = (
     <div
       ref={containerRef}
-      className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10"
+      className="relative w-full h-full rounded-2xl overflow-hidden border-2 border-white/10"
       style={{ 
         cursor: 'pointer', 
         background: '#0a1628',
-        aspectRatio: `${harborImage.width}/${harborImage.height}`,
-        maxHeight: isMobile ? 'none' : '75vh',
       }}
       onClick={handleImageClick}
     >
@@ -860,7 +665,7 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
         alt="ميناء" 
         className="w-full h-full"
         style={{ 
-          objectFit: 'contain', 
+          objectFit: 'cover',  // ✅ الصورة تملى الإطار كامل
           pointerEvents: 'none', 
           display: 'block',
         }}
@@ -932,7 +737,7 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
       animate={{ opacity: 1 }} 
       className="w-full max-w-7xl mx-auto px-2"
     >
-      {/* Top Bar: Stars & Wrong Counter */}
+      {/* Top Bar */}
       <div className="flex items-center justify-between px-1 mb-2">
         <div className="flex items-center gap-1">
           {Array.from({ length: Math.min(totalStars, isMobile ? 5 : 8) }).map((_, i) => (
@@ -948,38 +753,28 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
       </div>
 
       {/* 📱 الموبايل: كارت فوق + صورة تحت */}
-      {/* 🖥️ الديسكتوب: صورة على الشمال + كارت على اليمين */}
+      {/* 🖥️ الديسكتوب: صورة شمال + كارت يمين */}
       {isMobile ? (
         <div className="flex flex-col gap-3">
           <AnimatePresence mode="wait">
             {!finished && currentLetter && (
-              <SideLetterCard 
-                currentLetter={currentLetter}
-                boxes={boxes}
-                isMobile={true}
-                onSpeak={() => speakWord(currentLetter.word)}
-              />
+              <SideLetterCard currentLetter={currentLetter} boxes={boxes} isMobile={true} onSpeak={() => speakWord(currentLetter.word)} />
             )}
           </AnimatePresence>
-          {ImageBox}
+          <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
       ) : (
-        <div className="flex gap-4 items-start">
+        <div className="flex gap-4 items-stretch" style={{ height: '75vh' }}>
           {/* الصورة - تاخد المساحة الأكبر */}
           <div className="flex-1 min-w-0">
             {ImageBox}
           </div>
           
-          {/* الكارت الجانبي - عرض ثابت */}
-          <div className="flex-shrink-0">
+          {/* الكارت الجانبي - على اليمين */}
+          <div className="flex-shrink-0 flex items-center">
             <AnimatePresence mode="wait">
               {!finished && currentLetter && (
-                <SideLetterCard 
-                  currentLetter={currentLetter}
-                  boxes={boxes}
-                  isMobile={false}
-                  onSpeak={() => speakWord(currentLetter.word)}
-                />
+                <SideLetterCard currentLetter={currentLetter} boxes={boxes} isMobile={false} onSpeak={() => speakWord(currentLetter.word)} />
               )}
             </AnimatePresence>
           </div>
@@ -990,19 +785,11 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
       {!finished && (
         <div className="flex gap-1 px-1 mt-3">
           {groupLetters.map((l, i) => (
-            <div key={l.letter} className="flex-1 h-1 rounded-full overflow-hidden"
-              style={{ background: 'rgba(255,255,255,0.08)' }}>
-              <motion.div 
-                className="h-full rounded-full"
-                style={{ 
-                  background: foundLetters.includes(l.letter) 
-                    ? `linear-gradient(90deg, ${l.gradient[0]}, ${l.gradient[1]})` 
-                    : i === currentIdx 
-                      ? `${l.color}88` 
-                      : 'transparent',
-                  width: foundLetters.includes(l.letter) || i === currentIdx ? '100%' : '0%',
-                }}
-              />
+            <div key={l.letter} className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+              <motion.div className="h-full rounded-full" style={{ 
+                background: foundLetters.includes(l.letter) ? `linear-gradient(90deg, ${l.gradient[0]}, ${l.gradient[1]})` : i === currentIdx ? `${l.color}88` : 'transparent',
+                width: foundLetters.includes(l.letter) || i === currentIdx ? '100%' : '0%',
+              }} />
             </div>
           ))}
         </div>
@@ -1029,8 +816,7 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
 // ═══════════════════════════════════════
 function SuccessScreen({ groupTitle, onNext }: { groupTitle: string; onNext: () => void }) {
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center gap-4 text-center py-6 px-4">
+    <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-4 text-center py-6 px-4">
       <div className="text-7xl">🏆</div>
       <div>
         <h2 className="text-2xl md:text-4xl font-black text-white mb-2">أنهيت {groupTitle}!</h2>
@@ -1043,12 +829,8 @@ function SuccessScreen({ groupTitle, onNext }: { groupTitle: string; onNext: () 
           </motion.div>
         ))}
       </div>
-      <motion.button onClick={onNext}
-        className="px-8 py-4 rounded-2xl font-black text-base md:text-xl text-white"
-        style={{
-          background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
-          boxShadow: '0 10px 30px rgba(76,201,240,0.4)',
-        }}>
+      <motion.button onClick={onNext} className="px-8 py-4 rounded-2xl font-black text-base md:text-xl text-white"
+        style={{ background: 'linear-gradient(135deg, #4CC9F0, #7209B7)', boxShadow: '0 10px 30px rgba(76,201,240,0.4)' }}>
         المجموعة الجاية 🚀
       </motion.button>
     </motion.div>
@@ -1057,15 +839,13 @@ function SuccessScreen({ groupTitle, onNext }: { groupTitle: string; onNext: () 
 
 function FailScreen({ onRetry }: { onRetry: () => void }) {
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center gap-4 text-center py-6 px-4">
+    <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-4 text-center py-6 px-4">
       <div className="text-6xl">😅</div>
       <div>
         <h2 className="text-2xl md:text-3xl font-black text-white mb-2">حاول تاني!</h2>
         <p className="font-bold text-sm text-white/40">راجع الحروف</p>
       </div>
-      <motion.button onClick={onRetry}
-        className="flex items-center gap-2 px-8 py-3 rounded-2xl font-black text-base text-white"
+      <motion.button onClick={onRetry} className="flex items-center gap-2 px-8 py-3 rounded-2xl font-black text-base text-white"
         style={{ background: 'linear-gradient(135deg, #F72585, #7209B7)' }}>
         <RotateCcw size={18} /> أعد المحاولة
       </motion.button>
