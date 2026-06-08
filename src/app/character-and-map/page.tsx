@@ -11,8 +11,9 @@ import {
   LESSON_ORDER, 
   type LessonProgress 
 } from '@/lib/playerData';
+
 // ═══════════════════════════════════════
-// المعالم - الإحداثيات المظبوطة بناءً على الصورة الفعلية
+// المعالم
 // ═══════════════════════════════════════
 const LANDMARKS = [
   {
@@ -137,19 +138,26 @@ export default function CharacterAndMapPage() {
   const [debugMode, setDebugMode] = useState(false);
   const [clickedCoords, setClickedCoords] = useState<{ x: number; y: number } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // 🗺️ Pan & Zoom States
+  const [mapScale, setMapScale] = useState(1);
+  const [mapPosition, setMapPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
+  const pinchStart = useRef({ distance: 0, scale: 1 });
+  const hasDragged = useRef(false);
+  
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // ⭐ استرجاع الاسم والشخصية من Supabase + التحقق من الـ URL + Debug Mode
+  // ⭐ استرجاع الاسم والشخصية من Supabase
   useEffect(() => {
     const loadPlayer = async () => {
-      // 📥 جلب بيانات اللاعب من Supabase
       const player = await getPlayer();
       if (player) {
         setHeroName(player.hero_name);
         setSelectedHero(player.hero_type);
         console.log('✅ تم تحميل اللاعب من Supabase:', player);
       } else {
-        // لو مفيش بيانات في Supabase، نشوف localStorage
         const savedName = localStorage.getItem('heroName');
         const savedHero = localStorage.getItem('heroType');
         if (savedName) setHeroName(savedName);
@@ -168,17 +176,49 @@ export default function CharacterAndMapPage() {
     }
   }, []);
 
-  const [videoStarted, setVideoStarted] = useState(false);
+  // 📥 تحميل التقدم من Supabase
+  const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({});
+  const [unlockedLesson, setUnlockedLesson] = useState(1);
+  const [progressLoaded, setProgressLoaded] = useState(false);
 
+  useEffect(() => {
+    const loadProgress = async () => {
+      const allProgress = await getAllProgress();
+      
+      const map: Record<string, LessonProgress> = {};
+      allProgress.forEach(p => {
+        map[p.lesson_id] = p;
+      });
+      setProgressMap(map);
+
+      let lastUnlocked = 1;
+      for (let i = 0; i < LESSON_ORDER.length; i++) {
+        const lessonId = LESSON_ORDER[i];
+        const progress = map[lessonId];
+        
+        if (progress?.completed) {
+          lastUnlocked = i + 2;
+        } else {
+          break;
+        }
+      }
+      
+      setUnlockedLesson(Math.min(lastUnlocked, LESSON_ORDER.length));
+      setProgressLoaded(true);
+      
+      console.log('🗺️ التقدم المحمّل:', map);
+      console.log('🔓 آخر درس مفتوح:', lastUnlocked);
+    };
+    
+    loadProgress();
+  }, []);
+
+  const [videoStarted, setVideoStarted] = useState(false);
   const [selectedLandmark, setSelectedLandmark] = useState<typeof LANDMARKS[0] | null>(null);
   const [hoveredLandmark, setHoveredLandmark] = useState<typeof LANDMARKS[0] | null>(null);
   const [eaglePos, setEaglePos] = useState({ x: 49, y: 46 });
   const [showIntro, setShowIntro] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({});
-const [unlockedLesson, setUnlockedLesson] = useState(1);
-const [progressLoaded, setProgressLoaded] = useState(false);
 
   const heroes = [
     { id: 'boy', name: 'البطل الشجاع', color: '#4CC9F0', img: '/characters/boy-3d.png' },
@@ -190,58 +230,17 @@ const [progressLoaded, setProgressLoaded] = useState(false);
     if (current) {
       setEaglePos({ x: current.centerX, y: current.centerY });
     }
-  }, []);
-  // 📥 تحميل التقدم من Supabase + حساب آخر درس مفتوح
-  useEffect(() => {
-    const loadProgress = async () => {
-      const allProgress = await getAllProgress();
-      
-      // تحويل المصفوفة لـ Map للسرعة
-      const map: Record<string, LessonProgress> = {};
-      allProgress.forEach(p => {
-        map[p.lesson_id] = p;
-      });
-      setProgressMap(map);
-
-      // حساب آخر درس مفتوح بناءً على الترتيب
-      let lastUnlocked = 1;
-      for (let i = 0; i < LESSON_ORDER.length; i++) {
-        const lessonId = LESSON_ORDER[i];
-        const progress = map[lessonId];
-        
-        if (progress?.completed) {
-          // لو الدرس متكمل، الدرس اللي بعده يفتح
-          lastUnlocked = i + 2;
-        } else {
-          break;
-        }
-      }
-      
-      // التأكد إنه مايعديش الحد الأقصى
-      setUnlockedLesson(Math.min(lastUnlocked, LESSON_ORDER.length));
-      setProgressLoaded(true);
-      
-      console.log('🗺️ التقدم المحمّل:', map);
-      console.log('🔓 آخر درس مفتوح:', lastUnlocked);
-    };
-    
-    loadProgress();
-  }, []);
+  }, [unlockedLesson]);
 
   const isLocked = (lesson: number) => lesson > unlockedLesson;
   const isCurrent = (lesson: number) => lesson === unlockedLesson;
   const getStars = (id: string) => progressMap[id]?.stars ?? 0;
 
-  // 💾 حفظ في Supabase + Local Storage
   const handleStartJourney = async () => {
     if (heroName && selectedHero) {
       setIsSaving(true);
-      
-      // 💾 حفظ في Supabase
       const player = await savePlayer(heroName, selectedHero);
-      
       if (player) {
-        // برضو نحفظ في localStorage عشان السرعة
         localStorage.setItem('heroName', heroName);
         localStorage.setItem('heroType', selectedHero);
         setIsSaving(false);
@@ -265,6 +264,10 @@ const [progressLoaded, setProgressLoaded] = useState(false);
 
   const handleLandmarkClick = (landmark: typeof LANDMARKS[0]) => {
     if (debugMode) return;
+    if (hasDragged.current) {
+      hasDragged.current = false;
+      return;
+    }
     if (isLocked(landmark.lesson)) {
       playLockedSound();
       return;
@@ -295,6 +298,100 @@ const [progressLoaded, setProgressLoaded] = useState(false);
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setClickedCoords({ x: parseFloat(x.toFixed(1)), y: parseFloat(y.toFixed(1)) });
     console.log(`📍 Clicked at: x=${x.toFixed(1)}%, y=${y.toFixed(1)}%`);
+  };
+
+  // 🖱️ Mouse Drag
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (debugMode || e.button !== 0) return;
+    setIsDragging(true);
+    hasDragged.current = false;
+    dragStart.current = {
+      x: e.clientX,
+      y: e.clientY,
+      posX: mapPosition.x,
+      posY: mapPosition.y,
+    };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || debugMode) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      hasDragged.current = true;
+    }
+    setMapPosition({
+      x: dragStart.current.posX + dx,
+      y: dragStart.current.posY + dy,
+    });
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+
+  // 🎯 Mouse Wheel Zoom
+  const handleWheel = (e: React.WheelEvent) => {
+    if (debugMode) return;
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setMapScale(prev => Math.max(0.5, Math.min(3, prev + delta)));
+  };
+
+  // 📱 Touch Handlers
+  const getDistance = (touches: React.TouchList) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (debugMode) return;
+    
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      hasDragged.current = false;
+      dragStart.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        posX: mapPosition.x,
+        posY: mapPosition.y,
+      };
+    } else if (e.touches.length === 2) {
+      setIsDragging(false);
+      pinchStart.current = {
+        distance: getDistance(e.touches),
+        scale: mapScale,
+      };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (debugMode) return;
+    
+    if (e.touches.length === 1 && isDragging) {
+      const dx = e.touches[0].clientX - dragStart.current.x;
+      const dy = e.touches[0].clientY - dragStart.current.y;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        hasDragged.current = true;
+      }
+      setMapPosition({
+        x: dragStart.current.posX + dx,
+        y: dragStart.current.posY + dy,
+      });
+    } else if (e.touches.length === 2) {
+      const currentDistance = getDistance(e.touches);
+      const scaleChange = currentDistance / pinchStart.current.distance;
+      const newScale = Math.max(0.5, Math.min(3, pinchStart.current.scale * scaleChange));
+      setMapScale(newScale);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  // 🔄 Reset Zoom & Position
+  const resetMapView = () => {
+    setMapScale(1);
+    setMapPosition({ x: 0, y: 0 });
   };
 
   // ═════ شاشة Setup ═════
@@ -405,54 +502,87 @@ const [progressLoaded, setProgressLoaded] = useState(false);
           top: debugMode ? '32px' : '0' 
         }}>
         <button onClick={() => setStep('setup')}
-          className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl px-4 py-2 text-sm font-bold text-white transition-all">
-          ← تعديل الاختيارات
+          className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl px-3 py-2 text-xs md:text-sm font-bold text-white transition-all">
+          ← تعديل
         </button>
 
-        <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-4 py-2">
-          <div className="text-sm font-black text-white">👋 {heroName}</div>
+        <div className="flex items-center gap-2">
+          {/* 🎯 زرار إعادة ضبط الزووم */}
+          <AnimatePresence>
+            {(mapScale !== 1 || mapPosition.x !== 0 || mapPosition.y !== 0) && (
+              <motion.button
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                onClick={resetMapView}
+                className="flex items-center gap-1 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 rounded-2xl px-3 py-2 text-xs font-bold text-yellow-400 transition-all"
+                title="إعادة ضبط العرض"
+              >
+                🔄
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
+            <div className="text-xs md:text-sm font-black text-white">👋 {heroName}</div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-4 py-2">
+        <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
           <div className="text-right">
-            <div className="text-xs text-white/50 font-bold">تقدمك</div>
-            <div className="text-sm font-black text-[#58CC02]">
-              {LANDMARKS.filter(l => l.lesson < unlockedLesson).length} / {LANDMARKS.length} معالم
+            <div className="text-[10px] md:text-xs text-white/50 font-bold">تقدمك</div>
+            <div className="text-xs md:text-sm font-black text-[#58CC02]">
+              {LANDMARKS.filter(l => l.lesson < unlockedLesson).length} / {LANDMARKS.length}
             </div>
           </div>
-          <div className="text-xl">🗺️</div>
+          <div className="text-lg md:text-xl">🗺️</div>
         </div>
       </div>
 
-      <div className="w-full min-h-screen flex items-center justify-center bg-[#07090D] pb-4 px-0 md:px-2" 
-  style={{ paddingTop: debugMode ? '96px' : '64px' }}>
-  <div 
-  ref={mapRef}
-  onClick={handleMapClickForDebug}
-  className="relative w-full mobile-fullscreen-map"
-  style={{
-    maxWidth: '100vw',
-    width: '100%',
-    aspectRatio: '16 / 9',
-    cursor: debugMode ? 'crosshair' : 'default',
-  }}
->
-  <style jsx>{`
-    @media (max-width: 768px) and (orientation: portrait) {
-      .mobile-fullscreen-map {
-        aspect-ratio: auto !important;
-        height: calc(100vh - 80px) !important;
-        max-height: calc(100vh - 80px) !important;
-      }
-    }
-  `}</style>
+      <div 
+        className="w-full min-h-screen flex items-center justify-center bg-[#07090D] overflow-hidden" 
+        style={{ paddingTop: debugMode ? '96px' : '64px' }}
+      >
+        <div 
+          ref={mapRef}
+          onClick={handleMapClickForDebug}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="relative w-full mobile-fullscreen-map"
+          style={{
+            maxWidth: '100vw',
+            width: '100%',
+            aspectRatio: '16 / 9',
+            cursor: debugMode ? 'crosshair' : (isDragging ? 'grabbing' : 'grab'),
+            touchAction: 'none',
+            transform: `scale(${mapScale}) translate(${mapPosition.x / mapScale}px, ${mapPosition.y / mapScale}px)`,
+            transformOrigin: 'center center',
+            transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+          }}
+        >
+          <style jsx>{`
+            @media (max-width: 768px) and (orientation: portrait) {
+              .mobile-fullscreen-map {
+                aspect-ratio: auto !important;
+                height: calc(100vh - 80px) !important;
+                max-height: calc(100vh - 80px) !important;
+              }
+            }
+          `}</style>
+
           <img 
-  src="/maps/german-map.png" 
-  alt="خريطة ألمانيا" 
-  className="absolute inset-0 w-full h-full pointer-events-none select-none" 
-  style={{ objectFit: 'cover', display: 'block' }}
-  draggable={false} 
-/>
+            src="/maps/german-map.png" 
+            alt="خريطة ألمانيا" 
+            className="absolute inset-0 w-full h-full pointer-events-none select-none" 
+            style={{ objectFit: 'cover', display: 'block' }}
+            draggable={false} 
+          />
 
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none"
@@ -543,66 +673,64 @@ const [progressLoaded, setProgressLoaded] = useState(false);
                 />
 
                 {locked && (
-  <motion.div
-    initial={{ scale: 0, opacity: 0, y: 10 }}
-    animate={{ 
-      scale: 1, 
-      opacity: 1, 
-      y: [0, -3, 0],
-    }}
-    transition={{ 
-      scale: { delay: 0.5 + index * 0.1, type: 'spring', stiffness: 200 },
-      opacity: { delay: 0.5 + index * 0.1 },
-      y: { duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: index * 0.3 }
-    }}
-    className="absolute pointer-events-none"
-    style={{
-      left: `${landmark.centerX}%`,
-      top: `${landmark.centerY}%`,
-      transform: 'translate(-50%, -50%)',
-      zIndex: 14,
-    }}
-  >
-    {/* 🌟 توهج خلفي */}
-    <motion.div
-      className="absolute inset-0 rounded-full"
-      style={{
-        background: 'radial-gradient(circle, rgba(255,180,50,0.4), transparent 70%)',
-        filter: 'blur(8px)',
-        transform: 'scale(2)',
-      }}
-      animate={{ opacity: [0.4, 0.7, 0.4] }}
-      transition={{ duration: 2, repeat: Infinity }}
-    />
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0, y: 10 }}
+                    animate={{ 
+                      scale: 1, 
+                      opacity: 1, 
+                      y: [0, -3, 0],
+                    }}
+                    transition={{ 
+                      scale: { delay: 0.5 + index * 0.1, type: 'spring', stiffness: 200 },
+                      opacity: { delay: 0.5 + index * 0.1 },
+                      y: { duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: index * 0.3 }
+                    }}
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: `${landmark.centerX}%`,
+                      top: `${landmark.centerY}%`,
+                      transform: 'translate(-50%, -50%)',
+                      zIndex: 14,
+                    }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        background: 'radial-gradient(circle, rgba(255,180,50,0.4), transparent 70%)',
+                        filter: 'blur(8px)',
+                        transform: 'scale(2)',
+                      }}
+                      animate={{ opacity: [0.4, 0.7, 0.4] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
 
-    {/* 🔒 القفل نفسه */}
-    <div
-      className="relative rounded-full flex items-center justify-center"
-      style={{
-        width: 'clamp(28px, 2.8vw, 38px)',
-        height: 'clamp(28px, 2.8vw, 38px)',
-        background: 'linear-gradient(135deg, #8B6914 0%, #4A3508 100%)',
-        border: '2px solid #D4AF37',
-        boxShadow: `
-          0 0 15px rgba(212,175,55,0.5),
-          inset 0 2px 4px rgba(255,215,0,0.4),
-          inset 0 -2px 4px rgba(0,0,0,0.4),
-          0 3px 6px rgba(0,0,0,0.5)
-        `,
-      }}
-    >
-      <Lock 
-        size={16} 
-        className="relative" 
-        strokeWidth={2.5}
-        style={{ 
-          color: '#FFD700',
-          filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))',
-        }}
-      />
-    </div>
-  </motion.div>
-)}
+                    <div
+                      className="relative rounded-full flex items-center justify-center"
+                      style={{
+                        width: 'clamp(28px, 2.8vw, 38px)',
+                        height: 'clamp(28px, 2.8vw, 38px)',
+                        background: 'linear-gradient(135deg, #8B6914 0%, #4A3508 100%)',
+                        border: '2px solid #D4AF37',
+                        boxShadow: `
+                          0 0 15px rgba(212,175,55,0.5),
+                          inset 0 2px 4px rgba(255,215,0,0.4),
+                          inset 0 -2px 4px rgba(0,0,0,0.4),
+                          0 3px 6px rgba(0,0,0,0.5)
+                        `,
+                      }}
+                    >
+                      <Lock 
+                        size={16} 
+                        className="relative" 
+                        strokeWidth={2.5}
+                        style={{ 
+                          color: '#FFD700',
+                          filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))',
+                        }}
+                      />
+                    </div>
+                  </motion.div>
+                )}
 
                 <AnimatePresence>
                   {hoveredLandmark?.id === landmark.id && !locked && (
@@ -703,7 +831,7 @@ const [progressLoaded, setProgressLoaded] = useState(false);
                   <img src="/characters/karl-3d.png" alt="كارل" className="w-10 h-10 object-contain flex-shrink-0" />
                   <div>
                     <div className="text-xs font-bold text-white/50 mb-1">كارل النسر يقول:</div>
-                    <p className="text-sm text-white/80 leading-relaxed font-medium">"{selectedLandmark.description}"</p>
+                    <p className="text-sm text-white/80 leading-relaxed font-medium">&quot;{selectedLandmark.description}&quot;</p>
                   </div>
                 </div>
                 <div className="flex justify-center gap-2 mb-5">
@@ -715,11 +843,11 @@ const [progressLoaded, setProgressLoaded] = useState(false);
                   className="w-full py-4 rounded-2xl font-black text-lg text-white flex items-center justify-center gap-2 shadow-lg"
                   style={{ background: `linear-gradient(135deg, ${selectedLandmark.color}, ${selectedLandmark.color}99)`, borderBottom: `4px solid ${selectedLandmark.color}66` }}>
                   {(() => {
-  const lessonData = progressMap[selectedLandmark.id];
-  if (!lessonData) return 'ابدأ المغامرة! 🚀';
-  if (lessonData.completed) return 'العب تاني 🔄';
-  return 'أكمل تقدمك ▶️';
-})()}
+                    const lessonData = progressMap[selectedLandmark.id];
+                    if (!lessonData) return 'ابدأ المغامرة! 🚀';
+                    if (lessonData.completed) return 'العب تاني 🔄';
+                    return 'أكمل تقدمك ▶️';
+                  })()}
                   <ChevronRight size={20} />
                 </motion.button>
               </div>
@@ -745,7 +873,7 @@ const [progressLoaded, setProgressLoaded] = useState(false);
                 <div className="flex-1 text-right">
                   <div className="text-[10px] font-bold text-[#4CC9F0]">كارل النسر</div>
                   <p className="text-[11px] text-white/80 leading-tight font-medium">
-                    أهلاً <strong className="text-white">{heroName}</strong>! دوس على أي معلم
+                    أهلاً <strong className="text-white">{heroName}</strong>! 🖐️ اسحب الخريطة + 🤏 صوبعين للزووم
                   </p>
                 </div>
               </div>
