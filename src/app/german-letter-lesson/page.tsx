@@ -763,13 +763,8 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
           </AnimatePresence>
           <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
-      ) : (
-        <div className="flex gap-4 items-stretch" style={{ height: '75vh' }}>
-          {/* الصورة - تاخد المساحة الأكبر */}
-          <div className="flex-1 min-w-0">
-            {ImageBox}
-          </div>
-          
+    ) : (
+        <div className="flex gap-4 items-stretch" style={{ height: '70vh' }}>
           {/* الكارت الجانبي - على اليمين */}
           <div className="flex-shrink-0 flex items-center">
             <AnimatePresence mode="wait">
@@ -777,6 +772,11 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
                 <SideLetterCard currentLetter={currentLetter} boxes={boxes} isMobile={false} onSpeak={() => speakWord(currentLetter.word)} />
               )}
             </AnimatePresence>
+          </div>
+          
+          {/* الصورة - تاخد المساحة الأكبر */}
+          <div className="flex-1 min-w-0">
+            {ImageBox}
           </div>
         </div>
       )}
@@ -1072,12 +1072,12 @@ export default function GermanLetterLessonPage() {
       </div>
 
       <div 
-        className={`${isMobile ? 'px-1' : 'px-3'} min-h-screen flex flex-col justify-center relative`}
-        style={{ 
-          zIndex: 10,
-          paddingTop: isMobile ? '110px' : '105px',
-          paddingBottom: '20px',
-        }}>
+  className={`${isMobile ? 'px-1' : 'px-3'} min-h-screen flex flex-col justify-start relative`}
+  style={{ 
+    zIndex: 10,
+    paddingTop: isMobile ? '110px' : '95px',
+    paddingBottom: '10px',
+  }}>
         <AnimatePresence mode="wait">
           {phase === 'learn-letter' && (
             <LearnLetterPhase key={`ll-${groupIdx}-${letterIdx}`} letterData={letterData} onDone={handleLetterDone} onKarlReact={handleKarlReact} onCombo={handleCombo} isMobile={isMobile} />
