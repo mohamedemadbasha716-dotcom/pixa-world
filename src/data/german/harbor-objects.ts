@@ -51,7 +51,7 @@ export const HARBOR_OBJECTS_DESKTOP: Record<string, Box[]> = {
 };
 
 // ═══════════════════════════════════════
-// 📱 إحداثيات الموبايل (768x1376) - مضبوطة بدقة
+// 📱 إحداثيات الموبايل (768x1376)
 // ═══════════════════════════════════════
 export const HARBOR_OBJECTS_MOBILE: Record<string, Box[]> = {
   M: [
@@ -116,14 +116,52 @@ export const HARBOR_IMAGE_MOBILE = {
 };
 
 // ═══════════════════════════════════════
-// 🎯 Backward Compatibility (للديسكتوب الافتراضي)
+// 🎯 الـ exports الأصلية (للتوافق مع الكود القديم)
+// بتختار تلقائياً حسب الجهاز
 // ═══════════════════════════════════════
-export const HARBOR_OBJECTS = HARBOR_OBJECTS_DESKTOP;
-export const HARBOR_IMAGE = HARBOR_IMAGE_DESKTOP;
 
-// ═══════════════════════════════════════
-// 🆕 دوال جديدة تختار حسب الجهاز
-// ═══════════════════════════════════════
+// دالة بسيطة تكشف الموبايل
+function isMobileDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.innerWidth < 768;
+}
+
+// 🎯 HARBOR_OBJECTS - بتشتغل كـ Proxy تختار حسب الجهاز
+export const HARBOR_OBJECTS = new Proxy({} as Record<string, Box[]>, {
+  get(_target, prop: string) {
+    const source = isMobileDevice() ? HARBOR_OBJECTS_MOBILE : HARBOR_OBJECTS_DESKTOP;
+    return source[prop];
+  },
+  ownKeys() {
+    const source = isMobileDevice() ? HARBOR_OBJECTS_MOBILE : HARBOR_OBJECTS_DESKTOP;
+    return Object.keys(source);
+  },
+  has(_target, prop: string) {
+    const source = isMobileDevice() ? HARBOR_OBJECTS_MOBILE : HARBOR_OBJECTS_DESKTOP;
+    return prop in source;
+  },
+  getOwnPropertyDescriptor(_target, prop: string) {
+    const source = isMobileDevice() ? HARBOR_OBJECTS_MOBILE : HARBOR_OBJECTS_DESKTOP;
+    if (prop in source) {
+      return {
+        enumerable: true,
+        configurable: true,
+        value: source[prop],
+      };
+    }
+    return undefined;
+  },
+});
+
+// 🎯 HARBOR_IMAGE - بيختار الصورة حسب الجهاز
+export const HARBOR_IMAGE = new Proxy(HARBOR_IMAGE_DESKTOP, {
+  get(_target, prop: string) {
+    const source = isMobileDevice() ? HARBOR_IMAGE_MOBILE : HARBOR_IMAGE_DESKTOP;
+    return source[prop as keyof typeof source];
+  },
+});
+
+// 🆕 دوال إضافية (لو احتجتها)
 export function getHarborImage(isMobile: boolean) {
   return isMobile ? HARBOR_IMAGE_MOBILE : HARBOR_IMAGE_DESKTOP;
 }
