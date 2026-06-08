@@ -4,33 +4,66 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, X, Volume2, Star, RotateCcw, Trophy, Sparkles } from 'lucide-react';
+
+// 📂 Data
 import { LETTERS, LETTER_GROUPS, type Letter } from '@/data/german/letters';
 import { getHarborObjects, getHarborImage } from '@/data/german/harbor-objects';
-import { speakLetter, speakWord, playCoinSound, playBuzzSound, playComboSound } from '@/lib/sounds';
-import { getLessonProgress, saveLessonProgress } from '@/lib/progress';
-import { useIsMobile } from '@/hooks/useIsMobile';
-import { getRequiredSpecialChars, compareWords } from '@/lib/german-utils';
-import { KarlEagle, type KarlMood } from '@/components/KarlEagle';
-import { ComboDisplay } from '@/components/ComboDisplay';
-import { FlyingStars, type FlyingStar } from '@/components/FlyingStars';
-import { ConfettiBurst } from '@/components/ConfettiBurst';
-import { SoundButton } from '@/components/SoundButton';
-import { GhostInput } from '@/components/GhostInput';
-import { SpecialCharsKeyboard } from '@/components/SpecialCharsKeyboard';
 
-const ENCOURAGEMENTS = [
-  { de: 'Super!', ar: 'ممتاز!' },
-  { de: 'Toll!', ar: 'رائع!' },
-  { de: 'Klasse!', ar: 'عظيم!' },
-  { de: 'Perfekt!', ar: 'مثالي!' },
-  { de: 'Wunderbar!', ar: 'رائع جداً!' },
-];
+// 🔊 Audio
+import { speakLetter, speakWord } from '@/lib/audio/speech';
+import { playCoinSound, playBuzzSound, playComboSound } from '@/lib/audio/sounds';
 
-const SAD_MESSAGES = [
-  { de: 'Versuch es nochmal!', ar: 'حاول تاني!' },
-  { de: 'Du schaffst das!', ar: 'تقدر تعمله!' },
-  { de: 'Keine Sorge!', ar: 'متقلقش!' },
-];
+// 💾 Player Data
+import { getLessonProgress, saveLessonProgress } from '@/lib/playerData';
+
+// 🎨 Components
+import KarlEagle from '@/app/components/lesson/KarlEagle';
+import ComboDisplay from '@/app/components/lesson/ComboDisplay';
+import FlyingStars from '@/app/components/lesson/FlyingStars';
+import ConfettiBurst from '@/app/components/lesson/ConfettiBurst';
+import SoundButton from '@/app/components/lesson/SoundButton';
+import GhostInput from '@/app/components/lesson/GhostInput';
+import SpecialCharsKeyboard from '@/app/components/lesson/SpecialCharsKeyboard';
+
+// 🎯 Types
+import type { KarlMood } from '@/lib/types/lesson';
+import { ENCOURAGEMENTS, SAD_MESSAGES } from '@/lib/types/lesson';
+
+// ═══════════════════════════════════════
+// 🛠️ Helper Functions (محلية - مش محتاجين ملفات خارجية)
+// ═══════════════════════════════════════
+type FlyingStar = { id: number; x: number; y: number };
+
+function useIsMobile(breakpoint: number = 768): boolean {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [breakpoint]);
+  return isMobile;
+}
+
+function getRequiredSpecialChars(word: string): string[] {
+  const found = new Set<string>();
+  for (const char of word) {
+    const lower = char.toLowerCase();
+    if (['ä', 'ö', 'ü', 'ß'].includes(lower)) {
+      if (char === char.toUpperCase() && char !== 'ß') {
+        found.add(char);
+      } else {
+        found.add(lower);
+      }
+    }
+  }
+  return Array.from(found);
+}
+
+function compareWords(input: string, target: string): boolean {
+  const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, '');
+  return normalize(input) === normalize(target);
+}
 
 // ═══════════════════════════════════════
 // خلفية بحرية
@@ -601,7 +634,7 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: 
 }
 
 // ═══════════════════════════════════════
-// اختبار الميناء (Responsive) - مُصحّح
+// اختبار الميناء (Responsive)
 // ═══════════════════════════════════════
 function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, onKarlReact, onCombo, isMobile }: {
   groupLetters: Letter[];
@@ -622,7 +655,6 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
   const [clickEffect, setClickEffect] = useState<{ x: number; y: number; correct: boolean } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // ✅ اختيار الصورة والإحداثيات حسب الجهاز
   const harborImage = useMemo(() => getHarborImage(isMobile), [isMobile]);
   const harborObjects = useMemo(() => getHarborObjects(isMobile), [isMobile]);
 
