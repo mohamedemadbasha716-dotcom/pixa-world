@@ -13,9 +13,9 @@ import {
 } from '@/lib/playerData';
 
 // ═══════════════════════════════════════
-// المعالم
+// 🎨 بيانات المعالم الأساسية (مشتركة)
 // ═══════════════════════════════════════
-const LANDMARKS = [
+const LANDMARKS_BASE = [
   {
     id: 'hamburg',
     nameAr: 'ميناء هامبورغ',
@@ -24,9 +24,7 @@ const LANDMARKS = [
     lesson: 1,
     description: 'أكبر ميناء في ألمانيا! هنا هتتعلم الحروف الألمانية.',
     color: '#4CC9F0',
-    centerX: 41,
-    centerY: 9,
-    clickArea: { x: 35, y: 3, w: 13, h: 14 },
+    route: '/german-letter-lesson',
   },
   {
     id: 'cologne',
@@ -36,9 +34,7 @@ const LANDMARKS = [
     lesson: 2,
     description: 'أشهر كنيسة في ألمانيا! هنا هتتعلم الأرقام.',
     color: '#F72585',
-    centerX: 23,
-    centerY: 41,
-    clickArea: { x: 16, y: 25, w: 15, h: 33 },
+    route: '/german-number-lesson',
   },
   {
     id: 'center',
@@ -48,9 +44,7 @@ const LANDMARKS = [
     lesson: 3,
     description: 'قرية سحرية في قلب ألمانيا! هنا هتتعلم الألوان والفواكه والخضروات والحيوانات.',
     color: '#7209B7',
-    centerX: 49,
-    centerY: 46,
-    clickArea: { x: 43, y: 36, w: 13, h: 20 },
+    route: '/german-forest',
   },
   {
     id: 'berlin',
@@ -60,9 +54,7 @@ const LANDMARKS = [
     lesson: 4,
     description: 'قلب برلين وعاصمة ألمانيا! هنا هتتعلم التحيات والتعارف والعائلة.',
     color: '#FFD700',
-    centerX: 71,
-    centerY: 21,
-    clickArea: { x: 62, y: 8, w: 18, h: 28 },
+    route: '/german-family',
   },
   {
     id: 'lake',
@@ -72,9 +64,7 @@ const LANDMARKS = [
     lesson: 5,
     description: 'أجمل بحيرة في ألمانيا بين جبال الألب! هنا هتتعلم الطقس وأيام الأسبوع والطبيعة.',
     color: '#06D6A0',
-    centerX: 84,
-    centerY: 51,
-    clickArea: { x: 79, y: 44, w: 10, h: 14 },
+    route: '/german-lake-lesson',
   },
   {
     id: 'neuschwanstein',
@@ -84,14 +74,36 @@ const LANDMARKS = [
     lesson: 6,
     description: 'أجمل قلعة في العالم! هنا هتتعلم الجمل الكاملة.',
     color: '#58CC02',
-    centerX: 56,
-    centerY: 74,
-    clickArea: { x: 47, y: 58, w: 18, h: 30 },
+    route: '/german-castle-lesson',
   },
 ];
 
 // ═══════════════════════════════════════
-// أصوات
+// 🖥️ إحداثيات الديسكتوب (الصورة الأفقية)
+// ═══════════════════════════════════════
+const COORDS_DESKTOP: Record<string, { centerX: number; centerY: number; clickArea: { x: number; y: number; w: number; h: number } }> = {
+  hamburg:        { centerX: 41, centerY: 9,  clickArea: { x: 35, y: 3,  w: 13, h: 14 } },
+  cologne:        { centerX: 23, centerY: 41, clickArea: { x: 16, y: 25, w: 15, h: 33 } },
+  center:         { centerX: 49, centerY: 46, clickArea: { x: 43, y: 36, w: 13, h: 20 } },
+  berlin:         { centerX: 71, centerY: 21, clickArea: { x: 62, y: 8,  w: 18, h: 28 } },
+  lake:           { centerX: 84, centerY: 51, clickArea: { x: 79, y: 44, w: 10, h: 14 } },
+  neuschwanstein: { centerX: 56, centerY: 74, clickArea: { x: 47, y: 58, w: 18, h: 30 } },
+};
+
+// ═══════════════════════════════════════
+// 📱 إحداثيات الموبايل (الصورة العمودية)
+// ═══════════════════════════════════════
+const COORDS_MOBILE: Record<string, { centerX: number; centerY: number; clickArea: { x: number; y: number; w: number; h: number } }> = {
+  hamburg:        { centerX: 60, centerY: 12, clickArea: { x: 40, y: 5,  w: 45, h: 16 } },
+  cologne:        { centerX: 22, centerY: 30, clickArea: { x: 8,  y: 18, w: 30, h: 22 } },
+  berlin:         { centerX: 78, centerY: 30, clickArea: { x: 62, y: 22, w: 30, h: 16 } },
+  center:         { centerX: 50, centerY: 55, clickArea: { x: 32, y: 45, w: 36, h: 20 } },
+  neuschwanstein: { centerX: 60, centerY: 75, clickArea: { x: 40, y: 62, w: 42, h: 22 } },
+  lake:           { centerX: 75, centerY: 93, clickArea: { x: 60, y: 87, w: 35, h: 10 } },
+};
+
+// ═══════════════════════════════════════
+// 🔊 أصوات
 // ═══════════════════════════════════════
 function playClickSound() {
   if (typeof window === 'undefined') return;
@@ -129,6 +141,9 @@ function playLockedSound() {
   } catch {}
 }
 
+// ═══════════════════════════════════════
+// 🎯 المكون الرئيسي
+// ═══════════════════════════════════════
 export default function CharacterAndMapPage() {
   const router = useRouter();
 
@@ -138,6 +153,10 @@ export default function CharacterAndMapPage() {
   const [debugMode, setDebugMode] = useState(false);
   const [clickedCoords, setClickedCoords] = useState<{ x: number; y: number } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // 📱 كشف نوع الجهاز
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [mounted, setMounted] = useState(false);
   
   // 🗺️ Pan & Zoom States
   const [mapScale, setMapScale] = useState(1);
@@ -149,7 +168,35 @@ export default function CharacterAndMapPage() {
   
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // ⭐ استرجاع الاسم والشخصية من Supabase
+  // 🎯 دمج البيانات حسب نوع الجهاز
+  const LANDMARKS = LANDMARKS_BASE.map(landmark => {
+    const coords = isMobileView ? COORDS_MOBILE[landmark.id] : COORDS_DESKTOP[landmark.id];
+    return { ...landmark, ...coords };
+  });
+
+  const mapImage = isMobileView ? '/maps/map-mobile.jpeg' : '/maps/german-map.png';
+
+  // 📱 كشف نوع الشاشة
+  useEffect(() => {
+    setMounted(true);
+    const checkDevice = () => {
+      if (typeof window === 'undefined') return;
+      const isMobile = window.innerWidth < 768;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      setIsMobileView(isMobile && isPortrait);
+    };
+
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    window.addEventListener('orientationchange', checkDevice);
+
+    return () => {
+      window.removeEventListener('resize', checkDevice);
+      window.removeEventListener('orientationchange', checkDevice);
+    };
+  }, []);
+
+  // ⭐ استرجاع اللاعب
   useEffect(() => {
     const loadPlayer = async () => {
       const player = await getPlayer();
@@ -179,7 +226,6 @@ export default function CharacterAndMapPage() {
   // 📥 تحميل التقدم من Supabase
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({});
   const [unlockedLesson, setUnlockedLesson] = useState(1);
-  const [progressLoaded, setProgressLoaded] = useState(false);
 
   useEffect(() => {
     const loadProgress = async () => {
@@ -204,7 +250,6 @@ export default function CharacterAndMapPage() {
       }
       
       setUnlockedLesson(Math.min(lastUnlocked, LESSON_ORDER.length));
-      setProgressLoaded(true);
       
       console.log('🗺️ التقدم المحمّل:', map);
       console.log('🔓 آخر درس مفتوح:', lastUnlocked);
@@ -225,41 +270,19 @@ export default function CharacterAndMapPage() {
     { id: 'girl', name: 'البطلة العبقرية', color: '#F72585', img: '/characters/girl-3d.png' },
   ];
 
+  // 🦅 تحريك كارل للمعلم الحالي
   useEffect(() => {
     const current = LANDMARKS.find(l => l.lesson === unlockedLesson);
     if (current) {
       setEaglePos({ x: current.centerX, y: current.centerY });
     }
-  }, [unlockedLesson]);
+  }, [unlockedLesson, isMobileView]);
 
-  // 📱 ضبط الزووم الافتراضي على الموبايل
+  // 📱 ريسيت الزووم لما الجهاز يتغير
   useEffect(() => {
-    const setMobileZoom = () => {
-      if (typeof window === 'undefined') return;
-      
-      const isMobile = window.innerWidth < 768;
-      const isPortrait = window.innerHeight > window.innerWidth;
-      
-      if (isMobile && isPortrait) {
-        // على الموبايل بالطول: نكبر الخريطة تلقائياً لتملا الشاشة
-        setMapScale(1.8);
-        setMapPosition({ x: 0, y: 0 });
-      } else {
-        // على الديسكتوب أو Landscape: الحجم الطبيعي
-        setMapScale(1);
-        setMapPosition({ x: 0, y: 0 });
-      }
-    };
-
-    setMobileZoom();
-    window.addEventListener('resize', setMobileZoom);
-    window.addEventListener('orientationchange', setMobileZoom);
-
-    return () => {
-      window.removeEventListener('resize', setMobileZoom);
-      window.removeEventListener('orientationchange', setMobileZoom);
-    };
-  }, [step]);
+    setMapScale(1);
+    setMapPosition({ x: 0, y: 0 });
+  }, [isMobileView, step]);
 
   const isLocked = (lesson: number) => lesson > unlockedLesson;
   const isCurrent = (lesson: number) => lesson === unlockedLesson;
@@ -308,25 +331,17 @@ export default function CharacterAndMapPage() {
 
   const handleLandmarkStart = () => {
     if (!selectedLandmark) return;
-    const routes: Record<string, string> = {
-      'hamburg': '/german-letter-lesson',
-      'cologne': '/german-number-lesson',
-      'center': '/german-forest',
-      'berlin': '/german-family',
-      'lake': '/german-lake-lesson',
-      'neuschwanstein': '/german-castle-lesson',
-    };
-    const route = routes[selectedLandmark.id];
-    if (route) router.push(route);
+    router.push(selectedLandmark.route);
   };
 
+  // 🐛 Debug Click
   const handleMapClickForDebug = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!debugMode || !mapRef.current) return;
     const rect = mapRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setClickedCoords({ x: parseFloat(x.toFixed(1)), y: parseFloat(y.toFixed(1)) });
-    console.log(`📍 Clicked at: x=${x.toFixed(1)}%, y=${y.toFixed(1)}%`);
+    console.log(`📍 [${isMobileView ? '📱 MOBILE' : '🖥️ DESKTOP'}] Clicked at: x=${x.toFixed(1)}%, y=${y.toFixed(1)}%`);
   };
 
   // 🖱️ Mouse Drag
@@ -357,14 +372,13 @@ export default function CharacterAndMapPage() {
 
   const handleMouseUp = () => setIsDragging(false);
 
-  // 🎯 Mouse Wheel Zoom
   const handleWheel = (e: React.WheelEvent) => {
     if (debugMode) return;
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     setMapScale(prev => Math.max(0.5, Math.min(3, prev + delta)));
   };
 
-  // 📱 Touch Handlers
+  // 📱 Touch
   const getDistance = (touches: React.TouchList) => {
     const dx = touches[0].clientX - touches[1].clientX;
     const dy = touches[0].clientY - touches[1].clientY;
@@ -417,18 +431,19 @@ export default function CharacterAndMapPage() {
     setIsDragging(false);
   };
 
-  // 🔄 Reset Zoom & Position
   const resetMapView = () => {
-    const isMobile = window.innerWidth < 768;
-    const isPortrait = window.innerHeight > window.innerWidth;
-    
-    if (isMobile && isPortrait) {
-      setMapScale(1.8);
-    } else {
-      setMapScale(1);
-    }
+    setMapScale(1);
     setMapPosition({ x: 0, y: 0 });
   };
+
+  // ═════ منع التحميل قبل ما نعرف نوع الجهاز ═════
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#07090D]">
+        <div className="text-white">جاري التحميل...</div>
+      </div>
+    );
+  }
 
   // ═════ شاشة Setup ═════
   if (step === 'setup') {
@@ -521,9 +536,10 @@ export default function CharacterAndMapPage() {
   return (
     <div className="relative w-full min-h-screen overflow-hidden" style={{ background: '#07090D', fontFamily: "'Tajawal', sans-serif" }}>
 
+      {/* 🐛 Debug Bar */}
       {debugMode && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 text-black px-4 py-2 flex items-center justify-between text-xs font-black">
-          <span>🐛 DEBUG MODE - اضغط في أي مكان على الخريطة لمعرفة الإحداثيات</span>
+          <span>🐛 [{isMobileView ? '📱 MOBILE' : '🖥️ DESKTOP'}] اضغط على الخريطة لمعرفة الإحداثيات</span>
           {clickedCoords && (
             <span className="bg-black text-yellow-400 px-3 py-1 rounded-lg font-mono">
               X: {clickedCoords.x}% | Y: {clickedCoords.y}%
@@ -532,6 +548,7 @@ export default function CharacterAndMapPage() {
         </div>
       )}
 
+      {/* Header */}
       <div className="fixed left-0 right-0 z-30 flex items-center justify-between px-4 py-3"
         style={{ 
           background: 'linear-gradient(to bottom, rgba(7,9,13,0.95), transparent)', 
@@ -543,9 +560,8 @@ export default function CharacterAndMapPage() {
         </button>
 
         <div className="flex items-center gap-2">
-          {/* 🎯 زرار إعادة ضبط الزووم */}
           <AnimatePresence>
-            {(mapPosition.x !== 0 || mapPosition.y !== 0) && (
+            {(mapPosition.x !== 0 || mapPosition.y !== 0 || mapScale !== 1) && (
               <motion.button
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -575,6 +591,7 @@ export default function CharacterAndMapPage() {
         </div>
       </div>
 
+      {/* Map Container */}
       <div 
         className="w-full min-h-screen flex items-center justify-center bg-[#07090D] overflow-hidden" 
         style={{ paddingTop: debugMode ? '96px' : '64px' }}
@@ -590,11 +607,12 @@ export default function CharacterAndMapPage() {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="relative w-full mobile-fullscreen-map"
+          className="relative"
           style={{
-            maxWidth: '100vw',
             width: '100%',
-            aspectRatio: '16 / 9',
+            maxWidth: isMobileView ? '100vw' : '100%',
+            height: isMobileView ? 'calc(100vh - 64px)' : 'auto',
+            aspectRatio: isMobileView ? 'auto' : '16 / 9',
             cursor: debugMode ? 'crosshair' : (isDragging ? 'grabbing' : 'grab'),
             touchAction: 'none',
             transform: `scale(${mapScale}) translate(${mapPosition.x / mapScale}px, ${mapPosition.y / mapScale}px)`,
@@ -602,24 +620,15 @@ export default function CharacterAndMapPage() {
             transition: isDragging ? 'none' : 'transform 0.2s ease-out',
           }}
         >
-          <style jsx>{`
-            @media (max-width: 768px) and (orientation: portrait) {
-              .mobile-fullscreen-map {
-                aspect-ratio: auto !important;
-                height: calc(100vh - 80px) !important;
-                max-height: calc(100vh - 80px) !important;
-              }
-            }
-          `}</style>
-
           <img 
-            src="/maps/german-map.png" 
+            src={mapImage}
             alt="خريطة ألمانيا" 
             className="absolute inset-0 w-full h-full pointer-events-none select-none" 
-            style={{ objectFit: 'contain', display: 'block' }}
+            style={{ objectFit: isMobileView ? 'cover' : 'contain', display: 'block' }}
             draggable={false} 
           />
 
+          {/* Glow effects */}
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none"
             viewBox="0 0 100 100"
@@ -668,6 +677,7 @@ export default function CharacterAndMapPage() {
             })}
           </svg>
 
+          {/* Debug boxes */}
           {debugMode && LANDMARKS.map(l => (
             <div key={`debug-${l.id}`} className="absolute pointer-events-none border-2 border-dashed flex items-center justify-center"
               style={{
@@ -685,11 +695,14 @@ export default function CharacterAndMapPage() {
             </div>
           ))}
 
+          {/* Landmarks */}
           {LANDMARKS.map((landmark, index) => {
             const locked = isLocked(landmark.lesson);
+            const stars = getStars(landmark.id);
 
             return (
               <div key={landmark.id}>
+                {/* Click Area */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -708,6 +721,36 @@ export default function CharacterAndMapPage() {
                   }}
                 />
 
+                {/* ⭐ النجوم - تظهر فوق المعالم المفتوحة */}
+                {!locked && stars > 0 && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.3 + index * 0.1, type: 'spring' }}
+                    className="absolute pointer-events-none flex gap-0.5"
+                    style={{
+                      left: `${landmark.centerX}%`,
+                      top: `${landmark.clickArea.y - 4}%`,
+                      transform: 'translate(-50%, -100%)',
+                      zIndex: 16,
+                    }}
+                  >
+                    {[1, 2, 3].map(s => (
+                      <Star
+                        key={s}
+                        size={isMobileView ? 12 : 16}
+                        fill={s <= stars ? '#FFD700' : 'transparent'}
+                        color={s <= stars ? '#FFD700' : 'rgba(255,255,255,0.3)'}
+                        strokeWidth={2}
+                        style={{
+                          filter: s <= stars ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))' : 'none',
+                        }}
+                      />
+                    ))}
+                  </motion.div>
+                )}
+
+                {/* 🔒 القفل - يظهر فوق المعالم المقفولة */}
                 {locked && (
                   <motion.div
                     initial={{ scale: 0, opacity: 0, y: 10 }}
@@ -768,6 +811,7 @@ export default function CharacterAndMapPage() {
                   </motion.div>
                 )}
 
+                {/* Tooltip */}
                 <AnimatePresence>
                   {hoveredLandmark?.id === landmark.id && !locked && (
                     <motion.div
@@ -778,7 +822,7 @@ export default function CharacterAndMapPage() {
                       className="absolute pointer-events-none"
                       style={{
                         left: `${landmark.centerX}%`,
-                        top: `${landmark.clickArea.y - 2}%`,
+                        top: `${landmark.clickArea.y - 8}%`,
                         transform: 'translate(-50%, -100%)',
                         zIndex: 20,
                       }}
@@ -812,6 +856,7 @@ export default function CharacterAndMapPage() {
             );
           })}
 
+          {/* Karl Eagle */}
           <motion.div
             className="absolute pointer-events-none"
             style={{ zIndex: 25 }}
@@ -842,6 +887,7 @@ export default function CharacterAndMapPage() {
         </div>
       </div>
 
+      {/* Landmark Modal */}
       <AnimatePresence>
         {selectedLandmark && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -892,6 +938,7 @@ export default function CharacterAndMapPage() {
         )}
       </AnimatePresence>
 
+      {/* Intro tooltip */}
       <AnimatePresence>
         {showIntro && !debugMode && (
           <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }} transition={{ delay: 0.5 }}
