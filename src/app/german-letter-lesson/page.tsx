@@ -472,13 +472,13 @@ function SideLetterCard({ currentLetter, boxes, isMobile, onSpeak }: {
       initial={{ opacity: 0, scale: 0.95, x: -20 }} 
       animate={{ opacity: 1, scale: 1, x: 0 }} 
       exit={{ opacity: 0, scale: 0.95, x: 20 }}
-      className="relative rounded-2xl overflow-hidden backdrop-blur-md flex flex-col items-center gap-3 p-4"
+      className="relative rounded-2xl overflow-hidden backdrop-blur-md flex flex-col items-center gap-2.5 p-3"
       style={{
-        background: `linear-gradient(180deg, ${currentLetter.color}25, ${currentLetter.color}08)`,
-        border: `1.5px solid ${currentLetter.color}50`,
-        boxShadow: `0 8px 32px ${currentLetter.color}30`,
-        width: isMobile ? '100%' : '200px',
-      }}
+  background: `linear-gradient(180deg, ${currentLetter.color}25, ${currentLetter.color}08)`,
+  border: `1.5px solid ${currentLetter.color}50`,
+  boxShadow: `0 8px 32px ${currentLetter.color}30`,
+  width: isMobile ? '100%' : '170px',
+}}
     >
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full blur-3xl opacity-40 pointer-events-none" style={{ background: currentLetter.color }} />
 
@@ -495,31 +495,31 @@ function SideLetterCard({ currentLetter, boxes, isMobile, onSpeak }: {
       </div>
 
       <motion.div 
-        animate={{ scale: [1, 1.05, 1] }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        className="relative z-10 w-24 h-24 rounded-2xl flex items-center justify-center font-black border-2"
-        style={{
-          background: `linear-gradient(135deg, ${currentLetter.gradient[0]}, ${currentLetter.gradient[1]})`,
-          borderColor: 'rgba(255,255,255,0.3)',
-          color: 'white',
-          fontSize: '4rem',
-          boxShadow: `0 10px 30px ${currentLetter.color}66, inset 0 1px 0 rgba(255,255,255,0.3)`,
-        }}
-      >
+  animate={{ scale: [1, 1.05, 1] }}
+  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+  className="relative z-10 w-20 h-20 rounded-2xl flex items-center justify-center font-black border-2"
+  style={{
+    background: `linear-gradient(135deg, ${currentLetter.gradient[0]}, ${currentLetter.gradient[1]})`,
+    borderColor: 'rgba(255,255,255,0.3)',
+    color: 'white',
+    fontSize: '3.2rem',
+    boxShadow: `0 10px 30px ${currentLetter.color}66, inset 0 1px 0 rgba(255,255,255,0.3)`,
+  }}
+>
         {currentLetter.letter}
         <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: 'linear' }} className="absolute -top-2 -right-2">
           <Sparkles size={20} style={{ color: '#FFD700' }} />
         </motion.div>
       </motion.div>
 
-      <div className="font-black text-white text-lg text-center relative z-10" style={{ textShadow: `0 2px 8px ${currentLetter.color}66` }}>
-        {currentLetter.wordAr}
-      </div>
+      <div className="font-black text-white text-base text-center relative z-10" style={{ textShadow: `0 2px 8px ${currentLetter.color}66` }}>
+  {currentLetter.wordAr}
+</div>
 
-      <div className="flex items-center gap-2 justify-center relative z-10 px-3 py-2 rounded-xl" style={{ background: `${currentLetter.color}15`, border: `1px solid ${currentLetter.color}33` }}>
-        <span className="text-2xl">{currentLetter.emoji}</span>
-        <span className="font-black text-base" style={{ color: currentLetter.color }}>{currentLetter.word}</span>
-      </div>
+<div className="flex items-center gap-1.5 justify-center relative z-10 px-2.5 py-1.5 rounded-xl w-full" style={{ background: `${currentLetter.color}15`, border: `1px solid ${currentLetter.color}33` }}>
+  <span className="text-xl">{currentLetter.emoji}</span>
+  <span className="font-black text-sm" style={{ color: currentLetter.color }}>{currentLetter.word}</span>
+</div>
 
       <motion.button 
         whileHover={{ scale: 1.05 }}
@@ -751,7 +751,7 @@ const offsetY = (containerH - renderedH) / 2;
           <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
     ) : (
-        <div className="flex gap-4 items-stretch" style={{ height: '78vh' }}>
+        <div className="flex gap-3 items-stretch" style={{ height: '82vh' }}>
           {/* الكارت الجانبي - على اليمين */}
           <div className="flex-shrink-0 flex items-center">
             <AnimatePresence mode="wait">
