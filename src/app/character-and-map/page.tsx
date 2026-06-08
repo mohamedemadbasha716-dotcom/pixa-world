@@ -427,16 +427,25 @@ const [progressLoaded, setProgressLoaded] = useState(false);
       <div className="w-full min-h-screen flex items-center justify-center bg-[#07090D] pb-4 px-0 md:px-2" 
   style={{ paddingTop: debugMode ? '96px' : '64px' }}>
   <div 
-    ref={mapRef}
-    onClick={handleMapClickForDebug}
-    className="relative w-full"
-    style={{ 
-      maxWidth: '100vw',
-      width: '100%',
-      aspectRatio: '16 / 9',
-      cursor: debugMode ? 'crosshair' : 'default',
-    }}
-  >
+  ref={mapRef}
+  onClick={handleMapClickForDebug}
+  className="relative w-full mobile-fullscreen-map"
+  style={{
+    maxWidth: '100vw',
+    width: '100%',
+    aspectRatio: '16 / 9',
+    cursor: debugMode ? 'crosshair' : 'default',
+  }}
+>
+  <style jsx>{`
+    @media (max-width: 768px) and (orientation: portrait) {
+      .mobile-fullscreen-map {
+        aspect-ratio: auto !important;
+        height: calc(100vh - 80px) !important;
+        max-height: calc(100vh - 80px) !important;
+      }
+    }
+  `}</style>
           <img 
   src="/maps/german-map.png" 
   alt="خريطة ألمانيا" 
