@@ -656,11 +656,16 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
       </AnimatePresence>
 
       <div
-        ref={containerRef}
-        className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl select-none"
-        style={{ aspectRatio: `${HARBOR_IMAGE.width}/${HARBOR_IMAGE.height}`, cursor: 'pointer', background: '#0a1628' }}
-        onClick={handleImageClick}
-      >
+  ref={containerRef}
+  className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl select-none"
+  style={{ 
+    aspectRatio: `${HARBOR_IMAGE.width}/${HARBOR_IMAGE.height}`, 
+    cursor: 'pointer', 
+    background: '#0a1628',
+    minHeight: 'min(60vh, 400px)',
+  }}
+  onClick={handleImageClick}
+>
         <img src={HARBOR_IMAGE.src} alt="ميناء" className="w-full h-full"
           style={{ objectFit: 'contain', objectPosition: 'center', pointerEvents: 'none', display: 'block' }}
           draggable={false} />

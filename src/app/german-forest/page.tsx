@@ -720,16 +720,17 @@ function ForestTest({
           )}
         </AnimatePresence>
 
-        <div
-          ref={containerRef}
-          className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl select-none"
-          style={{
-            aspectRatio: `${NAT_W}/${NAT_H}`,
-            cursor: finished ? 'default' : 'pointer',
-            background: '#0a1a0a',
-          }}
-          onClick={handleImageClick}
-        >
+       <div
+  ref={containerRef}
+  className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl select-none"
+  style={{
+    aspectRatio: `${NAT_W}/${NAT_H}`,
+    cursor: finished ? 'default' : 'pointer',
+    background: '#0a1a0a',
+    minHeight: 'min(60vh, 400px)',
+  }}
+  onClick={handleImageClick}
+>
           <img
             src="/images/forest-scene.png"
             alt="غابة سحرية"

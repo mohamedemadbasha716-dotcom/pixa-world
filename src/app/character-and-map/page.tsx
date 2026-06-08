@@ -424,25 +424,26 @@ const [progressLoaded, setProgressLoaded] = useState(false);
         </div>
       </div>
 
-      <div className="w-full min-h-screen flex items-center justify-center bg-[#07090D] pb-4 px-2" 
-        style={{ paddingTop: debugMode ? '96px' : '64px' }}>
-        <div 
-          ref={mapRef}
-          onClick={handleMapClickForDebug}
-          className="relative w-full"
-          style={{ 
-            maxWidth: 'min(100vw, calc((100vh - 80px) * 1.78))',
-            aspectRatio: '16 / 9',
-            cursor: debugMode ? 'crosshair' : 'default',
-          }}
-        >
+      <div className="w-full min-h-screen flex items-center justify-center bg-[#07090D] pb-4 px-0 md:px-2" 
+  style={{ paddingTop: debugMode ? '96px' : '64px' }}>
+  <div 
+    ref={mapRef}
+    onClick={handleMapClickForDebug}
+    className="relative w-full"
+    style={{ 
+      maxWidth: '100vw',
+      width: '100%',
+      aspectRatio: '16 / 9',
+      cursor: debugMode ? 'crosshair' : 'default',
+    }}
+  >
           <img 
-            src="/maps/german-map.png" 
-            alt="خريطة ألمانيا" 
-            className="absolute inset-0 w-full h-full pointer-events-none select-none" 
-            style={{ objectFit: 'fill', display: 'block' }}
-            draggable={false} 
-          />
+  src="/maps/german-map.png" 
+  alt="خريطة ألمانيا" 
+  className="absolute inset-0 w-full h-full pointer-events-none select-none" 
+  style={{ objectFit: 'cover', display: 'block' }}
+  draggable={false} 
+/>
 
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none"
