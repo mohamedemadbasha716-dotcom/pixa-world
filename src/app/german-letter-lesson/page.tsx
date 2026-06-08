@@ -634,9 +634,9 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: 
 }
 
 // ═══════════════════════════════════════
-// 🎴 كارت الحرف المُصمم احترافياً
+// 🎴 كارت الحرف الجانبي (Sidebar Card)
 // ═══════════════════════════════════════
-function LetterTaskCard({ currentLetter, boxes, isMobile, onSpeak }: {
+function SideLetterCard({ currentLetter, boxes, isMobile, onSpeak }: {
   currentLetter: Letter;
   boxes: any[];
   isMobile: boolean;
@@ -645,113 +645,110 @@ function LetterTaskCard({ currentLetter, boxes, isMobile, onSpeak }: {
   return (
     <motion.div 
       key={currentLetter.letter}
-      initial={{ opacity: 0, scale: 0.95 }} 
-      animate={{ opacity: 1, scale: 1 }} 
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="relative rounded-2xl overflow-hidden backdrop-blur-md"
+      initial={{ opacity: 0, scale: 0.95, x: 20 }} 
+      animate={{ opacity: 1, scale: 1, x: 0 }} 
+      exit={{ opacity: 0, scale: 0.95, x: -20 }}
+      className="relative rounded-2xl overflow-hidden backdrop-blur-md flex flex-col items-center gap-3 p-4"
       style={{
-        background: `linear-gradient(135deg, ${currentLetter.color}20, ${currentLetter.color}05)`,
-        border: `1px solid ${currentLetter.color}40`,
-        boxShadow: `0 8px 32px ${currentLetter.color}25`,
+        background: `linear-gradient(180deg, ${currentLetter.color}25, ${currentLetter.color}08)`,
+        border: `1.5px solid ${currentLetter.color}50`,
+        boxShadow: `0 8px 32px ${currentLetter.color}30`,
+        width: isMobile ? '100%' : '220px',
       }}
     >
       {/* Decorative glow */}
       <div 
-        className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-30"
+        className="absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full blur-3xl opacity-40 pointer-events-none"
         style={{ background: currentLetter.color }}
       />
 
-      <div className={`relative flex items-center gap-3 ${isMobile ? 'p-3' : 'p-4'}`}>
-        {/* 🔵 الحرف الكبير */}
-        <motion.div 
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className={`${isMobile ? 'w-14 h-14 text-2xl' : 'w-20 h-20 text-4xl'} rounded-2xl flex items-center justify-center font-black flex-shrink-0 border-2 relative`}
-          style={{
-            background: `linear-gradient(135deg, ${currentLetter.gradient[0]}, ${currentLetter.gradient[1]})`,
-            borderColor: 'rgba(255,255,255,0.3)',
-            color: 'white',
-            boxShadow: `0 8px 24px ${currentLetter.color}66, inset 0 1px 0 rgba(255,255,255,0.3)`,
-          }}
+      {/* 1️⃣ السطر الأول: ابحث عن حرف X + أيقونة */}
+      <div className="flex items-center gap-1.5 justify-center relative z-10">
+        <Search size={14} style={{ color: currentLetter.color }} />
+        <span 
+          className="text-xs font-bold"
+          style={{ color: `${currentLetter.color}dd` }}
         >
-          {currentLetter.letter}
-          {/* Sparkle */}
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-            className="absolute -top-1 -right-1"
-          >
-            <Sparkles size={isMobile ? 14 : 18} style={{ color: '#FFD700' }} />
-          </motion.div>
-        </motion.div>
-
-        {/* 📝 المحتوى */}
-        <div className="flex-1 text-right min-w-0">
-          {/* Top label */}
-          <div className="flex items-center gap-1.5 justify-end mb-1">
-            <Search size={isMobile ? 11 : 13} style={{ color: currentLetter.color }} />
-            <span 
-              className={`${isMobile ? 'text-[10px]' : 'text-xs'} font-bold uppercase tracking-wider`}
-              style={{ color: `${currentLetter.color}cc` }}
-            >
-              ابحث عن حرف {currentLetter.letter}
-              {boxes.length > 1 && (
-                <span className="mr-1 px-1.5 py-0.5 rounded-md text-[9px]" 
-                  style={{ background: `${currentLetter.color}33`, color: currentLetter.color }}>
-                  ×{boxes.length}
-                </span>
-              )}
-            </span>
-          </div>
-
-          {/* الكلمة الألمانية */}
-          <div 
-            className={`font-black text-white ${isMobile ? 'text-lg' : 'text-2xl'} leading-tight`}
-            style={{ textShadow: `0 2px 12px ${currentLetter.color}66` }}
-          >
-            {currentLetter.word}
-          </div>
-
-          {/* المعنى العربي */}
-          <div className="flex items-center gap-1.5 justify-end mt-0.5">
-            <span className={`text-xl`}>{currentLetter.emoji}</span>
-            <span 
-              className={`font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}
-              style={{ color: currentLetter.color }}
-            >
-              {currentLetter.wordAr}
-            </span>
-          </div>
-        </div>
-
-        {/* 🔊 زر الصوت */}
-        <motion.button 
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={onSpeak}
-          className={`${isMobile ? 'w-11 h-11' : 'w-14 h-14'} rounded-2xl flex items-center justify-center flex-shrink-0 border-2 relative overflow-hidden`}
-          style={{
-            borderColor: `${currentLetter.color}88`,
-            background: `linear-gradient(135deg, ${currentLetter.color}33, ${currentLetter.color}11)`,
-            color: 'white',
-            boxShadow: `0 4px 12px ${currentLetter.color}44`,
-          }}
-        >
-          <motion.div
-            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="absolute inset-0"
-            style={{ background: `radial-gradient(circle, ${currentLetter.color}33, transparent)` }}
-          />
-          <Volume2 size={isMobile ? 18 : 22} className="relative z-10" />
-        </motion.button>
+          ابحث عن حرف {currentLetter.letter}
+        </span>
+        {boxes.length > 1 && (
+          <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black" 
+            style={{ background: `${currentLetter.color}33`, color: currentLetter.color }}>
+            ×{boxes.length}
+          </span>
+        )}
       </div>
+
+      {/* 2️⃣ الحرف الكبير */}
+      <motion.div 
+        animate={{ scale: [1, 1.05, 1] }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        className="relative z-10 w-24 h-24 rounded-2xl flex items-center justify-center font-black border-2"
+        style={{
+          background: `linear-gradient(135deg, ${currentLetter.gradient[0]}, ${currentLetter.gradient[1]})`,
+          borderColor: 'rgba(255,255,255,0.3)',
+          color: 'white',
+          fontSize: '4rem',
+          boxShadow: `0 10px 30px ${currentLetter.color}66, inset 0 1px 0 rgba(255,255,255,0.3)`,
+        }}
+      >
+        {currentLetter.letter}
+        {/* Sparkle */}
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+          className="absolute -top-2 -right-2"
+        >
+          <Sparkles size={20} style={{ color: '#FFD700' }} />
+        </motion.div>
+      </motion.div>
+
+      {/* 3️⃣ الكلمة بالعربي */}
+      <div 
+        className="font-black text-white text-lg text-center relative z-10"
+        style={{ textShadow: `0 2px 8px ${currentLetter.color}66` }}
+      >
+        {currentLetter.wordAr}
+      </div>
+
+      {/* 4️⃣ الكلمة بالألماني + الأيقونة */}
+      <div className="flex items-center gap-2 justify-center relative z-10 px-3 py-2 rounded-xl"
+        style={{ 
+          background: `${currentLetter.color}15`,
+          border: `1px solid ${currentLetter.color}33`,
+        }}
+      >
+        <span className="text-2xl">{currentLetter.emoji}</span>
+        <span 
+          className="font-black text-base"
+          style={{ color: currentLetter.color }}
+        >
+          {currentLetter.word}
+        </span>
+      </div>
+
+      {/* 5️⃣ زر الصوت */}
+      <motion.button 
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={onSpeak}
+        className="relative z-10 w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border-2 transition-all"
+        style={{
+          borderColor: `${currentLetter.color}66`,
+          background: `linear-gradient(135deg, ${currentLetter.color}33, ${currentLetter.color}11)`,
+          color: 'white',
+          boxShadow: `0 4px 12px ${currentLetter.color}33`,
+        }}
+      >
+        <Volume2 size={16} />
+        استمع
+      </motion.button>
     </motion.div>
   );
 }
 
 // ═══════════════════════════════════════
-// اختبار الميناء
+// اختبار الميناء - Layout جديد (الصورة + الكارت جنبها)
 // ═══════════════════════════════════════
 function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, onKarlReact, onCombo, isMobile }: {
   groupLetters: Letter[];
@@ -845,14 +842,98 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
     }
   }, [showFeedback, finished, boxes, currentLetter, harborImage, currentIdx, groupLetters.length, wrong, onCombo, onKarlReact, onStarEarned, onPass, onFail]);
 
+  // 🖼️ مكون الصورة
+  const ImageBox = (
+    <div
+      ref={containerRef}
+      className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10"
+      style={{ 
+        cursor: 'pointer', 
+        background: '#0a1628',
+        aspectRatio: `${harborImage.width}/${harborImage.height}`,
+        maxHeight: isMobile ? 'none' : '75vh',
+      }}
+      onClick={handleImageClick}
+    >
+      <img 
+        src={harborImage.src} 
+        alt="ميناء" 
+        className="w-full h-full"
+        style={{ 
+          objectFit: 'contain', 
+          pointerEvents: 'none', 
+          display: 'block',
+        }}
+        draggable={false} 
+      />
+
+      <AnimatePresence>
+        {showHint && boxes.length > 0 && currentLetter && boxes.map((b, idx) => (
+          <motion.div key={`hint-${idx}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.2, repeat: Infinity }}
+            exit={{ opacity: 0 }}
+            className="absolute rounded-xl pointer-events-none"
+            style={{
+              left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%`,
+              border: `3px solid ${currentLetter.color}`,
+              background: `${currentLetter.color}28`,
+            }}
+          />
+        ))}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {clickEffect && (
+          <motion.div
+            initial={{ scale: 0.4, opacity: 1 }} animate={{ scale: 2.2, opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="absolute pointer-events-none rounded-full"
+            style={{
+              left: `${clickEffect.x}%`, top: `${clickEffect.y}%`,
+              transform: 'translate(-50%, -50%)', width: '40px', height: '40px',
+              background: clickEffect.correct ? 'rgba(88,204,2,0.6)' : 'rgba(255,68,68,0.6)',
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showFeedback === 'correct' && currentLetter && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-end justify-center pb-4 pointer-events-none"
+            style={{ background: 'linear-gradient(to top, rgba(88,204,2,0.28), transparent)' }}>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-white text-lg"
+              style={{ background: 'rgba(88,204,2,0.92)' }}>
+              ✓ {currentLetter.word}!
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {finished && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="absolute inset-0 flex flex-col items-center justify-center gap-3"
+          style={{ background: 'rgba(0,10,20,0.85)' }}>
+          <div className="text-6xl">🎉</div>
+          <p className="font-black text-white text-2xl">ممتاز!</p>
+          <div className="flex gap-1">
+            {groupLetters.map(l => <Star key={l.letter} size={20} fill="#FFD700" color="#FFD700" />)}
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
-      className={`flex flex-col gap-2 w-full max-w-6xl mx-auto ${isMobile ? 'px-1' : 'px-3'}`}
+      className="w-full max-w-7xl mx-auto px-2"
     >
       {/* Top Bar: Stars & Wrong Counter */}
-      <div className="flex items-center justify-between px-1">
+      <div className="flex items-center justify-between px-1 mb-2">
         <div className="flex items-center gap-1">
           {Array.from({ length: Math.min(totalStars, isMobile ? 5 : 8) }).map((_, i) => (
             <motion.div key={i} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: i * 0.05 }}>
@@ -866,21 +947,48 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
         </span>
       </div>
 
-      {/* 🎴 كارت الحرف المُصمم */}
-      <AnimatePresence mode="wait">
-        {!finished && currentLetter && (
-          <LetterTaskCard 
-            currentLetter={currentLetter}
-            boxes={boxes}
-            isMobile={isMobile}
-            onSpeak={() => speakWord(currentLetter.word)}
-          />
-        )}
-      </AnimatePresence>
+      {/* 📱 الموبايل: كارت فوق + صورة تحت */}
+      {/* 🖥️ الديسكتوب: صورة على الشمال + كارت على اليمين */}
+      {isMobile ? (
+        <div className="flex flex-col gap-3">
+          <AnimatePresence mode="wait">
+            {!finished && currentLetter && (
+              <SideLetterCard 
+                currentLetter={currentLetter}
+                boxes={boxes}
+                isMobile={true}
+                onSpeak={() => speakWord(currentLetter.word)}
+              />
+            )}
+          </AnimatePresence>
+          {ImageBox}
+        </div>
+      ) : (
+        <div className="flex gap-4 items-start">
+          {/* الصورة - تاخد المساحة الأكبر */}
+          <div className="flex-1 min-w-0">
+            {ImageBox}
+          </div>
+          
+          {/* الكارت الجانبي - عرض ثابت */}
+          <div className="flex-shrink-0">
+            <AnimatePresence mode="wait">
+              {!finished && currentLetter && (
+                <SideLetterCard 
+                  currentLetter={currentLetter}
+                  boxes={boxes}
+                  isMobile={false}
+                  onSpeak={() => speakWord(currentLetter.word)}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
 
       {/* Progress dots */}
       {!finished && (
-        <div className="flex gap-1 px-1">
+        <div className="flex gap-1 px-1 mt-3">
           {groupLetters.map((l, i) => (
             <div key={l.letter} className="flex-1 h-1 rounded-full overflow-hidden"
               style={{ background: 'rgba(255,255,255,0.08)' }}>
@@ -900,90 +1008,7 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
         </div>
       )}
 
-      {/* 🖼️ الصورة - الحجم المناسب للديسكتوب والموبايل */}
-      <div
-        ref={containerRef}
-        className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10 mx-auto"
-        style={{ 
-          cursor: 'pointer', 
-          background: '#0a1628',
-          aspectRatio: `${harborImage.width}/${harborImage.height}`,
-          maxHeight: isMobile ? 'none' : '55vh',
-          maxWidth: isMobile ? '100%' : `calc(55vh * ${harborImage.width / harborImage.height})`,
-        }}
-        onClick={handleImageClick}
-      >
-        <img 
-          src={harborImage.src} 
-          alt="ميناء" 
-          className="w-full h-full"
-          style={{ 
-            objectFit: 'contain', 
-            pointerEvents: 'none', 
-            display: 'block',
-          }}
-          draggable={false} 
-        />
-
-        <AnimatePresence>
-          {showHint && boxes.length > 0 && currentLetter && boxes.map((b, idx) => (
-            <motion.div key={`hint-${idx}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 1.2, repeat: Infinity }}
-              exit={{ opacity: 0 }}
-              className="absolute rounded-xl pointer-events-none"
-              style={{
-                left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%`,
-                border: `3px solid ${currentLetter.color}`,
-                background: `${currentLetter.color}28`,
-              }}
-            />
-          ))}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {clickEffect && (
-            <motion.div
-              initial={{ scale: 0.4, opacity: 1 }} animate={{ scale: 2.2, opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="absolute pointer-events-none rounded-full"
-              style={{
-                left: `${clickEffect.x}%`, top: `${clickEffect.y}%`,
-                transform: 'translate(-50%, -50%)', width: '40px', height: '40px',
-                background: clickEffect.correct ? 'rgba(88,204,2,0.6)' : 'rgba(255,68,68,0.6)',
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {showFeedback === 'correct' && currentLetter && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex items-end justify-center pb-4 pointer-events-none"
-              style={{ background: 'linear-gradient(to top, rgba(88,204,2,0.28), transparent)' }}>
-              <div className="flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-white text-lg"
-                style={{ background: 'rgba(88,204,2,0.92)' }}>
-                ✓ {currentLetter.word}!
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {finished && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="absolute inset-0 flex flex-col items-center justify-center gap-3"
-            style={{ background: 'rgba(0,10,20,0.85)' }}>
-            <div className="text-6xl">🎉</div>
-            <p className="font-black text-white text-2xl">ممتاز!</p>
-            <div className="flex gap-1">
-              {groupLetters.map(l => <Star key={l.letter} size={20} fill="#FFD700" color="#FFD700" />)}
-            </div>
-          </motion.div>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between px-1">
+      <div className="flex items-center justify-between px-1 mt-2">
         <button onClick={() => setShowHint(v => !v)}
           className={`${isMobile ? 'text-[10px] px-3 py-1.5' : 'text-xs px-4 py-2'} font-bold rounded-xl border`}
           style={{
@@ -1267,11 +1292,11 @@ export default function GermanLetterLessonPage() {
       </div>
 
       <div 
-        className={`${isMobile ? 'px-1' : 'px-2'} min-h-screen flex flex-col justify-center relative`}
+        className={`${isMobile ? 'px-1' : 'px-3'} min-h-screen flex flex-col justify-center relative`}
         style={{ 
           zIndex: 10,
-          paddingTop: isMobile ? '110px' : '120px',
-          paddingBottom: isMobile ? '20px' : '20px',
+          paddingTop: isMobile ? '110px' : '105px',
+          paddingBottom: '20px',
         }}>
         <AnimatePresence mode="wait">
           {phase === 'learn-letter' && (
@@ -1281,27 +1306,8 @@ export default function GermanLetterLessonPage() {
             <LearnWordPhase key={`lw-${groupIdx}-${letterIdx}`} letterData={letterData} onDone={handleWordDone} onKarlReact={handleKarlReact} onCombo={handleCombo} isMobile={isMobile} />
           )}
           {phase === 'test' && (
-            <motion.div key="test" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-2">
-              {/* ✨ العنوان الجديد المُحسّن */}
-              <div className="text-center mb-1">
-                <motion.div 
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full"
-                  style={{ 
-                    background: 'rgba(76,201,240,0.1)',
-                    border: '1px solid rgba(76,201,240,0.3)',
-                  }}
-                >
-                  <Search size={isMobile ? 14 : 16} className="text-[#4CC9F0]" />
-                  <h2 className={`${isMobile ? 'text-sm' : 'text-base'} font-black text-white`}>
-                    ابحث عن العناصر
-                  </h2>
-                </motion.div>
-              </div>
-              <HarborTest groupLetters={group.letters} totalStars={totalStars} onPass={handleTestPass}
-                onFail={handleTestFail} onStarEarned={handleStarEarned} onKarlReact={handleKarlReact} onCombo={handleCombo} isMobile={isMobile} />
-            </motion.div>
+            <HarborTest groupLetters={group.letters} totalStars={totalStars} onPass={handleTestPass}
+              onFail={handleTestFail} onStarEarned={handleStarEarned} onKarlReact={handleKarlReact} onCombo={handleCombo} isMobile={isMobile} />
           )}
           {phase === 'group-success' && <SuccessScreen key="success" groupTitle={group.title} onNext={handleGroupNext} />}
           {phase === 'group-fail' && <FailScreen key="fail" onRetry={handleRetry} />}
