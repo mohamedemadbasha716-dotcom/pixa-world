@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { KarlMood, KarlMessage } from '@/lib/types/lesson';
 
@@ -13,8 +14,68 @@ export default function KarlEagle({
   message,
   idleGlowColor = '#4CC9F0',
 }: KarlEagleProps) {
+  const [isMobile, setIsMobile] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  // 📱 كشف الموبايل
+  useEffect(() => {
+    const checkMobile = () => {
+      if (typeof window === 'undefined') return;
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // ⌨️ كشف فتح الكيبورد على الموبايل
+  useEffect(() => {
+    if (!isMobile || typeof window === 'undefined') return;
+
+    const initialHeight = window.innerHeight;
+    
+    const handleResize = () => {
+      const currentHeight = window.innerHeight;
+      const heightDiff = initialHeight - currentHeight;
+      // لو الفرق أكبر من 150px غالباً الكيبورد فتح
+      setKeyboardOpen(heightDiff > 150);
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    // استخدام visualViewport لو موجود (أدق)
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+      }
+    };
+  }, [isMobile]);
+
+  // 🎯 تحديد الحجم والموقع حسب الجهاز والحالة
+  const eagleSize = isMobile 
+    ? (keyboardOpen ? 45 : 65)  // أصغر على الموبايل، أصغر أكتر مع الكيبورد
+    : 130; // الحجم الطبيعي للديسكتوب
+
+  const positionStyle = isMobile
+    ? { 
+        bottom: keyboardOpen ? 8 : 12, 
+        right: 8,
+      }
+    : { 
+        bottom: 20, 
+        right: 20,
+      };
+
   return (
-    <div className="fixed pointer-events-none" style={{ zIndex: 50, bottom: 20, right: 20 }}>
+    <div 
+      className="fixed pointer-events-none transition-all duration-300" 
+      style={{ zIndex: 50, ...positionStyle }}
+    >
       <motion.div
         animate={
           mood === 'celebrate'
@@ -54,8 +115,8 @@ export default function KarlEagle({
             src="/characters/karl-3d.png"
             alt="كارل النسر"
             style={{
-              width: 'clamp(85px, 9vw, 130px)',
-              height: 'clamp(85px, 9vw, 130px)',
+              width: `${eagleSize}px`,
+              height: `${eagleSize}px`,
               objectFit: 'contain',
               position: 'relative',
               zIndex: 1,
@@ -67,13 +128,13 @@ export default function KarlEagle({
                   : mood === 'sad'
                   ? 'drop-shadow(0 4px 12px rgba(255,107,107,0.5)) saturate(0.6)'
                   : `drop-shadow(0 6px 14px ${idleGlowColor}80)`,
-              transition: 'filter 0.4s ease',
+              transition: 'all 0.3s ease',
             }}
             draggable={false}
           />
 
           <AnimatePresence>
-            {message && (
+            {message && !keyboardOpen && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.6, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}

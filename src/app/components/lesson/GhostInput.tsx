@@ -1,5 +1,5 @@
 'use client';
-import { forwardRef } from 'react';
+import { forwardRef, useEffect, useRef } from 'react';
 
 interface GhostInputProps {
   value: string;
@@ -30,6 +30,9 @@ const GhostInput = forwardRef<HTMLInputElement, GhostInputProps>(({
   uppercase = false,
   numbersOnly = false,
 }, ref) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const internalInputRef = useRef<HTMLInputElement>(null);
+
   const borderColor =
     status === 'correct' ? '#22c55e'
     : status === 'wrong' ? '#ef4444'
@@ -40,14 +43,36 @@ const GhostInput = forwardRef<HTMLInputElement, GhostInputProps>(({
     : status === 'wrong' ? '0 0 30px #ef444466'
     : `inset 0 1px 0 ${color}33, 0 8px 30px ${color}22`;
 
+  // 📱 Auto-scroll لما الـ input يتفعل (للموبايل)
+  const handleFocus = () => {
+    if (typeof window === 'undefined') return;
+    const isMobile = window.innerWidth < 768;
+    if (!isMobile) return;
+
+    // ننتظر شوية عشان الكيبورد يفتح، بعدين نعمل scroll
+    setTimeout(() => {
+      const element = containerRef.current;
+      if (!element) return;
+
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest',
+      });
+    }, 300);
+  };
+
   return (
     <div
+      ref={containerRef}
       className="relative w-full rounded-2xl border-2 transition-all overflow-hidden"
       style={{
         background: 'rgba(255,255,255,0.03)',
         backdropFilter: 'blur(10px)',
         borderColor,
         boxShadow,
+        scrollMarginTop: '100px',
+        scrollMarginBottom: '120px',
       }}
     >
       {/* 👻 الكلمة المرجعية - ثابتة دايماً في الخلفية */}
@@ -70,7 +95,12 @@ const GhostInput = forwardRef<HTMLInputElement, GhostInputProps>(({
 
       {/* ✍️ الـ input فوق - شفاف تماماً */}
       <input
-        ref={ref}
+        ref={(node) => {
+          // دعم forwardRef + الـ ref الداخلي
+          if (typeof ref === 'function') ref(node);
+          else if (ref) ref.current = node;
+          internalInputRef.current = node;
+        }}
         type="text"
         value={value}
         onChange={e => {
@@ -79,6 +109,7 @@ const GhostInput = forwardRef<HTMLInputElement, GhostInputProps>(({
           if (uppercase) v = v.toUpperCase();
           onChange(v);
         }}
+        onFocus={handleFocus}
         onKeyDown={e => {
           if (e.key === 'Enter' && value && onEnter) onEnter();
         }}
