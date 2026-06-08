@@ -322,15 +322,16 @@ export default function PixiHomePage() {
         </motion.div>
       </motion.header>
 
-      {/* 2. الهيرو - مع الرسائل التسويقية الجديدة */}
+      {/* 2. الهيرو - النسخة المحسّنة */}
       <section className="relative w-full max-w-5xl mx-auto text-center px-6 pt-20 pb-12 space-y-8 z-10">
+        {/* الإيموجي على الجوانب فقط */}
         {FLOATING_EMOJIS.map((emoji, i) => (
           <motion.span
             key={i}
-            className="absolute text-2xl opacity-50 pointer-events-none hidden md:block"
+            className="absolute text-xl opacity-20 pointer-events-none hidden lg:block"
             style={{
-              left: `${10 + (i * 12)}%`,
-              top: `${20 + (i % 3) * 25}%`,
+              left: i < 4 ? `${2 + (i * 4)}%` : `${82 + ((i - 4) * 4)}%`,
+              top: `${15 + (i % 3) * 30}%`,
             }}
             animate={{
               y: [0, -20, 0],
@@ -347,6 +348,7 @@ export default function PixiHomePage() {
           </motion.span>
         ))}
 
+        {/* الشارة العلوية */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -362,36 +364,49 @@ export default function PixiHomePage() {
           </motion.div>
         </motion.div>
 
-        {/* 🎯 العنوان الرئيسي الجديد */}
+        {/* 🎯 العنوان الرئيسي - النسخة المتنسقة */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="text-3xl md:text-6xl font-black leading-tight"
+          className="font-black leading-[1.3] space-y-3"
         >
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100 drop-shadow-2xl">
+          <div className="text-2xl md:text-4xl text-white drop-shadow-2xl">
             خلي طفلك يتكلم
-          </span>
-          <br />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D6D] via-[#F72585] to-[#9D4EDD] drop-shadow-[0_0_30px_rgba(247,37,133,0.5)]">
-            5 لغات نادرة 🚀
-          </span>
-          <br />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100 drop-shadow-2xl text-2xl md:text-5xl">
-            قبل ما يدخل إعدادي
-          </span>
+          </div>
+          <div className="text-5xl md:text-7xl bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D6D] via-[#F72585] to-[#9D4EDD] drop-shadow-[0_0_30px_rgba(247,37,133,0.5)]">
+            5 لغات نادرة
+          </div>
+          <div className="text-2xl md:text-4xl text-white drop-shadow-2xl flex items-center justify-center gap-3">
+            <span>قبل ما يدخل إعدادي</span>
+            <motion.span
+              animate={{ y: [0, -10, 0], rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              🚀
+            </motion.span>
+          </div>
         </motion.h1>
 
-        {/* 🌍 العنوان الفرعي الجديد */}
+        {/* 🌍 الرسالة الذهبية - النسخة المحسّنة */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="relative inline-block max-w-3xl mx-auto"
+          className="relative max-w-3xl mx-auto px-6 py-4 rounded-2xl border-2 backdrop-blur-md"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,107,53,0.10))',
+            borderColor: 'rgba(255,215,0,0.4)',
+            boxShadow: '0 0 40px rgba(255,215,0,0.2)',
+          }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-[#FFD700]/20 via-[#FF6B35]/20 to-[#FFD700]/20 blur-2xl" />
-          <p className="relative text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[#FFD700] via-[#FF6B35] to-[#FFD700] drop-shadow-[0_0_20px_rgba(255,215,0,0.4)] py-2">
-            اللي مش بيتعلموه في المدرسة... طفلك هيتعلمه عندنا 🌍
+          <p className="text-lg md:text-2xl font-black text-center"
+            style={{
+              color: '#FFD700',
+              textShadow: '0 0 15px rgba(255,215,0,0.6), 0 2px 4px rgba(0,0,0,0.5)',
+            }}
+          >
+            🌍 اللي مش بيتعلموه في المدرسة... طفلك هيتعلمه عندنا
           </p>
         </motion.div>
 
