@@ -232,6 +232,35 @@ export default function CharacterAndMapPage() {
     }
   }, [unlockedLesson]);
 
+  // 📱 ضبط الزووم الافتراضي على الموبايل
+  useEffect(() => {
+    const setMobileZoom = () => {
+      if (typeof window === 'undefined') return;
+      
+      const isMobile = window.innerWidth < 768;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      
+      if (isMobile && isPortrait) {
+        // على الموبايل بالطول: نكبر الخريطة تلقائياً لتملا الشاشة
+        setMapScale(1.8);
+        setMapPosition({ x: 0, y: 0 });
+      } else {
+        // على الديسكتوب أو Landscape: الحجم الطبيعي
+        setMapScale(1);
+        setMapPosition({ x: 0, y: 0 });
+      }
+    };
+
+    setMobileZoom();
+    window.addEventListener('resize', setMobileZoom);
+    window.addEventListener('orientationchange', setMobileZoom);
+
+    return () => {
+      window.removeEventListener('resize', setMobileZoom);
+      window.removeEventListener('orientationchange', setMobileZoom);
+    };
+  }, [step]);
+
   const isLocked = (lesson: number) => lesson > unlockedLesson;
   const isCurrent = (lesson: number) => lesson === unlockedLesson;
   const getStars = (id: string) => progressMap[id]?.stars ?? 0;
@@ -390,7 +419,14 @@ export default function CharacterAndMapPage() {
 
   // 🔄 Reset Zoom & Position
   const resetMapView = () => {
-    setMapScale(1);
+    const isMobile = window.innerWidth < 768;
+    const isPortrait = window.innerHeight > window.innerWidth;
+    
+    if (isMobile && isPortrait) {
+      setMapScale(1.8);
+    } else {
+      setMapScale(1);
+    }
     setMapPosition({ x: 0, y: 0 });
   };
 
@@ -509,7 +545,7 @@ export default function CharacterAndMapPage() {
         <div className="flex items-center gap-2">
           {/* 🎯 زرار إعادة ضبط الزووم */}
           <AnimatePresence>
-            {(mapScale !== 1 || mapPosition.x !== 0 || mapPosition.y !== 0) && (
+            {(mapPosition.x !== 0 || mapPosition.y !== 0) && (
               <motion.button
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -580,7 +616,7 @@ export default function CharacterAndMapPage() {
             src="/maps/german-map.png" 
             alt="خريطة ألمانيا" 
             className="absolute inset-0 w-full h-full pointer-events-none select-none" 
-            style={{ objectFit: 'cover', display: 'block' }}
+            style={{ objectFit: 'contain', display: 'block' }}
             draggable={false} 
           />
 
@@ -873,7 +909,7 @@ export default function CharacterAndMapPage() {
                 <div className="flex-1 text-right">
                   <div className="text-[10px] font-bold text-[#4CC9F0]">كارل النسر</div>
                   <p className="text-[11px] text-white/80 leading-tight font-medium">
-                    أهلاً <strong className="text-white">{heroName}</strong>! 🖐️ اسحب الخريطة + 🤏 صوبعين للزووم
+                    أهلاً <strong className="text-white">{heroName}</strong>! 🖐️ اسحب + 🤏 صوبعين للزووم
                   </p>
                 </div>
               </div>
