@@ -20,7 +20,7 @@ import { playCoinSound, playBuzzSound, playComboSound } from '@/lib/audio/sounds
 import { speakLetter, speakWord } from '@/lib/audio/speech';
 
 import { LETTERS, LETTER_GROUPS, type Letter } from '@/data/german/letters';
-import { HARBOR_OBJECTS, HARBOR_IMAGE } from '@/data/german/harbor-objects';
+import { getHarborObjects, getHarborImage } from '@/data/german/harbor-objects';
 
 function compareWords(input: string, target: string): boolean {
   return input.trim().toLowerCase() === target.toLowerCase();
