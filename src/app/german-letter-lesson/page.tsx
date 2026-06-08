@@ -1,44 +1,36 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Volume2, Star, Check, X, Trophy, RotateCcw, Sparkles } from 'lucide-react';
+
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { saveLessonProgress, getLessonProgress } from '@/lib/playerData';
-
-import KarlEagle from '@/app/components/lesson/KarlEagle';
-import GhostInput from '@/app/components/lesson/GhostInput';
-import ConfettiBurst from '@/app/components/lesson/ConfettiBurst';
-import ComboDisplay from '@/app/components/lesson/ComboDisplay';
-import FlyingStars, { type FlyingStar } from '@/app/components/lesson/FlyingStars';
-import SoundButton from '@/app/components/lesson/SoundButton';
-import SpecialCharsKeyboard, { getRequiredSpecialChars } from '@/app/components/lesson/SpecialCharsKeyboard';
-
-import type { KarlMood } from '@/lib/types/lesson';
-import { ENCOURAGEMENTS, SAD_MESSAGES } from '@/lib/types/lesson';
-
-import { playCoinSound, playBuzzSound, playComboSound } from '@/lib/audio/sounds';
-import { speakLetter, speakWord } from '@/lib/audio/speech';
-
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Check, X, Volume2, Star, RotateCcw, Trophy, Sparkles } from 'lucide-react';
 import { LETTERS, LETTER_GROUPS, type Letter } from '@/data/german/letters';
 import { getHarborObjects, getHarborImage } from '@/data/german/harbor-objects';
+import { speakLetter, speakWord, playCoinSound, playBuzzSound, playComboSound } from '@/lib/sounds';
+import { getLessonProgress, saveLessonProgress } from '@/lib/progress';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { getRequiredSpecialChars, compareWords } from '@/lib/german-utils';
+import { KarlEagle, type KarlMood } from '@/components/KarlEagle';
+import { ComboDisplay } from '@/components/ComboDisplay';
+import { FlyingStars, type FlyingStar } from '@/components/FlyingStars';
+import { ConfettiBurst } from '@/components/ConfettiBurst';
+import { SoundButton } from '@/components/SoundButton';
+import { GhostInput } from '@/components/GhostInput';
+import { SpecialCharsKeyboard } from '@/components/SpecialCharsKeyboard';
 
-function compareWords(input: string, target: string): boolean {
-  return input.trim().toLowerCase() === target.toLowerCase();
-}
+const ENCOURAGEMENTS = [
+  { de: 'Super!', ar: 'ممتاز!' },
+  { de: 'Toll!', ar: 'رائع!' },
+  { de: 'Klasse!', ar: 'عظيم!' },
+  { de: 'Perfekt!', ar: 'مثالي!' },
+  { de: 'Wunderbar!', ar: 'رائع جداً!' },
+];
 
-// ═══════════════════════════════════════
-// 📱 Hook لكشف الموبايل
-// ═══════════════════════════════════════
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
+const SAD_MESSAGES = [
+  { de: 'Versuch es nochmal!', ar: 'حاول تاني!' },
+  { de: 'Du schaffst das!', ar: 'تقدر تعمله!' },
+  { de: 'Keine Sorge!', ar: 'متقلقش!' },
+];
 
 // ═══════════════════════════════════════
 // خلفية بحرية
@@ -166,7 +158,7 @@ function HeroLetterDisplay({ letterData, isMobile }: { letterData: Letter; isMob
 }
 
 // ═══════════════════════════════════════
-// PHASE 1 — تعلم الحرف (Responsive)
+// PHASE 1 — تعلم الحرف
 // ═══════════════════════════════════════
 function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: {
   letterData: Letter;
@@ -218,10 +210,9 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }
         className="w-full max-w-5xl mx-auto"
       >
         {isMobile ? (
-          /* 📱 موبايل - layout عمودي مضغوط */
           <div className="flex flex-col items-center gap-3 px-3">
             <HeroLetterDisplay letterData={letterData} isMobile={true} />
-            
+
             <div className="text-center">
               <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: `${letterData.color}aa` }}>
                 Buchstabe · الحرف
@@ -274,7 +265,6 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }
             </motion.button>
           </div>
         ) : (
-          /* 🖥️ ديسكتوب - layout أصلي */
           <div className="grid lg:grid-cols-5 gap-8 items-center">
             <div className="lg:col-span-3 flex justify-center">
               <HeroLetterDisplay letterData={letterData} isMobile={false} />
@@ -342,7 +332,7 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }
 }
 
 // ═══════════════════════════════════════
-// PHASE 2 — تعلم الكلمة (Responsive)
+// PHASE 2 — تعلم الكلمة
 // ═══════════════════════════════════════
 function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: {
   letterData: Letter;
@@ -404,7 +394,6 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: 
         className="w-full max-w-5xl mx-auto"
       >
         {isMobile ? (
-          /* 📱 موبايل */
           <div className="flex flex-col items-center gap-3 px-3">
             <motion.div
               animate={{ y: [0, -6, 0] }}
@@ -498,7 +487,6 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: 
             </motion.button>
           </div>
         ) : (
-          /* 🖥️ ديسكتوب */
           <div className="grid lg:grid-cols-5 gap-8 items-center">
             <div className="lg:col-span-3 flex flex-col items-center gap-5">
               <motion.div
@@ -613,7 +601,7 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: 
 }
 
 // ═══════════════════════════════════════
-// اختبار الميناء (Responsive)
+// اختبار الميناء (Responsive) - مُصحّح
 // ═══════════════════════════════════════
 function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, onKarlReact, onCombo, isMobile }: {
   groupLetters: Letter[];
@@ -634,28 +622,43 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
   const [clickEffect, setClickEffect] = useState<{ x: number; y: number; correct: boolean } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const currentLetter = groupLetters[currentIdx];
-  const boxes = currentLetter ? (HARBOR_OBJECTS[currentLetter.letter] ?? []) : [];
+  // ✅ اختيار الصورة والإحداثيات حسب الجهاز
+  const harborImage = useMemo(() => getHarborImage(isMobile), [isMobile]);
+  const harborObjects = useMemo(() => getHarborObjects(isMobile), [isMobile]);
 
-  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const currentLetter = groupLetters[currentIdx];
+  const boxes = currentLetter ? (harborObjects[currentLetter.letter] ?? []) : [];
+
+  const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (showFeedback || finished || boxes.length === 0 || !currentLetter) return;
     if (!containerRef.current) return;
+
     const rect = containerRef.current.getBoundingClientRect();
     const containerW = rect.width;
     const containerH = rect.height;
-    const scale = Math.min(containerW / HARBOR_IMAGE.width, containerH / HARBOR_IMAGE.height);
-    const renderedW = HARBOR_IMAGE.width * scale;
-    const renderedH = HARBOR_IMAGE.height * scale;
+
+    const scale = Math.min(containerW / harborImage.width, containerH / harborImage.height);
+    const renderedW = harborImage.width * scale;
+    const renderedH = harborImage.height * scale;
     const offsetX = (containerW - renderedW) / 2;
     const offsetY = (containerH - renderedH) / 2;
+
     const clickX = e.clientX - rect.left - offsetX;
     const clickY = e.clientY - rect.top - offsetY;
+
     if (clickX < 0 || clickY < 0 || clickX > renderedW || clickY > renderedH) return;
+
     const pctX = (clickX / renderedW) * 100;
     const pctY = (clickY / renderedH) * 100;
-    const hit = boxes.some(b => pctX >= b.x && pctX <= b.x + b.w && pctY >= b.y && pctY <= b.y + b.h);
+
+    const hit = boxes.some(b =>
+      pctX >= b.x && pctX <= b.x + b.w &&
+      pctY >= b.y && pctY <= b.y + b.h
+    );
+
     const relX = ((clickX + offsetX) / containerW) * 100;
     const relY = ((clickY + offsetY) / containerH) * 100;
+
     setClickEffect({ x: relX, y: relY, correct: hit });
     setTimeout(() => setClickEffect(null), 700);
 
@@ -667,6 +670,7 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
       onKarlReact('happy');
       setFoundLetters(prev => [...prev, currentLetter.letter]);
       onStarEarned(e.clientX, e.clientY);
+
       setTimeout(() => {
         setShowFeedback(null);
         setShowHint(false);
@@ -674,7 +678,9 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
           setFinished(true);
           onKarlReact('celebrate');
           setTimeout(onPass, 1800);
-        } else setCurrentIdx(i => i + 1);
+        } else {
+          setCurrentIdx(i => i + 1);
+        }
       }, 1200);
     } else {
       const newWrong = wrong + 1;
@@ -682,12 +688,13 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
       setShowFeedback('wrong');
       playBuzzSound();
       onKarlReact('sad');
+
       setTimeout(() => {
         setShowFeedback(null);
         if (newWrong >= 5) onFail();
       }, 700);
     }
-  };
+  }, [showFeedback, finished, boxes, currentLetter, harborImage, currentIdx, groupLetters.length, wrong, onCombo, onKarlReact, onStarEarned, onPass, onFail]);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-2 w-full max-w-5xl mx-auto px-2">
@@ -756,7 +763,7 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
         ref={containerRef}
         className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10"
         style={{ 
-          aspectRatio: `${HARBOR_IMAGE.width}/${HARBOR_IMAGE.height}`, 
+          aspectRatio: `${harborImage.width}/${harborImage.height}`, 
           cursor: 'pointer', 
           background: '#0a1628',
           minHeight: isMobile ? '40vh' : 'min(60vh, 400px)',
@@ -764,7 +771,7 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
         }}
         onClick={handleImageClick}
       >
-        <img src={HARBOR_IMAGE.src} alt="ميناء" className="w-full h-full"
+        <img src={harborImage.src} alt="ميناء" className="w-full h-full"
           style={{ objectFit: 'contain', pointerEvents: 'none', display: 'block' }}
           draggable={false} />
 
@@ -1048,7 +1055,6 @@ export default function GermanLetterLessonPage() {
       <ComboDisplay combo={combo} />
       <FlyingStars stars={flyingStars} />
 
-      {/* 🎯 Header - مدمج للموبايل */}
       <div className="fixed top-0 left-0 right-0 z-30"
         style={{ 
           background: 'linear-gradient(to bottom, rgba(2,5,15,0.98) 70%, transparent)',
@@ -1110,7 +1116,6 @@ export default function GermanLetterLessonPage() {
         </div>
       </div>
 
-      {/* 📱 المحتوى الرئيسي - padding متغير حسب الجهاز */}
       <div 
         className="px-2 min-h-screen flex flex-col justify-center relative" 
         style={{ 
