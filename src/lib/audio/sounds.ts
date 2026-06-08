@@ -91,3 +91,201 @@ export function playClickSound() {
     osc.stop(ctx.currentTime + 0.15);
   } catch {}
 }
+
+// ═══════════════════════════════════════
+// 🎙️ نطق الألمانية - أفضل صوت راجل (Web Speech API)
+// ═══════════════════════════════════════
+
+// قائمة بأفضل الأصوات الألمانية (راجل) بالترتيب من الأفضل للأقل
+const PREFERRED_GERMAN_VOICES = [
+  // 🥇 Google - أفضل جودة (متاح في Chrome/Edge)
+  'Google Deutsch',
+  
+  // 🥈 Microsoft Natural - جودة عالية جداً (Edge/Windows 11)
+  'Microsoft Conrad Online (Natural) - German (Germany)',
+  'Microsoft Killian Online (Natural) - German (Germany)',
+  'Microsoft Bernd Online (Natural) - German (Germany)',
+  
+  // 🥉 Microsoft Desktop - جودة كويسة (Windows)
+  'Microsoft Stefan - German (Germany)',
+  'Microsoft Stefan Desktop - German',
+  'Microsoft Stefan',
+  
+  // 🍎 Apple - جودة ممتازة (Mac/iOS/iPhone)
+  'Markus',           // أفضل صوت راجل ألماني على Apple
+  'Yannick',
+  
+  // 🎯 أصوات بديلة
+  'Stefan',
+  'Conrad',
+  'Hans',
+  'Bernd',
+  'Killian',
+];
+
+let cachedVoice: SpeechSynthesisVoice | null = null;
+let voicesReady = false;
+
+/**
+ * تحميل الأصوات (بعض المتصفحات بتحتاج وقت)
+ */
+function ensureVoicesLoaded(): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      resolve();
+      return;
+    }
+
+    if (voicesReady) {
+      resolve();
+      return;
+    }
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      voicesReady = true;
+      resolve();
+      return;
+    }
+
+    // انتظر تحميل الأصوات
+    const handler = () => {
+      voicesReady = true;
+      window.speechSynthesis.onvoiceschanged = null;
+      resolve();
+    };
+
+    window.speechSynthesis.onvoiceschanged = handler;
+
+    // Timeout بعد ثانيتين (لو ما اتحملوش)
+    setTimeout(() => {
+      voicesReady = true;
+      resolve();
+    }, 2000);
+  });
+}
+
+/**
+ * اختيار أفضل صوت ألماني (راجل)
+ */
+function getBestGermanVoice(): SpeechSynthesisVoice | null {
+  if (cachedVoice) return cachedVoice;
+  if (typeof window === 'undefined' || !window.speechSynthesis) return null;
+
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length === 0) return null;
+
+  // 1️⃣ ابحث عن صوت من القائمة المفضلة (بالترتيب)
+  for (const preferred of PREFERRED_GERMAN_VOICES) {
+    const voice = voices.find(v => v.name === preferred);
+    if (voice) {
+      cachedVoice = voice;
+      return voice;
+    }
+  }
+
+  // 2️⃣ ابحث عن أي صوت ألماني فيه كلمة "male" أو أسماء راجل
+  const maleKeywords = ['male', 'stefan', 'conrad', 'markus', 'hans', 'bernd', 'killian', 'yannick'];
+  const germanMaleVoice = voices.find(v =>
+    v.lang.startsWith('de') &&
+    maleKeywords.some(kw => v.name.toLowerCase().includes(kw))
+  );
+  if (germanMaleVoice) {
+    cachedVoice = germanMaleVoice;
+    return germanMaleVoice;
+  }
+
+  // 3️⃣ ابحث عن صوت Google ألماني (لو موجود بأي اسم)
+  const googleVoice = voices.find(v =>
+    v.lang.startsWith('de') && v.name.toLowerCase().includes('google')
+  );
+  if (googleVoice) {
+    cachedVoice = googleVoice;
+    return googleVoice;
+  }
+
+  // 4️⃣ أي صوت ألماني
+  const anyGermanVoice = voices.find(v => v.lang.startsWith('de'));
+  if (anyGermanVoice) {
+    cachedVoice = anyGermanVoice;
+    return anyGermanVoice;
+  }
+
+  return null;
+}
+
+/**
+ * النطق الفعلي
+ */
+function speak(text: string, rate: number = 0.85) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+  // إيقاف أي صوت شغّال
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'de-DE';
+  utterance.rate = rate;
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
+
+  const voice = getBestGermanVoice();
+  if (voice) utterance.voice = voice;
+
+  window.speechSynthesis.speak(utterance);
+}
+
+/**
+ * 🔤 نطق حرف ألماني (أبطأ للوضوح)
+ */
+export function speakLetter(letter: string) {
+  ensureVoicesLoaded().then(() => {
+    speak(letter, 0.7);
+  });
+}
+
+/**
+ * 📝 نطق كلمة ألمانية (سرعة عادية)
+ */
+export function speakWord(word: string) {
+  ensureVoicesLoaded().then(() => {
+    speak(word, 0.85);
+  });
+}
+
+/**
+ * 💬 نطق جملة كاملة (سرعة طبيعية)
+ */
+export function speakSentence(sentence: string) {
+  ensureVoicesLoaded().then(() => {
+    speak(sentence, 0.95);
+  });
+}
+
+/**
+ * 🛠️ Debug: عرض كل الأصوات المتاحة (للتطوير)
+ * استدعيها من Console: import('./sounds').then(m => m.debugVoices())
+ */
+export function debugVoices() {
+  if (typeof window === 'undefined') return;
+
+  ensureVoicesLoaded().then(() => {
+    const voices = window.speechSynthesis.getVoices();
+    const germanVoices = voices.filter(v => v.lang.startsWith('de'));
+    const selected = getBestGermanVoice();
+
+    console.log('🇩🇪 German Voices Available:');
+    console.table(germanVoices.map(v => ({
+      name: v.name,
+      lang: v.lang,
+      local: v.localService ? 'Local' : 'Online',
+    })));
+
+    console.log('✅ Selected Voice:', selected?.name ?? 'None found');
+  });
+}
+
+// تحميل الأصوات تلقائياً عند بدء التطبيق
+if (typeof window !== 'undefined') {
+  ensureVoicesLoaded();
+}
