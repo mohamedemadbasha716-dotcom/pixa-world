@@ -51,52 +51,105 @@ export const HARBOR_OBJECTS_DESKTOP: Record<string, Box[]> = {
 };
 
 // ═══════════════════════════════════════
-// 📱 إحداثيات الموبايل (768x1376)
+// 📱 إحداثيات الموبايل (768x1376) - مضبوطة بدقة
 // ═══════════════════════════════════════
 export const HARBOR_OBJECTS_MOBILE: Record<string, Box[]> = {
+  // 🐦 النوارس (Möwe) - 3 نوارس
   M: [
-    { x: 3, y: 1, w: 15, h: 7 },
-    { x: 60, y: 3, w: 12, h: 6 },
-    { x: 70, y: 7, w: 13, h: 6 },
+    { x: 2, y: 2, w: 18, h: 7 },      // نورس فوق يسار (طاير)
+    { x: 60, y: 2, w: 18, h: 7 },     // نورس فوق يمين (طاير)
+    { x: 78, y: 6, w: 14, h: 8 },     // نورس فوق المنارة
+    { x: 78, y: 58, w: 14, h: 10 },   // نورس على العمود (يمين أسفل)
   ],
-  K: [{ x: 15, y: 2, w: 38, h: 22 }],
-  H: [{ x: 35, y: 6, w: 12, h: 16 }],
-  L: [{ x: 70, y: 8, w: 14, h: 22 }],
-  Z: [{ x: 0, y: 18, w: 22, h: 8 }],
+
+  // 🏗️ الرافعة الزرقاء الكبيرة (Kran)
+  K: [{ x: 15, y: 2, w: 38, h: 24 }],
+
+  // 🏛️ برج الساعة (Hafen)
+  H: [{ x: 38, y: 5, w: 14, h: 15 }],
+
+  // 🗼 المنارة (Leuchtturm)
+  L: [{ x: 73, y: 5, w: 17, h: 22 }],
+
+  // 🚂 القطار (Zug)
+  Z: [{ x: 0, y: 17, w: 25, h: 8 }],
+
+  // 📦 الكونتينر (Container)
   C: [
-    { x: 38, y: 19, w: 22, h: 16 },
-    { x: 45, y: 26, w: 45, h: 8 },
+    { x: 38, y: 17, w: 23, h: 18 },   // الكونتينر الأحمر المعلق
+    { x: 50, y: 25, w: 45, h: 12 },   // الكونتينرات الملونة على السفينة
   ],
-  G: [{ x: 14, y: 26, w: 18, h: 14 }],
-  I: [{ x: 0, y: 12, w: 18, h: 12 }],
-  S: [{ x: 42, y: 24, w: 50, h: 13 }],
-  Y: [{ x: 55, y: 36, w: 35, h: 14 }],
-  D: [{ x: 38, y: 42, w: 16, h: 12 }],
-  Q: [{ x: 72, y: 47, w: 16, h: 14 }],
-  A: [{ x: 13, y: 49, w: 18, h: 13 }],
-  P: [{ x: 18, y: 57, w: 16, h: 13 }],
-  B: [{ x: 40, y: 58, w: 32, h: 13 }],
-  O: [{ x: 33, y: 66, w: 18, h: 12 }],
+
+  // 🚜 الرافعة الشوكية الصفراء (Gabelstapler)
+  G: [{ x: 14, y: 25, w: 22, h: 15 }],
+
+  // 🏛️ المباني/الجزيرة (Insel)
+  I: [{ x: 0, y: 8, w: 20, h: 15 }],
+
+  // 🚢 السفينة الكبيرة (Schiff)
+  S: [{ x: 50, y: 23, w: 45, h: 16 }],
+
+  // ⛵ اليخت الأبيض (Yacht)
+  Y: [{ x: 58, y: 36, w: 38, h: 17 }],
+
+  // 🐬 الدلفين (Delfin)
+  D: [{ x: 38, y: 42, w: 22, h: 12 }],
+
+  // 🪼 قنديل البحر (Qualle)
+  Q: [{ x: 76, y: 48, w: 18, h: 14 }],
+
+  // ⚓ المرساة (Anker)
+  A: [{ x: 10, y: 50, w: 22, h: 14 }],
+
+  // 🐧 البطريق (Pinguin)
+  P: [{ x: 18, y: 56, w: 18, h: 16 }],
+
+  // 🚣 القارب الأحمر (Boot)
+  B: [{ x: 38, y: 56, w: 34, h: 14 }],
+
+  // 🦦 القندس (Otter)
+  O: [{ x: 32, y: 65, w: 20, h: 14 }],
+
+  // 🦺 طوق النجاة (Rettungsring) + الحبل (Rope)
   R: [
-    { x: 60, y: 63, w: 8, h: 10 },
-    { x: 70, y: 88, w: 18, h: 8 },
+    { x: 60, y: 60, w: 10, h: 12 },   // طوق النجاة على القارب
+    { x: 0, y: 85, w: 15, h: 8 },     // الحبل أسفل يسار
+    { x: 70, y: 90, w: 22, h: 10 },   // الحبل الملفوف على الرصيف يمين
   ],
-  E: [{ x: 5, y: 64, w: 16, h: 12 }],
+
+  // 🪣 الدلو الأزرق (Eimer)
+  E: [{ x: 0, y: 62, w: 16, h: 13 }],
+
+  // 🕸️ الشبكة (Netz)
   N: [{ x: 13, y: 70, w: 22, h: 14 }],
+
+  // 🐟 السمك (Fisch) - 3 أسماك
   F: [
-    { x: 8, y: 64, w: 12, h: 6 },
-    { x: 16, y: 72, w: 14, h: 6 },
-    { x: 32, y: 70, w: 12, h: 6 },
+    { x: 4, y: 64, w: 12, h: 8 },     // السمكة في الدلو الأزرق
+    { x: 14, y: 72, w: 18, h: 8 },    // السمكة في الشبكة
+    { x: 30, y: 67, w: 16, h: 7 },    // السمكة مع القندس
   ],
-  X: [{ x: 42, y: 75, w: 22, h: 8 }],
-  T: [{ x: 40, y: 68, w: 12, h: 10 }],
-  U: [{ x: 3, y: 87, w: 20, h: 12 }],
-  V: [{ x: 22, y: 83, w: 8, h: 6 }],
-  J: [{ x: 30, y: 87, w: 16, h: 12 }],
+
+  // 🎹 الإكسيليفون (Xylophon)
+  X: [{ x: 42, y: 74, w: 26, h: 10 }],
+
+  // 🪣 الدلو الأحمر (Topf)
+  T: [{ x: 38, y: 68, w: 14, h: 10 }],
+
+  // 🕐 الساعة (Uhr)
+  U: [{ x: 0, y: 88, w: 20, h: 12 }],
+
+  // 🦅 العصفور الصغير (Vogel)
+  V: [{ x: 24, y: 84, w: 10, h: 6 }],
+
+  // 🧥 المعطف الأصفر (Jacke)
+  J: [{ x: 28, y: 88, w: 18, h: 12 }],
+
+  // 🌊 الموج (Welle) - مناطق مياه واضحة
   W: [
-    { x: 30, y: 48, w: 20, h: 8 },
-    { x: 50, y: 53, w: 25, h: 8 },
-    { x: 8, y: 56, w: 22, h: 6 },
+    { x: 25, y: 48, w: 25, h: 8 },    // موج عند الدلفين
+    { x: 50, y: 52, w: 30, h: 8 },    // موج عند اليخت
+    { x: 4, y: 55, w: 30, h: 6 },     // موج عند الرصيف يسار
   ],
 };
 
@@ -116,52 +169,12 @@ export const HARBOR_IMAGE_MOBILE = {
 };
 
 // ═══════════════════════════════════════
-// 🎯 الـ exports الأصلية (للتوافق مع الكود القديم)
-// بتختار تلقائياً حسب الجهاز
+// 🎯 Backward Compatibility
 // ═══════════════════════════════════════
+export const HARBOR_OBJECTS = HARBOR_OBJECTS_DESKTOP;
+export const HARBOR_IMAGE = HARBOR_IMAGE_DESKTOP;
 
-// دالة بسيطة تكشف الموبايل
-function isMobileDevice(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.innerWidth < 768;
-}
-
-// 🎯 HARBOR_OBJECTS - بتشتغل كـ Proxy تختار حسب الجهاز
-export const HARBOR_OBJECTS = new Proxy({} as Record<string, Box[]>, {
-  get(_target, prop: string) {
-    const source = isMobileDevice() ? HARBOR_OBJECTS_MOBILE : HARBOR_OBJECTS_DESKTOP;
-    return source[prop];
-  },
-  ownKeys() {
-    const source = isMobileDevice() ? HARBOR_OBJECTS_MOBILE : HARBOR_OBJECTS_DESKTOP;
-    return Object.keys(source);
-  },
-  has(_target, prop: string) {
-    const source = isMobileDevice() ? HARBOR_OBJECTS_MOBILE : HARBOR_OBJECTS_DESKTOP;
-    return prop in source;
-  },
-  getOwnPropertyDescriptor(_target, prop: string) {
-    const source = isMobileDevice() ? HARBOR_OBJECTS_MOBILE : HARBOR_OBJECTS_DESKTOP;
-    if (prop in source) {
-      return {
-        enumerable: true,
-        configurable: true,
-        value: source[prop],
-      };
-    }
-    return undefined;
-  },
-});
-
-// 🎯 HARBOR_IMAGE - بيختار الصورة حسب الجهاز
-export const HARBOR_IMAGE = new Proxy(HARBOR_IMAGE_DESKTOP, {
-  get(_target, prop: string) {
-    const source = isMobileDevice() ? HARBOR_IMAGE_MOBILE : HARBOR_IMAGE_DESKTOP;
-    return source[prop as keyof typeof source];
-  },
-});
-
-// 🆕 دوال إضافية (لو احتجتها)
+// 🆕 دوال جديدة تختار حسب الجهاز
 export function getHarborImage(isMobile: boolean) {
   return isMobile ? HARBOR_IMAGE_MOBILE : HARBOR_IMAGE_DESKTOP;
 }
