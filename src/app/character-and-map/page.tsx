@@ -79,7 +79,7 @@ const LANDMARKS_BASE = [
 ];
 
 // ═══════════════════════════════════════
-// 🖥️ إحداثيات الديسكتوب (الصورة الأفقية)
+// 🖥️ إحداثيات الديسكتوب
 // ═══════════════════════════════════════
 const COORDS_DESKTOP: Record<string, { centerX: number; centerY: number; clickArea: { x: number; y: number; w: number; h: number } }> = {
   hamburg:        { centerX: 41, centerY: 9,  clickArea: { x: 35, y: 3,  w: 13, h: 14 } },
@@ -91,7 +91,7 @@ const COORDS_DESKTOP: Record<string, { centerX: number; centerY: number; clickAr
 };
 
 // ═══════════════════════════════════════
-// 📱 إحداثيات الموبايل (الصورة العمودية)
+// 📱 إحداثيات الموبايل
 // ═══════════════════════════════════════
 const COORDS_MOBILE: Record<string, { centerX: number; centerY: number; clickArea: { x: number; y: number; w: number; h: number } }> = {
   hamburg:        { centerX: 60, centerY: 12, clickArea: { x: 40, y: 5,  w: 45, h: 16 } },
@@ -157,12 +157,9 @@ export default function CharacterAndMapPage() {
   const [isMobileView, setIsMobileView] = useState(false);
   const [mounted, setMounted] = useState(false);
   
+  // 🔍 Zoom فقط (شيلنا الـ pan)
   const [mapScale, setMapScale] = useState(1);
-  const [mapPosition, setMapPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
   const pinchStart = useRef({ distance: 0, scale: 1 });
-  const hasDragged = useRef(false);
   
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -273,7 +270,6 @@ export default function CharacterAndMapPage() {
 
   useEffect(() => {
     setMapScale(1);
-    setMapPosition({ x: 0, y: 0 });
   }, [isMobileView, step]);
 
   const isLocked = (lesson: number) => lesson > unlockedLesson;
@@ -308,10 +304,6 @@ export default function CharacterAndMapPage() {
 
   const handleLandmarkClick = (landmark: typeof LANDMARKS[0]) => {
     if (debugMode) return;
-    if (hasDragged.current) {
-      hasDragged.current = false;
-      return;
-    }
     if (isLocked(landmark.lesson)) {
       playLockedSound();
       return;
@@ -335,39 +327,14 @@ export default function CharacterAndMapPage() {
     console.log(`📍 [${isMobileView ? '📱 MOBILE' : '🖥️ DESKTOP'}] Clicked at: x=${x.toFixed(1)}%, y=${y.toFixed(1)}%`);
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (debugMode || e.button !== 0) return;
-    setIsDragging(true);
-    hasDragged.current = false;
-    dragStart.current = {
-      x: e.clientX,
-      y: e.clientY,
-      posX: mapPosition.x,
-      posY: mapPosition.y,
-    };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || debugMode) return;
-    const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-      hasDragged.current = true;
-    }
-    setMapPosition({
-      x: dragStart.current.posX + dx,
-      y: dragStart.current.posY + dy,
-    });
-  };
-
-  const handleMouseUp = () => setIsDragging(false);
-
+  // 🔍 Mouse Wheel Zoom فقط
   const handleWheel = (e: React.WheelEvent) => {
     if (debugMode) return;
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setMapScale(prev => Math.max(0.5, Math.min(3, prev + delta)));
+    setMapScale(prev => Math.max(0.8, Math.min(2.5, prev + delta)));
   };
 
+  // 📱 Pinch Zoom فقط (مفيش drag)
   const getDistance = (touches: React.TouchList) => {
     const dx = touches[0].clientX - touches[1].clientX;
     const dy = touches[0].clientY - touches[1].clientY;
@@ -376,18 +343,7 @@ export default function CharacterAndMapPage() {
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (debugMode) return;
-    
-    if (e.touches.length === 1) {
-      setIsDragging(true);
-      hasDragged.current = false;
-      dragStart.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-        posX: mapPosition.x,
-        posY: mapPosition.y,
-      };
-    } else if (e.touches.length === 2) {
-      setIsDragging(false);
+    if (e.touches.length === 2) {
       pinchStart.current = {
         distance: getDistance(e.touches),
         scale: mapScale,
@@ -397,33 +353,21 @@ export default function CharacterAndMapPage() {
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (debugMode) return;
-    
-    if (e.touches.length === 1 && isDragging) {
-      const dx = e.touches[0].clientX - dragStart.current.x;
-      const dy = e.touches[0].clientY - dragStart.current.y;
-      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-        hasDragged.current = true;
-      }
-      setMapPosition({
-        x: dragStart.current.posX + dx,
-        y: dragStart.current.posY + dy,
-      });
-    } else if (e.touches.length === 2) {
+    if (e.touches.length === 2) {
       const currentDistance = getDistance(e.touches);
       const scaleChange = currentDistance / pinchStart.current.distance;
-      const newScale = Math.max(0.5, Math.min(3, pinchStart.current.scale * scaleChange));
+      const newScale = Math.max(0.8, Math.min(2.5, pinchStart.current.scale * scaleChange));
       setMapScale(newScale);
     }
   };
 
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
-
   const resetMapView = () => {
     setMapScale(1);
-    setMapPosition({ x: 0, y: 0 });
   };
+
+  // 🎯 أزرار الزووم
+  const zoomIn = () => setMapScale(prev => Math.min(2.5, prev + 0.2));
+  const zoomOut = () => setMapScale(prev => Math.max(0.8, prev - 0.2));
 
   if (!mounted) {
     return (
@@ -545,25 +489,8 @@ export default function CharacterAndMapPage() {
           ← تعديل
         </button>
 
-        <div className="flex items-center gap-2">
-          <AnimatePresence>
-            {(mapPosition.x !== 0 || mapPosition.y !== 0 || mapScale !== 1) && (
-              <motion.button
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                onClick={resetMapView}
-                className="flex items-center gap-1 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 rounded-2xl px-3 py-2 text-xs font-bold text-yellow-400 transition-all"
-                title="إعادة ضبط العرض"
-              >
-                🔄
-              </motion.button>
-            )}
-          </AnimatePresence>
-
-          <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
-            <div className="text-xs md:text-sm font-black text-white">👋 {heroName}</div>
-          </div>
+        <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
+          <div className="text-xs md:text-sm font-black text-white">👋 {heroName}</div>
         </div>
 
         <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
@@ -577,6 +504,38 @@ export default function CharacterAndMapPage() {
         </div>
       </div>
 
+      {/* 🎯 أزرار الزووم - ثابتة في الجانب */}
+      <div className="fixed right-3 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2">
+        <button
+          onClick={zoomIn}
+          className="w-11 h-11 rounded-2xl bg-black/50 hover:bg-black/70 border border-white/20 text-white font-black text-2xl flex items-center justify-center transition-all backdrop-blur-md shadow-lg active:scale-90"
+          title="تكبير"
+        >
+          +
+        </button>
+        <button
+          onClick={zoomOut}
+          className="w-11 h-11 rounded-2xl bg-black/50 hover:bg-black/70 border border-white/20 text-white font-black text-2xl flex items-center justify-center transition-all backdrop-blur-md shadow-lg active:scale-90"
+          title="تصغير"
+        >
+          −
+        </button>
+        <AnimatePresence>
+          {mapScale !== 1 && (
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              onClick={resetMapView}
+              className="w-11 h-11 rounded-2xl bg-yellow-500/30 hover:bg-yellow-500/50 border border-yellow-500/50 text-yellow-300 font-black flex items-center justify-center transition-all backdrop-blur-md shadow-lg active:scale-90 text-lg"
+              title="إعادة ضبط"
+            >
+              🔄
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
+
       <div 
         className="w-full min-h-screen flex items-center justify-center bg-[#07090D] overflow-hidden" 
         style={{ paddingTop: debugMode ? '96px' : '64px' }}
@@ -584,25 +543,19 @@ export default function CharacterAndMapPage() {
         <div 
           ref={mapRef}
           onClick={handleMapClickForDebug}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
           onWheel={handleWheel}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           className="relative"
           style={{
             width: '100%',
             maxWidth: isMobileView ? '100vw' : '100%',
             height: isMobileView ? 'calc(100vh - 64px)' : 'auto',
             aspectRatio: isMobileView ? 'auto' : '16 / 9',
-            cursor: debugMode ? 'crosshair' : (isDragging ? 'grabbing' : 'grab'),
-            touchAction: 'manipulation',
-            transform: `scale(${mapScale}) translate(${mapPosition.x / mapScale}px, ${mapPosition.y / mapScale}px)`,
+            cursor: debugMode ? 'crosshair' : 'default',
+            transform: `scale(${mapScale})`,
             transformOrigin: 'center center',
-            transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+            transition: 'transform 0.25s ease-out',
           }}
         >
           <img 
@@ -931,7 +884,7 @@ export default function CharacterAndMapPage() {
                 <div className="flex-1 text-right">
                   <div className="text-[10px] font-bold text-[#4CC9F0]">كارل النسر</div>
                   <p className="text-[11px] text-white/80 leading-tight font-medium">
-                    أهلاً <strong className="text-white">{heroName}</strong>! 🖐️ اسحب + 🤏 صوبعين للزووم
+                    أهلاً <strong className="text-white">{heroName}</strong>! استخدم 🔍 للتكبير
                   </p>
                 </div>
               </div>
