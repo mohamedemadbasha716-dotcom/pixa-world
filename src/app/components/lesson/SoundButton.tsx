@@ -8,12 +8,14 @@ interface SoundButtonProps {
   color: string;
   label: string;
   combo?: number;
+  position?: string;
 }
 
-export default function SoundButton({ onClick, color, label, combo }: SoundButtonProps) {
+export default function SoundButton({ onClick, color, label, combo, position }: SoundButtonProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   
   void combo;
+  void position;
 
   const handleClick = () => {
     setIsPlaying(true);
