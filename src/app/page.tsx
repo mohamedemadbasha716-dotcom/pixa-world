@@ -365,28 +365,78 @@ export default function PixiHomePage() {
         </motion.div>
 
         {/* 🎯 العنوان الرئيسي - النسخة المتنسقة */}
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="font-black leading-[1.3] space-y-3"
-        >
-          <div className="text-2xl md:text-4xl text-white drop-shadow-2xl">
-            خلي طفلك يتكلم
-          </div>
-          <div className="text-5xl md:text-7xl bg-clip-text text-transparent bg-gradient-to-r from-[#FF4D6D] via-[#F72585] to-[#9D4EDD] drop-shadow-[0_0_30px_rgba(247,37,133,0.5)]">
-            5 لغات نادرة
-          </div>
-          <div className="text-2xl md:text-4xl text-white drop-shadow-2xl flex items-center justify-center gap-3">
-            <span>قبل ما يدخل إعدادي</span>
-            <motion.span
-              animate={{ y: [0, -10, 0], rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              🚀
-            </motion.span>
-          </div>
-        </motion.h1>
+<motion.div
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.4 }}
+  className="space-y-6 py-4"
+>
+  {/* السطر الأول */}
+  <motion.h2
+    initial={{ opacity: 0, x: -30 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ delay: 0.5 }}
+    className="text-3xl md:text-5xl font-black text-white drop-shadow-2xl"
+    style={{ textShadow: '0 2px 20px rgba(255,255,255,0.2)' }}
+  >
+    خلي طفلك يتكلم
+  </motion.h2>
+
+  {/* السطر الثاني - الكلمة الرئيسية */}
+  <motion.div
+    initial={{ opacity: 0, scale: 0.8 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ delay: 0.7, type: 'spring', stiffness: 200 }}
+    className="relative inline-block"
+  >
+    {/* توهج خلفي */}
+    <div 
+      className="absolute inset-0 blur-3xl opacity-50"
+      style={{ background: 'linear-gradient(90deg, #FF4D6D, #F72585, #9D4EDD)' }}
+    />
+    
+    <h1 
+      className="relative text-6xl md:text-8xl font-black bg-clip-text text-transparent leading-none px-4"
+      style={{ 
+        backgroundImage: 'linear-gradient(135deg, #FF4D6D, #F72585, #9D4EDD)',
+        WebkitTextStroke: '1px rgba(255,255,255,0.1)',
+        filter: 'drop-shadow(0 0 40px rgba(247,37,133,0.6))',
+      }}
+    >
+      5 لغات نادرة
+    </h1>
+  </motion.div>
+
+  {/* السطر الثالث */}
+  <motion.div
+    initial={{ opacity: 0, x: 30 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ delay: 0.9 }}
+    className="flex items-center justify-center gap-3 flex-wrap"
+  >
+    <h2 
+      className="text-3xl md:text-5xl font-black text-white drop-shadow-2xl"
+      style={{ textShadow: '0 2px 20px rgba(255,255,255,0.2)' }}
+    >
+      قبل ما يدخل إعدادي
+    </h2>
+    <motion.span
+      className="text-4xl md:text-5xl inline-block"
+      animate={{ 
+        y: [0, -15, 0], 
+        rotate: [0, 15, -15, 0],
+      }}
+      transition={{ 
+        duration: 2, 
+        repeat: Infinity,
+        ease: 'easeInOut',
+      }}
+      style={{ filter: 'drop-shadow(0 0 15px rgba(255,77,109,0.6))' }}
+    >
+      🚀
+    </motion.span>
+  </motion.div>
+</motion.div>
 
         {/* 🌍 الرسالة الذهبية - النسخة المحسّنة */}
         <motion.div
