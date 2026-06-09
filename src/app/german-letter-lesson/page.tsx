@@ -502,8 +502,9 @@ function SidePanel({
       {/* 2️⃣ Letters checkmarks */}
       <div className="flex gap-1 justify-center flex-wrap px-1">
         {group.letters.map((l: any, i: number) => {
-          const isDone = phase === 'test' || phase === 'group-success' || i < letterIdx || (i === letterIdx && phase === 'learn-word');
-          const isCurrent = i === letterIdx;
+  const currentPhase: Phase = phase;
+  const isDone = currentPhase === 'group-success' || i < letterIdx || (i === letterIdx && currentPhase === 'learn-word');
+  const isCurrent = i === letterIdx;
           return (
             <div key={l.letter}
               className="w-7 h-7 text-[10px] rounded-lg flex items-center justify-center font-black border-2 flex-shrink-0"
