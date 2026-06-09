@@ -1,0 +1,500 @@
+# 🌍 PIXA WORLD - منصة تعليم اللغات للأطفال
+## التوثيق الشامل للمشروع
+
+---
+
+## 📌 نظرة عامة
+
+**اسم المشروع:** Pixa World  
+**النوع:** Next.js 14+ (App Router) + TypeScript + Tailwind CSS  
+**اللغة الرئيسية:** عربي (RTL)  
+**الهدف:** منصة تفاعلية لتعليم اللغة الألمانية للأطفال (6-11 سنة) بأسلوب ألعاب  
+**الفئة المستهدفة:** أطفال + أهالي  
+**Backend:** Supabase (Database + Auth via device_id)  
+**Animation:** Framer Motion  
+**Icons:** Lucide React  
+
+### اللغات المخطط لها:
+- 🇩🇪 الألمانية (متاحة حالياً)
+- 🇪🇸 الإسبانية (قريباً)
+- 🇷🇺 الروسية (قريباً)
+- 🇯🇵 اليابانية (قريباً)
+- 🇨🇳 الصينية (قريباً)
+
+---
+
+## 🗂️ هيكل المشروع
+
+```
+pixa-world/
+├── public/
+│   ├── books/           # صور كتب اللغات
+│   ├── characters/      # شخصيات (karl-3d, boy-3d, girl-3d)
+│   ├── images/          # صور الدروس (harbor-hamburg, forest-scene...)
+│   ├── maps/            # خرائط (german-map, map-mobile)
+│   ├── videos/          # فيديوهات (karl-intro, cover-video)
+│   └── partners/, books/
+│
+├── src/
+│   ├── app/
+│   │   ├── page.tsx                      # الصفحة الرئيسية (Landing)
+│   │   ├── layout.tsx                    # Root Layout
+│   │   ├── globals.css
+│   │   ├── character-and-map/page.tsx    # اختيار البطل + الخريطة
+│   │   ├── coming-soon/page.tsx          # صفحة "قريباً" للغات
+│   │   ├── german-letter-lesson/page.tsx # درس الحروف (هامبورج)
+│   │   ├── german-number-lesson/page.tsx # درس الأرقام (كولونيا)
+│   │   ├── german-forest/page.tsx        # درس الغابة (المركز)
+│   │   ├── german-family/page.tsx        # درس العائلة (برلين)
+│   │   ├── german-lake-lesson/page.tsx   # درس البحيرة
+│   │   ├── german-castle-lesson/page.tsx # درس القلعة
+│   │   ├── levels/[levelId]/page.tsx     # دروس قصصية (Dynamic Route)
+│   │   ├── components/
+│   │   │   ├── WordBuilder.tsx
+│   │   │   └── lesson/
+│   │   │       ├── KarlEagle.tsx
+│   │   │       ├── GhostInput.tsx
+│   │   │       ├── ConfettiBurst.tsx
+│   │   │       ├── ComboDisplay.tsx
+│   │   │       ├── FlyingStars.tsx
+│   │   │       ├── SoundButton.tsx
+│   │   │       └── SpecialCharsKeyboard.tsx
+│   │   ├── coming-soon/, components/
+│   │
+│   ├── data/german/
+│   │   ├── letters.ts          # حروف A-Z + كلمات
+│   │   ├── numbers.ts          # أرقام 1-10
+│   │   ├── forest.ts           # فواكه/خضروات/حيوانات/ألوان
+│   │   ├── family.ts           # تحيات/تعارف/عائلة
+│   │   ├── lake.ts             # طقس/أيام أسبوع/طبيعة
+│   │   ├── castle.ts           # جمل كاملة
+│   │   └── harbor-objects.ts   # إحداثيات الميناء
+│   │
+│   ├── lib/
+│   │   ├── supabase.ts         # إعداد Supabase Client
+│   │   ├── playerData.ts       # CRUD للاعب والتقدم
+│   │   ├── audio/
+│   │   │   ├── sounds.ts       # Sound Effects
+│   │   │   └── speech.ts       # TTS Functions
+│   │   └── types/lesson.ts     # KarlMood + ENCOURAGEMENTS + SAD_MESSAGES
+│   │
+│   └── levels.ts               # تعريف المستويات الأساسية
+```
+
+---
+
+## 🗺️ خريطة الرحلة التعليمية (6 معالم)
+
+| # | المعلم | LESSON_ID | الموقع | المحتوى | المسار |
+|---|--------|-----------|--------|---------|--------|
+| 1️⃣ | ⚓ ميناء هامبورج | `hamburg` | هامبورج | الحروف A-Z | `/german-letter-lesson` |
+| 2️⃣ | ⛪ كاتدرائية كولونيا | `cologne` | كولونيا | الأرقام 1-10 | `/german-number-lesson` |
+| 3️⃣ | 🏠 قرية الغابة | `center` | الوسط | الفواكه/خضار/حيوانات/ألوان | `/german-forest` |
+| 4️⃣ | 🏛️ بوابة براندنبورغ | `berlin` | برلين | تحيات/تعارف/عائلة | `/german-family` |
+| 5️⃣ | 🏞️ بحيرة الملوك | `lake` | جنوب | طقس/أيام أسبوع/طبيعة | `/german-lake-lesson` |
+| 6️⃣ | 🏰 قلعة نويشفانشتاين | `neuschwanstein` | بافاريا | جمل كاملة + نطق | `/german-castle-lesson` |
+
+**القفل التلقائي:** كل درس يفتح بعد إكمال اللي قبله.
+
+---
+
+## 🎨 الشخصيات
+
+- **كارل النسر** 🦅 (Karl) - الشخصية الإرشادية، يصاحب الطفل في كل الدروس
+  - Moods: `idle`, `happy`, `sad`, `celebrate`
+  - رسائل تشجيع: `ENCOURAGEMENTS[]`
+  - رسائل حزينة: `SAD_MESSAGES[]`
+- **البطل الشجاع** (boy-3d.png) - اختيار اللاعب
+- **البطلة العبقرية** (girl-3d.png) - اختيار اللاعب
+- **الحارس** 💬 + **الراوي** 📜 (في الدروس القصصية)
+
+---
+
+## 💾 نظام حفظ البيانات (Supabase)
+
+### Tables:
+1. **`players`** - بيانات اللاعب
+   ```ts
+   {
+     id, hero_name, hero_type, 
+     current_lesson, total_stars, xp, 
+     device_id
+   }
+   ```
+
+2. **`lesson_progress`** - تقدم كل درس
+   ```ts
+   {
+     id, device_id, lesson_id,
+     stars (1-3), completed,
+     completed_at, updated_at,
+     current_group, current_letter, current_phase
+   }
+   ```
+
+### Device ID System:
+- تتولّد ID فريد للجهاز ويتخزن في `localStorage`
+- مفيش حاجة authentication - معتمد على الجهاز
+
+### الدوال الرئيسية في `playerData.ts`:
+- `getDeviceId()` - توليد/جلب ID
+- `savePlayer(name, type)` - حفظ/تحديث لاعب
+- `getPlayer()` - جلب اللاعب الحالي
+- `saveLessonProgress(lessonId, stars, completed, position?)` - حفظ تقدم درس
+- `getLessonProgress(lessonId)` - جلب تقدم درس واحد
+- `getAllProgress()` - جلب كل التقدم
+- `isLessonUnlocked(lessonId)` - فحص القفل
+- `getCurrentLessonId()` - أول درس مش مكتمل
+- `getTotalStarsFromLessons()` - مجموع النجوم
+- `updatePlayerProgress(currentLesson, totalStars, xp)`
+
+### نظام النجوم (Rating من 3):
+```ts
+calculateRating(starsCount):
+  if (progressRatio >= 0.67) return 3
+  if (progressRatio >= 0.34) return 2
+  return 1
+
+// إكمال الدرس بالكامل = 3 نجوم تلقائياً
+```
+
+---
+
+## 🎯 مكونات الدروس المشتركة (`components/lesson/`)
+
+1. **`KarlEagle`** - شخصية كارل المتحركة (mood + message)
+2. **`GhostInput`** - input بـ ghost text + شيك أخضر/أحمر + status
+3. **`ConfettiBurst`** - انفجار كونفيتي عند الإجابة الصح
+4. **`ComboDisplay`** - عرض الـ combo (3, 5, 7...)
+5. **`FlyingStars`** - نجوم تطير من نقطة إلى مكان النجوم
+6. **`SoundButton`** - زرار "استمع" بالألوان
+7. **`SpecialCharsKeyboard`** - كيبورد للحروف الخاصة (ä, ö, ü, ß)
+   - `getRequiredSpecialChars(word)` - استخراج الحروف اللي محتاجها
+
+---
+
+## 🔊 نظام الصوت
+
+### `sounds.ts` - Sound Effects (Web Audio API):
+- `playCoinSound()` - عملة (نجاح)
+- `playBuzzSound()` - خطأ
+- `playComboSound()` - كومبو
+- `playRoyalSound()` - ملكي (نهاية الدرس)
+- `playClickSound()` - ضغطة زر
+
+### `speech.ts` - Text-to-Speech (German):
+- `speak(text, options)` - أساسية
+- `speakLetter(letter)` - حرف (rate: 0.6)
+- `speakWord(word)` - كلمة (rate: 0.7)
+- `speakNumber(text)` - رقم (rate: 0.65)
+- `speakSentence(sentence)` - جملة (rate: 0.75)
+
+### اختيار أفضل صوت ألماني (راجل):
+**الترتيب من الأفضل:**
+1. 🥇 Google Deutsch
+2. 🥈 Microsoft Natural (Conrad, Killian, Bernd)
+3. 🥉 Microsoft Stefan (Desktop)
+4. 🍎 Apple Markus, Yannick
+5. أصوات بديلة: Stefan, Conrad, Hans...
+
+---
+
+## 📚 بيانات الدروس (Data Files)
+
+### 1. `letters.ts` (الحروف)
+- **26 حرف** (A-Z) كل واحد فيه:
+  - `letter, word, wordAr, emoji, color, gradient[]`
+- **5 مجموعات:** 6+6+6+6+2 حرف
+- مثال: A → Anker (مرساة) ⚓
+
+### 2. `numbers.ts` (الأرقام)
+- **10 أرقام** (1-10) كل واحد فيه:
+  - `num, de, ar, emoji, objAr, color, gradient[]`
+- **مجموعتين:** 5 + 5
+
+### 3. `forest.ts` (الغابة)
+- **4 أقسام × 8 كلمات = 32 كلمة:**
+  - 🍎 Früchte (فواكه)
+  - 🥕 Gemüse (خضروات)
+  - 🦊 Tiere (حيوانات)
+  - 🎨 Farben (ألوان)
+- كل قسم فيه: `accentColor, gradient, bgColors, particleEmoji`
+
+### 4. `family.ts` (العائلة)
+- **3 مجموعات:**
+  - 👋 GREETINGS (6 تحيات)
+  - 😊 INTRODUCTIONS (6 تعارف)
+  - 👨‍👩‍👧 FAMILY (8 أفراد)
+
+### 5. `lake.ts` (البحيرة) - 3 مجموعات بـ 3 أنواع اختبارات
+- 🌤️ Wetter (طقس) - testType: `quiz`
+- 📅 Wochentage (أيام أسبوع) - testType: `order`
+- 🏔️ Natur (طبيعة) - testType: `match`
+
+### 6. `castle.ts` (القلعة) - جمل كاملة Dynamic
+- **3 مجموعات × 4 جمل = 12 جملة**
+- الجمل بتاخد اسم اللاعب كـ parameter
+- مثال: `(n) => \`Ich heiße ${n}\``
+
+### 7. `harbor-objects.ts` (إحداثيات الميناء)
+- **نسختين:** Desktop (1537×1023) + Mobile (768×1376)
+- كل حرف A-Z مربوط بـ Box(es) على الصورة
+- helpers: `getHarborImage(isMobile)`, `getHarborObjects(isMobile)`
+
+---
+
+## 🎮 أنواع الاختبارات في الدروس
+
+### 1. **Harbor Test** (هامبورج)
+- صورة الميناء + click على الحرف الصح
+- showHint بيلون الأماكن
+- 5 أخطاء = فشل
+
+### 2. **Match Game** (كولونيا - الأرقام)
+- Drag & Drop رقم ↔ كلمة ألماني
+- Touch support كامل (clone elements)
+
+### 3. **Forest Test** (الغابة)
+- ابحث في صورة الغابة عن العنصر
+- في قسم الألوان: أي عنصر باللون يكون صح
+
+### 4. **Quiz Test** (متعدد الاستخدامات)
+- Multiple choice (4 خيارات)
+- 5-6 أسئلة، 3 أخطاء = فشل
+
+### 5. **Order Test** (أيام الأسبوع)
+- ترتيب من الاثنين للأحد بـ Drag & Drop
+
+### 6. **Match Test** (الطبيعة)
+- Matching كلمة بإيموجي
+
+### 7. **WordBuilder** (القلعة)
+- ترتيب كلمات لتكوين جملة كاملة
+
+### 8. **Speaking Practice** (القلعة فقط)
+- Web Speech API (de-DE)
+- مقارنة بنسبة تشابه (≥60% = نجاح)
+- إمكانية التخطي بعد محاولتين
+
+---
+
+## 🎨 المراحل (Phases) في كل درس
+
+```ts
+// الحروف:
+'learn-letter' → 'learn-word' → 'test' → 'group-success' / 'group-fail' → 'all-done'
+
+// الأرقام:
+'listen' → 'write' → 'test'
+
+// الغابة:
+'learn' → 'test' → 'section-success' / 'section-fail' → 'all-done'
+
+// العائلة:
+'learn-word' → 'quiz' → 'group-success' / 'group-fail' → 'all-done'
+
+// البحيرة:
+'learn-word' → 'test' → 'group-success' / 'group-fail' → 'all-done'
+
+// القلعة:
+'learn' (WordBuilder) → 'speak' (Voice) → 'group-success' → 'all-done'
+```
+
+**استرجاع المكان:** كل phase + group + letter بيتم حفظهم في Supabase وعند العودة بيرجع المستخدم لنفس النقطة.
+
+---
+
+## 📱 Responsive Design
+
+- **Hook:** `useIsMobile(breakpoint=768)`
+- **Detection:** `isMobile && isPortrait`
+- **Layouts:** مختلفة تماماً للموبايل والديسكتوب
+- **Harbor Test على الموبايل:**
+  - SidePanel فوق
+  - الصورة 60vh تحت
+- **Harbor Test على الديسكتوب:**
+  - الصورة flex-1
+  - SidePanel 240px جانبي
+- **خرائط مختلفة:** `german-map.png` / `map-mobile.jpeg`
+- **إحداثيات مختلفة للمعالم:** `COORDS_DESKTOP` / `COORDS_MOBILE`
+- **Pan & Zoom:** على الديسكتوب فقط (mouse drag + wheel)
+
+---
+
+## 🎬 صفحة Character-and-Map
+
+### 3 خطوات (steps):
+1. **`setup`** - اختيار الاسم والشخصية
+2. **`video`** - فيديو تعريفي لكارل (karl-intro.mp4)
+3. **`map`** - الخريطة التفاعلية
+
+### مميزات الخريطة:
+- 6 معالم بمواقع محددة بالنسب المئوية
+- Hover effects + glow ellipses
+- نجوم فوق كل معلم (1-3)
+- أقفال على الدروس المغلقة
+- كارل النسر يتحرك للمعلم الحالي
+- Modal تفاصيل عند الضغط
+- زرار "ابدأ المغامرة" / "أكمل تقدمك" / "العب تاني"
+- Debug Mode: `?debug=1` لمعرفة الإحداثيات
+- زرار إعادة ضبط الزوم/البان
+
+---
+
+## 🎯 صفحة Coming Soon
+
+- Dynamic content حسب اللغة المختارة (`?lang=spanish`)
+- 4 لغات: spanish, russian, japanese, chinese
+- تسجيل إيميل للإشعار (TODO: حفظ في Supabase)
+- خلفية متحركة بإيموجي اللغة
+- زرار "ابدأ تعلم الألمانية" CTA
+
+---
+
+## 🏠 الصفحة الرئيسية (Landing)
+
+### 8 أقسام:
+1. **Header** - تسجيل دخول + Logo
+2. **Hero** - "خلي طفلك يتكلم 5 لغات نادرة قبل ما يدخل إعدادي 🚀"
+3. **Video Cover** - فيديو ترويجي مع auto-unmute
+4. **Marketing Messages** - 6 رسائل تسويقية بـ icons
+5. **Books Grid** - 5 كتب لغات (الألماني متاح + 4 قريباً)
+6. **Testimonials** - آراء الأهالي (auto-rotate كل 4 ثواني)
+7. **CTA** - "ابدأ المغامرة"
+8. **Footer** - روابط + سوشيال + اللغات
+
+### Components:
+- `FloatingParticles` - bubbles + particles + shapes + sparkles
+- اختيار اللغة → routing لـ `/character-and-map` أو `/coming-soon`
+
+---
+
+## 🎁 دروس قصصية (Story Mode)
+
+في `/levels/[levelId]/page.tsx`:
+- نظام مشاهد (Scenes) بدلاً من الدروس العادية
+- 3 أنواع steps: `dialog`, `challenge`, `reward`
+- شخصيات: karl, guard, narrator
+- مثال:
+  - **Hamburg:** بوابة الميناء + سوق
+  - **Cologne:** أمام الكاتدرائية
+- Choice-based gameplay (الطفل يختار الرد الصح)
+- Reward XP بعد المشهد
+
+---
+
+## ⚙️ إعدادات Next.js
+
+### `layout.tsx`:
+- خطوط Geist Sans + Mono
+- `<html lang="ar" dir="rtl">`
+- Viewport: maxScale=1, themeColor="#07090D"
+- Metadata: "Pixa World - تعلم الألمانية"
+
+### Routing:
+- App Router (Next.js 14+)
+- Dynamic routes للدروس القصصية
+
+---
+
+## 🔧 المميزات التقنية
+
+✅ **حفظ التقدم تلقائياً** - بعد كل خطوة  
+✅ **استرجاع المكان** - من Supabase عند العودة  
+✅ **Responsive كامل** - موبايل وديسكتوب  
+✅ **Touch Support** - drag & drop على الموبايل  
+✅ **Web Speech API** - TTS بالألماني + نطق الطفل  
+✅ **Web Audio API** - Sound Effects بدون ملفات  
+✅ **Auto-unlock** - الدرس يفتح بعد إكمال السابق  
+✅ **Rating System** - 1-3 نجوم بناءً على التقدم  
+✅ **Karl Reactions** - mood + messages تشجيعية  
+✅ **Combo System** - 3/5/7 يطلع صوت  
+✅ **Confetti Effects** - عند النجاح  
+✅ **Special Chars Keyboard** - للحروف الألمانية الخاصة  
+✅ **Debug Mode** - `?debug=1` لمعرفة إحداثيات الخريطة  
+✅ **Karl Eagle Animation** - يتحرك بين المعالم  
+
+---
+
+## 📦 المكتبات المستخدمة
+
+```json
+{
+  "framer-motion": "للحركات",
+  "lucide-react": "للأيقونات",
+  "@supabase/supabase-js": "للداتابيز",
+  "next": "14+ App Router",
+  "react": "18+",
+  "typescript": "5+",
+  "tailwindcss": "للستايل"
+}
+```
+
+---
+
+## 🚀 Environment Variables
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+---
+
+## 🎯 المستويات في `levels.ts`
+
+```ts
+[
+  { id: 'forest',      title: 'غابة الحروف',     bg: '#07090D', lessons: [1-10] },
+  { id: 'frozen-lake', title: 'البحيرة المتجمدة', bg: '#1A2A6C', lessons: [11-15] },
+  { id: 'restaurant',  title: 'المطعم',          bg: '#D35400', lessons: [16-20] },
+  { id: 'city',        title: 'المدينة',         bg: '#2C3E50', lessons: [21-25] }
+]
+```
+
+---
+
+## 📝 ملاحظات مهمة للمطور
+
+1. **تكرار `castle.ts`** - فيه نفس المحتوى مرتين، محتاج تنظيف
+2. **تعارض `speak` functions** - معرّفة في ملفين (`speech.ts` و `sounds.ts`)
+3. **layout.tsx** - مكرر مرتين
+4. **localStorage fallback** - لو Supabase فشل
+5. **device_id** - مهم جداً، لا تمسحه من localStorage
+6. **Karl Eagle** - يحتاج صورة في `/characters/karl-3d.png`
+
+---
+
+## 🎨 الألوان الرئيسية
+
+| اللون | الـ Hex | الاستخدام |
+|------|---------|----------|
+| 🔵 أزرق | `#4CC9F0` | هامبورج (الميناء) |
+| 🩷 وردي | `#F72585` | كولونيا (الكاتدرائية) |
+| 🟣 بنفسجي | `#7209B7` | الغابة |
+| 🟡 ذهبي | `#FFD700` | برلين (بوابة براندنبورغ) |
+| 🟢 أخضر بحري | `#06D6A0` | البحيرة |
+| 🟢 أخضر | `#58CC02` | القلعة |
+
+---
+
+## ✅ Checklist للنشر (Production)
+
+- [ ] إعداد Supabase Tables (`players`, `lesson_progress`)
+- [ ] رفع كل الصور في `/public`
+- [ ] رفع الفيديوهات (`karl-intro.mp4`, `cover-video.mp4`)
+- [ ] إضافة `.env.local`
+- [ ] اختبار TTS على المتصفحات المختلفة
+- [ ] اختبار Touch على موبايل حقيقي
+- [ ] فحص جميع المسارات بين الدروس
+- [ ] اختبار حفظ واسترجاع التقدم
+
+---
+
+## 📞 الخلاصة
+
+**Pixa World** هي منصة تعليمية متكاملة لتعليم اللغة الألمانية للأطفال بأسلوب ألعاب تفاعلي، فيها 6 دروس بشخصيات وخريطة تفاعلية ونظام تقدم متطور ومحتوى صوتي ونطق فعلي. المشروع جاهز للتوسعة بإضافة لغات جديدة بنفس الـ structure.
+
+---
+
+**🦅 صنع بحب من فريق Pixa World**

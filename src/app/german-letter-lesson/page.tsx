@@ -802,11 +802,14 @@ function HarborTest({
 
   return (
     <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      className="w-full"
-      style={{ height: isMobile ? 'auto' : 'calc(100vh - 30px)' }}
-    >
+  initial={{ opacity: 0 }} 
+  animate={{ opacity: 1 }} 
+  className="w-full"
+  style={{ 
+    height: isMobile ? 'auto' : 'calc(100vh - 20px)',
+    maxWidth: '100vw',
+  }}
+>
       {isMobile ? (
         <div className="flex flex-col gap-2 px-2">
           <SidePanel 
@@ -832,7 +835,7 @@ function HarborTest({
           <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
       ) : (
-        <div className="flex gap-3 h-full px-3" style={{ flexDirection: 'row-reverse' }}>
+  <div className="flex gap-2 h-full" style={{ flexDirection: 'row-reverse', paddingRight: '8px', paddingLeft: '0px' }}>
   {/* الصورة - تاخد المساحة الأكبر */}
   <div className="flex-1 min-w-0 h-full">
     {ImageBox}
@@ -1131,13 +1134,15 @@ export default function GermanLetterLessonPage() {
       )}
 
       <div 
-        className={`${isMobile ? 'px-1' : 'px-0'} min-h-screen flex flex-col relative`}
-        style={{ 
-          zIndex: 10,
-          paddingTop: phase === 'test' ? '15px' : (isMobile ? '110px' : '105px'),
-          paddingBottom: '15px',
-          justifyContent: phase === 'test' ? 'flex-start' : 'center',
-        }}>
+  className={`${isMobile ? 'px-1' : ''} min-h-screen flex flex-col relative`}
+  style={{ 
+    zIndex: 10,
+    paddingTop: phase === 'test' ? '10px' : (isMobile ? '110px' : '105px'),
+    paddingBottom: '10px',
+    paddingLeft: phase === 'test' && !isMobile ? '0' : undefined,
+    paddingRight: phase === 'test' && !isMobile ? '0' : undefined,
+    justifyContent: phase === 'test' ? 'flex-start' : 'center',
+  }}>
         <AnimatePresence mode="wait">
           {phase === 'learn-letter' && (
             <LearnLetterPhase key={`ll-${groupIdx}-${letterIdx}`} letterData={letterData} onDone={handleLetterDone} onKarlReact={handleKarlReact} onCombo={handleCombo} isMobile={isMobile} />
