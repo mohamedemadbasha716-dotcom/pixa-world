@@ -1,5 +1,9 @@
 export type Box = { x: number; y: number; w: number; h: number };
+export type Polygon = number[]; // [x1, y1, x2, y2, x3, y3, ...]
 
+// ═══════════════════════════════════════
+// 🖥️ إحداثيات الديسكتوب (Box - زي ما هي)
+// ═══════════════════════════════════════
 export const HARBOR_OBJECTS_DESKTOP: Record<string, Box[]> = {
   A: [{ x: 16, y: 47, w: 11, h: 22 }],
   B: [{ x: 47, y: 58, w: 23, h: 23 }],
@@ -48,155 +52,18 @@ export const HARBOR_OBJECTS_DESKTOP: Record<string, Box[]> = {
 };
 
 // ═══════════════════════════════════════
-// 📱 إحداثيات الموبايل (768x1376)
-// مظبوطة بدقة بناءً على تحليل الصورة
+// 📱 إحداثيات الموبايل (Polygon - هتظبطها بالفرشاة)
+// كل عنصر = polygon من نقاط [x1,y1,x2,y2,...]
 // ═══════════════════════════════════════
-export const HARBOR_OBJECTS_MOBILE: Record<string, Box[]> = {
-
-  // 🐦 النوارس - 4 طايرة فوق + واحد واقف ع العمود يمين
-  M: [
-    { x: 1, y: 3, w: 13, h: 6 },         // نورس فوق يسار طاير
-    { x: 50, y: 2, w: 13, h: 5 },        // نورس فوق وسط طاير
-    { x: 67, y: 5, w: 14, h: 6 },        // نورس فوق المنارة
-    { x: 75, y: 9, w: 12, h: 5 },        // نورس صغير جنب المنارة
-    { x: 70, y: 60, w: 14, h: 11 },      // النورس الواقف ع العمود الخشبي
-  ],
-
-  // 🏗️ الرافعة الزرقاء
-  K: [
-    { x: 13, y: 3, w: 30, h: 22 },       // الرافعة الزرقاء الكبيرة
-  ],
-
-  // 🪝 الخطاف الأسود اللي شايل الكونتينر
-  H: [
-    { x: 42, y: 10, w: 8, h: 8 },        // الخطاف الأسود
-  ],
-
-  // 🗼 المنارة الحمرا والبيضا
-  L: [
-    { x: 78, y: 7, w: 12, h: 22 },       // المنارة كاملة
-  ],
-
-  // 🏛️ المباني الزرقا (Elbphilharmonie) = Insel
-  I: [
-    { x: 48, y: 9, w: 25, h: 14 },       // المبنى الأزرق الكبير
-  ],
-
-  // 🚂 القطار الأبيض/الأحمر
-  Z: [
-    { x: 0, y: 18, w: 22, h: 5 },        // القطار يسار
-  ],
-
-  // 📦 الكونتينر - الأحمر المعلق + الملونة ع السفينة + ع الرصيف
-  C: [
-    { x: 37, y: 17, w: 18, h: 17 },      // الكونتينر الأحمر المعلق
-    { x: 46, y: 25, w: 36, h: 12 },      // الكونتينرات الملونة ع السفينة
-    { x: 23, y: 30, w: 20, h: 8 },       // الكونتينر الأحمر ع الرصيف
-  ],
-
-  // 🚜 الرافعة الشوكية الصفراء
-  G: [
-    { x: 12, y: 26, w: 22, h: 15 },      // الرافعة الصفراء
-  ],
-
-  // 🚢 السفينة الكبيرة الزرقا
-  S: [
-    { x: 46, y: 23, w: 36, h: 17 },      // السفينة كاملة
-  ],
-
-  // ⛵ اليخت الأبيض
-  Y: [
-    { x: 57, y: 35, w: 35, h: 19 },      // اليخت الأبيض
-  ],
-
-  // 🐬 الدلفين بيقفز
-  D: [
-    { x: 37, y: 42, w: 22, h: 14 },      // الدلفين
-  ],
-
-  // 🪼 قنديل البحر الوردي
-  Q: [
-    { x: 71, y: 47, w: 19, h: 17 },      // القنديل
-  ],
-
-  // ⚓ المرساة المعدنية يسار
-  A: [
-    { x: 11, y: 49, w: 18, h: 15 },      // المرساة
-  ],
-
-  // 🐧 البطريق
-  P: [
-    { x: 20, y: 57, w: 16, h: 16 },      // البطريق
-  ],
-
-  // 🚣 القارب الأحمر
-  B: [
-    { x: 38, y: 58, w: 36, h: 15 },      // القارب الأحمر كامل
-  ],
-
-    // 🪢 الحبل (Tau) - الحبال الملفوفة + ربط القارب
-  T: [
-    { x: 40, y: 67, w: 22, h: 8 },       // الحبل اللي رابط القارب بالعمود (ممتد أفقي)
-    { x: 0, y: 76, w: 16, h: 14 },       // الحبل الملفوف الكبير يسار تحت
-    { x: 58, y: 78, w: 18, h: 13 },      // الحبال حوالين العمود الخشبي يمين
-  ],
-
-  // 🦦 القندس بيمسك سمكة
-  O: [
-    { x: 30, y: 65, w: 20, h: 15 },      // القندس
-  ],
-
-  // 🚣 المجداف الخشبي
-  R: [
-    { x: 13, y: 64, w: 12, h: 23 },      // المجداف مايل
-  ],
-
-  // 🪣 الجردل - أزرق + أحمر
-  E: [
-    { x: 1, y: 63, w: 15, h: 14 },       // الدلو الأزرق + سمكة
-    { x: 39, y: 68, w: 14, h: 12 },      // الدلو الأحمر
-  ],
-
-  // 🕸️ الشبكة + سمكة خضرا
-  N: [
-    { x: 14, y: 71, w: 22, h: 14 },      // الشبكة
-  ],
-
-  // 🐟 السمك - 3 سمكات
-  F: [
-    { x: 3, y: 65, w: 12, h: 8 },        // سمكة فالدلو الأزرق
-    { x: 17, y: 73, w: 16, h: 7 },       // سمكة خضرا فالشبكة
-    { x: 33, y: 67, w: 13, h: 7 },       // سمكة مع القندس
-  ],
-
-   // 🎹 الإكسيليفون (Xylofon)
-  X: [
-    { x: 41, y: 76, w: 29, h: 9 },       // الإكسيليفون الملون كامل
-  ],
-
-  // 🕐 الساعة المعدنية
-  U: [
-    { x: 0, y: 88, w: 19, h: 11 },       // الساعة
-  ],
-
-  // 🐦 العصفور (Vogel) - على الطوب
-  V: [
-    { x: 21, y: 87, w: 12, h: 8 },       // العصفور الصغير
-  ],
-
-  // 🧥 المعطف الأصفر معلق
-  J: [
-    { x: 30, y: 88, w: 20, h: 12 },      // المعطف
-  ],
-
-  // 🌊 الموج (Welle) - مياه بيضا متكسرة
-  W: [
-    { x: 30, y: 50, w: 12, h: 5 },       // موج تحت الدلفين
-    { x: 45, y: 52, w: 22, h: 5 },       // موج جنب اليخت
-    { x: 65, y: 55, w: 18, h: 4 },       // موج عند مقدمة اليخت
-  ],
+export const HARBOR_OBJECTS_MOBILE: Record<string, Polygon[]> = {
+  A: [], B: [], C: [], D: [], E: [], F: [], G: [], H: [], I: [],
+  J: [], K: [], L: [], M: [], N: [], O: [], P: [], Q: [], R: [],
+  S: [], T: [], U: [], V: [], W: [], X: [], Y: [], Z: [],
 };
 
+// ═══════════════════════════════════════
+// 📐 أبعاد الصور
+// ═══════════════════════════════════════
 export const HARBOR_IMAGE_DESKTOP = {
   width: 1537,
   height: 1023,
@@ -209,6 +76,9 @@ export const HARBOR_IMAGE_MOBILE = {
   src: '/images/Hamburg-mob.jpeg',
 };
 
+// ═══════════════════════════════════════
+// 🎯 Backward Compatibility
+// ═══════════════════════════════════════
 export const HARBOR_OBJECTS = HARBOR_OBJECTS_DESKTOP;
 export const HARBOR_IMAGE = HARBOR_IMAGE_DESKTOP;
 
@@ -218,4 +88,65 @@ export function getHarborImage(isMobile: boolean) {
 
 export function getHarborObjects(isMobile: boolean) {
   return isMobile ? HARBOR_OBJECTS_MOBILE : HARBOR_OBJECTS_DESKTOP;
+}
+
+// ═══════════════════════════════════════
+// 🎯 Point-in-Polygon Algorithm (Ray Casting)
+// ═══════════════════════════════════════
+export function isPointInPolygon(px: number, py: number, polygon: Polygon): boolean {
+  let inside = false;
+  const len = polygon.length;
+  for (let i = 0, j = len - 2; i < len; j = i, i += 2) {
+    const xi = polygon[i], yi = polygon[i + 1];
+    const xj = polygon[j], yj = polygon[j + 1];
+    const intersect = ((yi > py) !== (yj > py)) &&
+      (px < ((xj - xi) * (py - yi)) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+// ═══════════════════════════════════════
+// 🎯 Hit Test - يدعم النوعين
+// ═══════════════════════════════════════
+export function hitTest(
+  pctX: number,
+  pctY: number,
+  shapes: (Box | Polygon)[]
+): boolean {
+  return shapes.some(shape => {
+    if (Array.isArray(shape)) {
+      // Polygon
+      return isPointInPolygon(pctX, pctY, shape);
+    } else {
+      // Box
+      return pctX >= shape.x && pctX <= shape.x + shape.w &&
+             pctY >= shape.y && pctY <= shape.y + shape.h;
+    }
+  });
+}
+
+// ═══════════════════════════════════════
+// 🎯 Get Bounding Box من Polygon (للـ Hint)
+// ═══════════════════════════════════════
+export function getPolygonBounds(polygon: Polygon): Box {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (let i = 0; i < polygon.length; i += 2) {
+    minX = Math.min(minX, polygon[i]);
+    maxX = Math.max(maxX, polygon[i]);
+    minY = Math.min(minY, polygon[i + 1]);
+    maxY = Math.max(maxY, polygon[i + 1]);
+  }
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
+// ═══════════════════════════════════════
+// 🎯 SVG points string من Polygon
+// ═══════════════════════════════════════
+export function polygonToSvgPoints(polygon: Polygon): string {
+  const points: string[] = [];
+  for (let i = 0; i < polygon.length; i += 2) {
+    points.push(`${polygon[i]},${polygon[i + 1]}`);
+  }
+  return points.join(' ');
 }
