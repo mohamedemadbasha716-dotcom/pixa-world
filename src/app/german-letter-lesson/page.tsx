@@ -457,29 +457,15 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: 
 // 🎴 كارت الحرف الجانبي - مع كل البيانات
 // ═══════════════════════════════════════
 function SidePanel({ 
-  currentLetter, 
-  boxes, 
-  onSpeak,
-  totalStars,
-  wrong,
-  totalLettersLearned,
-  totalLetters,
-  groupTitle,
-  phaseLabel,
-  group,
-  letterIdx,
-  phase,
-  router,
-  isMobile,
-  foundLetters,
-  groupLetters,
-  showHint,
-  setShowHint,
+  currentLetter, boxes, onSpeak, totalStars, wrong,
+  totalLettersLearned, totalLetters, groupTitle, phaseLabel,
+  group, letterIdx, phase, router, isMobile,
+  foundLetters, groupLetters, showHint, setShowHint,
 }: any) {
   return (
-    <div className="flex flex-col gap-2 w-full h-full">
-      {/* 1️⃣ Header: زرار الرجوع + المجموعة */}
-      <div className="flex items-center gap-2 px-1">
+    <div className="flex flex-col w-full h-full" style={{ paddingRight: '4px', gap: isMobile ? '8px' : '10px' }}>
+      {/* 1️⃣ Header */}
+      <div className="flex items-center gap-2 px-1 flex-shrink-0">
         <button onClick={() => router.push('/character-and-map?from=lesson')}
           className="p-1.5 rounded-xl border border-white/10 text-white flex-shrink-0 bg-white/5 hover:bg-white/10 transition-all"
           title="ارجع للخريطة">
@@ -500,14 +486,14 @@ function SidePanel({
       </div>
 
       {/* 2️⃣ Letters checkmarks */}
-      <div className="flex gap-1 justify-center flex-wrap px-1">
+      <div className="flex gap-1 justify-center flex-wrap px-1 flex-shrink-0">
         {group.letters.map((l: any, i: number) => {
-  const currentPhase: Phase = phase;
-  const isDone = currentPhase === 'group-success' || i < letterIdx || (i === letterIdx && currentPhase === 'learn-word');
-  const isCurrent = i === letterIdx;
+          const currentPhase: Phase = phase;
+          const isDone = currentPhase === 'group-success' || i < letterIdx || (i === letterIdx && currentPhase === 'learn-word');
+          const isCurrent = i === letterIdx;
           return (
             <div key={l.letter}
-              className="w-7 h-7 text-[10px] rounded-lg flex items-center justify-center font-black border-2 flex-shrink-0"
+              className="w-8 h-8 text-xs rounded-lg flex items-center justify-center font-black border-2 flex-shrink-0"
               style={{
                 background: isDone ? `linear-gradient(135deg, ${l.gradient[0]}55, ${l.gradient[1]}33)`
                   : isCurrent ? `linear-gradient(135deg, ${l.gradient[0]}33, ${l.gradient[1]}11)`
@@ -522,26 +508,26 @@ function SidePanel({
         })}
       </div>
 
-      {/* 3️⃣ Stars + Counter Row */}
-      <div className="flex items-center justify-between px-2 py-1.5 rounded-xl bg-white/5 border border-white/10">
-        <div className="flex items-center gap-1">
-          <svg width={16} height={16} viewBox="0 0 40 40">
+      {/* 3️⃣ Stars + Counter */}
+      <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/5 border border-white/10 flex-shrink-0">
+        <div className="flex items-center gap-1.5">
+          <svg width={18} height={18} viewBox="0 0 40 40">
             <polygon points="20,2 24.9,14.5 38.5,14.5 27.8,22.3 31.7,35.5 20,27.5 8.3,35.5 12.2,22.3 1.5,14.5 15.1,14.5"
               fill="#FFD700" stroke="#FFA500" strokeWidth="1" />
           </svg>
-          <span className="font-black text-sm text-yellow-400">{totalStars}</span>
+          <span className="font-black text-base text-yellow-400">{totalStars}</span>
         </div>
-        <span className="text-[10px] font-bold text-white/40">
+        <span className="text-xs font-bold text-white/40">
           {totalLettersLearned + 1}/{totalLetters}
         </span>
         <div className="flex items-center gap-0.5">
           {[1,2,3].map(s => (
-            <Star key={s} size={12} fill={totalStars >= s * 9 ? '#FFD700' : 'rgba(255,255,255,0.2)'} color={totalStars >= s * 9 ? '#FFD700' : 'rgba(255,255,255,0.2)'} />
+            <Star key={s} size={14} fill={totalStars >= s * 9 ? '#FFD700' : 'rgba(255,255,255,0.2)'} color={totalStars >= s * 9 ? '#FFD700' : 'rgba(255,255,255,0.2)'} />
           ))}
         </div>
       </div>
 
-      {/* 4️⃣ كارت الحرف */}
+      {/* 4️⃣ كارت الحرف - ياخد المساحة الباقية */}
       <AnimatePresence mode="wait">
         {currentLetter && (
           <motion.div 
@@ -549,59 +535,67 @@ function SidePanel({
             initial={{ opacity: 0, scale: 0.9 }} 
             animate={{ opacity: 1, scale: 1 }} 
             exit={{ opacity: 0, scale: 0.9 }}
-            className="relative rounded-2xl overflow-hidden backdrop-blur-md flex flex-col items-center gap-2.5 p-3 flex-1"
+            className="relative rounded-2xl overflow-hidden backdrop-blur-md flex flex-col items-center justify-between p-4 flex-1"
             style={{
               background: `linear-gradient(180deg, ${currentLetter.color}25, ${currentLetter.color}08)`,
               border: `1.5px solid ${currentLetter.color}50`,
               boxShadow: `0 8px 32px ${currentLetter.color}30`,
+              minHeight: 0,
             }}
           >
             <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full blur-3xl opacity-40 pointer-events-none" style={{ background: currentLetter.color }} />
 
-            <div className="flex items-center gap-1.5 justify-center relative z-10">
-              <Search size={12} style={{ color: currentLetter.color }} />
-              <span className="text-[11px] font-bold" style={{ color: `${currentLetter.color}dd` }}>
+            {/* العنوان */}
+            <div className="flex items-center gap-1.5 justify-center relative z-10 flex-shrink-0">
+              <Search size={14} style={{ color: currentLetter.color }} />
+              <span className="text-sm font-bold" style={{ color: `${currentLetter.color}dd` }}>
                 ابحث عن حرف {currentLetter.letter}
               </span>
               {boxes.length > 1 && (
-                <span className="px-1 py-0.5 rounded-md text-[9px] font-black" style={{ background: `${currentLetter.color}33`, color: currentLetter.color }}>
+                <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black" style={{ background: `${currentLetter.color}33`, color: currentLetter.color }}>
                   ×{boxes.length}
                 </span>
               )}
             </div>
 
+            {/* الحرف الكبير */}
             <motion.div 
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              className="relative z-10 w-20 h-20 rounded-2xl flex items-center justify-center font-black border-2"
+              className="relative z-10 rounded-2xl flex items-center justify-center font-black border-2 flex-shrink-0"
               style={{
+                width: '110px',
+                height: '110px',
                 background: `linear-gradient(135deg, ${currentLetter.gradient[0]}, ${currentLetter.gradient[1]})`,
                 borderColor: 'rgba(255,255,255,0.3)',
                 color: 'white',
-                fontSize: '3.2rem',
+                fontSize: '4.5rem',
                 boxShadow: `0 10px 30px ${currentLetter.color}66`,
               }}
             >
               {currentLetter.letter}
-              <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: 'linear' }} className="absolute -top-1.5 -right-1.5">
-                <Sparkles size={16} style={{ color: '#FFD700' }} />
+              <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: 'linear' }} className="absolute -top-2 -right-2">
+                <Sparkles size={20} style={{ color: '#FFD700' }} />
               </motion.div>
             </motion.div>
 
-            <div className="font-black text-white text-base text-center relative z-10" style={{ textShadow: `0 2px 8px ${currentLetter.color}66` }}>
+            {/* اسم الكلمة بالعربي */}
+            <div className="font-black text-white text-xl text-center relative z-10 flex-shrink-0" style={{ textShadow: `0 2px 8px ${currentLetter.color}66` }}>
               {currentLetter.wordAr}
             </div>
 
-            <div className="flex items-center gap-1.5 justify-center relative z-10 px-2.5 py-1.5 rounded-xl w-full" style={{ background: `${currentLetter.color}15`, border: `1px solid ${currentLetter.color}33` }}>
-              <span className="text-xl">{currentLetter.emoji}</span>
-              <span className="font-black text-sm" style={{ color: currentLetter.color }}>{currentLetter.word}</span>
+            {/* الكلمة الألمانية + الإيموجي */}
+            <div className="flex items-center gap-2 justify-center relative z-10 px-3 py-2.5 rounded-xl w-full flex-shrink-0" style={{ background: `${currentLetter.color}15`, border: `1px solid ${currentLetter.color}33` }}>
+              <span className="text-2xl">{currentLetter.emoji}</span>
+              <span className="font-black text-base" style={{ color: currentLetter.color }}>{currentLetter.word}</span>
             </div>
 
+            {/* زرار استمع */}
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onSpeak}
-              className="relative z-10 w-full py-2 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border-2"
+              className="relative z-10 w-full py-3 rounded-xl font-bold text-base flex items-center justify-center gap-2 border-2 flex-shrink-0"
               style={{
                 borderColor: `${currentLetter.color}66`,
                 background: `linear-gradient(135deg, ${currentLetter.color}33, ${currentLetter.color}11)`,
@@ -609,16 +603,16 @@ function SidePanel({
                 boxShadow: `0 4px 12px ${currentLetter.color}33`,
               }}
             >
-              <Volume2 size={14} />
+              <Volume2 size={16} />
               استمع
             </motion.button>
 
             {/* زر التلميح */}
             <button onClick={() => setShowHint((v: boolean) => !v)}
-              className="text-[10px] px-2.5 py-1 font-bold rounded-lg border relative z-10"
+              className="text-xs px-3 py-1.5 font-bold rounded-lg border relative z-10 flex-shrink-0"
               style={{
-                color: showHint ? currentLetter.color : 'rgba(255,255,255,0.4)',
-                borderColor: showHint ? `${currentLetter.color}66` : 'rgba(255,255,255,0.1)',
+                color: showHint ? currentLetter.color : 'rgba(255,255,255,0.5)',
+                borderColor: showHint ? `${currentLetter.color}66` : 'rgba(255,255,255,0.15)',
                 background: showHint ? `${currentLetter.color}18` : 'rgba(255,255,255,0.03)',
               }}>
               💡 {showHint ? 'إخفاء التلميح' : 'إظهار التلميح'}
@@ -629,7 +623,7 @@ function SidePanel({
 
       {/* Wrong indicator */}
       {wrong > 0 && (
-        <div className="text-center text-xs font-bold" style={{ color: wrong >= 3 ? '#FF6B6B' : 'rgba(255,255,255,0.4)' }}>
+        <div className="text-center text-xs font-bold flex-shrink-0" style={{ color: wrong >= 3 ? '#FF6B6B' : 'rgba(255,255,255,0.4)' }}>
           {'❌'.repeat(Math.min(wrong, 5))} {wrong}/5
         </div>
       )}
@@ -1065,7 +1059,9 @@ export default function GermanLetterLessonPage() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden" style={{ fontFamily: "'Tajawal', sans-serif" }} dir="rtl">
       <PremiumOceanBackground activeColor={activeColor} />
-      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" />
+      <div style={{ transform: 'scale(0.6)', transformOrigin: 'bottom right', position: 'fixed', bottom: 0, right: 0, zIndex: 40 }}>
+  <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" />
+</div>
       <ComboDisplay combo={combo} />
       <FlyingStars stars={flyingStars} />
 
