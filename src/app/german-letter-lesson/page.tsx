@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, X, Volume2, Star, RotateCcw, Trophy, Sparkles, Search, Copy, Trash2, Eraser, Plus } from 'lucide-react';
 
@@ -1074,6 +1075,7 @@ function SuccessScreen({ groupTitle, onNext }: { groupTitle: string; onNext: () 
 }
 
 function FailScreen({ onRetry }: { onRetry: () => void }) {
+  
   return (
     <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-4 text-center py-6 px-4">
       <div className="text-6xl">😅</div>
@@ -1091,7 +1093,7 @@ function FailScreen({ onRetry }: { onRetry: () => void }) {
 
 type Phase = 'learn-letter' | 'learn-word' | 'test' | 'group-success' | 'group-fail' | 'all-done';
 
-export default function GermanLetterLessonPage() {
+function GermanLetterLessonPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isMobile = useIsMobile();
@@ -1353,5 +1355,20 @@ export default function GermanLetterLessonPage() {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+export default function GermanLetterLessonPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#07090D]">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">⚓</div>
+          <p className="text-white font-bold">جاري التحميل...</p>
+        </div>
+      </div>
+    }>
+      <GermanLetterLessonPageInner />
+    </Suspense>
   );
 }
