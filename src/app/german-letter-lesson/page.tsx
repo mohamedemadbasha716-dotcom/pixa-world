@@ -734,12 +734,12 @@ function HarborTest({
       onClick={handleImageClick}
     >
       <img 
-        src={harborImage.src} 
-        alt="ميناء" 
-        className="w-full h-full"
-        style={{ objectFit: 'contain', pointerEvents: 'none', display: 'block' }}
-        draggable={false} 
-      />
+  src={harborImage.src} 
+  alt="ميناء" 
+  className="w-full h-full"
+  style={{ objectFit: 'cover', pointerEvents: 'none', display: 'block' }}
+  draggable={false} 
+/>
 
       <AnimatePresence>
         {showHint && boxes.length > 0 && currentLetter && boxes.map((b: any, idx: number) => (
@@ -834,12 +834,20 @@ function HarborTest({
           />
           <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
-      ) : (
-  <div className="flex gap-2 h-full" style={{ flexDirection: 'row-reverse', paddingRight: '0px', paddingLeft: '0px' }}>
-  {/* الصورة - تاخد المساحة الأكبر */}
-  <div className="flex-1 min-w-0 h-full">
-    {ImageBox}
-  </div>
+    ) : (
+  <div className="flex gap-2 items-center h-full" style={{ flexDirection: 'row-reverse', paddingRight: '8px', paddingLeft: '0px' }}>
+    {/* الصورة - تاخد المساحة الأكبر وبنسبة الصورة الأصلية */}
+    <div className="flex-1 min-w-0 h-full flex items-center justify-center">
+      <div style={{ 
+        width: '100%', 
+        height: '100%',
+        maxHeight: '100%',
+        aspectRatio: '1537/1023',
+        maxWidth: '100%',
+      }}>
+        {ImageBox}
+      </div>
+    </div>
   
   {/* الكارت الجانبي - عرض ثابت */}
   <div className="flex-shrink-0 h-full" style={{ width: '240px' }}>
