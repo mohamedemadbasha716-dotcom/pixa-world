@@ -835,7 +835,7 @@ function HarborTest({
           <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
       ) : (
-  <div className="flex gap-2 h-full" style={{ flexDirection: 'row-reverse', paddingRight: '8px', paddingLeft: '0px' }}>
+  <div className="flex gap-2 h-full" style={{ flexDirection: 'row-reverse', paddingRight: '0px', paddingLeft: '0px' }}>
   {/* الصورة - تاخد المساحة الأكبر */}
   <div className="flex-1 min-w-0 h-full">
     {ImageBox}
