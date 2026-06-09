@@ -1108,7 +1108,7 @@ export default function GermanLetterLessonPage() {
 
             <div className={`flex gap-1 justify-center ${isMobile ? 'flex-wrap' : ''}`}>
               {group.letters.map((l: any, i: number) => {
-                const isDone = phase === 'test' || phase === 'group-success' || i < letterIdx || (i === letterIdx && phase === 'learn-word');
+               const isDone = (phase as string) === 'test' || (phase as string) === 'group-success' || i < letterIdx || (i === letterIdx && (phase as string) === 'learn-word');
                 const isCurrent = i === letterIdx;
                 return (
                   <div key={l.letter}
