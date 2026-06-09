@@ -246,9 +246,7 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }
           <div className="flex flex-col items-center gap-3 px-3">
             <HeroLetterDisplay letterData={letterData} isMobile={true} />
             <div className="text-center">
-              <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: `${letterData.color}aa` }}>
-                Buchstabe · الحرف
-              </div>
+              <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: `${letterData.color}aa` }}>Buchstabe · الحرف</div>
               <div className="text-xl font-black text-white mt-0.5">تعلم {letterData.letter}</div>
             </div>
             <SoundButton onClick={() => speakLetter(letterData.letter)} color={letterData.color} label="استمع" />
@@ -257,8 +255,7 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }
               <GhostInput ref={inputRef} value={input} onChange={v => { setInput(v); setStatus('idle'); }} onEnter={handleCheck} ghostText={letterData.letter} color={letterData.color} status={status} fontSize="2.5rem" maxLength={1} uppercase />
               <AnimatePresence>
                 {status !== 'idle' && (
-                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                    className="flex items-center justify-center gap-2 font-black text-xs py-2 rounded-xl"
+                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-center justify-center gap-2 font-black text-xs py-2 rounded-xl"
                     style={{ background: status === 'correct' ? 'rgba(88,204,2,0.18)' : 'rgba(255,68,68,0.18)', color: status === 'correct' ? '#58CC02' : '#FF6B6B', border: `1px solid ${status === 'correct' ? '#58CC0244' : '#FF444444'}` }}>
                     {status === 'correct' ? <><Check size={14} /> ممتاز!</> : <><X size={14} /> جرب تاني</>}
                   </motion.div>
@@ -289,8 +286,7 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }
                 <GhostInput ref={inputRef} value={input} onChange={v => { setInput(v); setStatus('idle'); }} onEnter={handleCheck} ghostText={letterData.letter} color={letterData.color} status={status} fontSize="3rem" maxLength={1} uppercase />
                 <AnimatePresence>
                   {status !== 'idle' && (
-                    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                      className="flex items-center justify-center gap-2 font-black text-sm py-2.5 rounded-xl backdrop-blur-sm"
+                    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-center justify-center gap-2 font-black text-sm py-2.5 rounded-xl backdrop-blur-sm"
                       style={{ background: status === 'correct' ? 'rgba(88,204,2,0.18)' : 'rgba(255,68,68,0.18)', color: status === 'correct' ? '#58CC02' : '#FF6B6B', border: `1px solid ${status === 'correct' ? '#58CC0244' : '#FF444444'}` }}>
                       {status === 'correct' ? <><Check size={16} /> ممتاز!</> : <><X size={16} /> جرب تاني</>}
                     </motion.div>
@@ -458,101 +454,195 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, isMobile }: 
 }
 
 // ═══════════════════════════════════════
-// 🎴 كارت الحرف الجانبي
+// 🎴 كارت الحرف الجانبي - مع كل البيانات
 // ═══════════════════════════════════════
-function SideLetterCard({ currentLetter, boxes, isMobile, onSpeak }: {
-  currentLetter: Letter;
-  boxes: any[];
-  isMobile: boolean;
-  onSpeak: () => void;
-}) {
+function SidePanel({ 
+  currentLetter, 
+  boxes, 
+  onSpeak,
+  totalStars,
+  wrong,
+  totalLettersLearned,
+  totalLetters,
+  groupTitle,
+  phaseLabel,
+  group,
+  letterIdx,
+  phase,
+  router,
+  isMobile,
+  foundLetters,
+  groupLetters,
+  showHint,
+  setShowHint,
+}: any) {
   return (
-    <motion.div 
-      key={currentLetter.letter}
-      initial={{ opacity: 0, scale: 0.95, x: -20 }} 
-      animate={{ opacity: 1, scale: 1, x: 0 }} 
-      exit={{ opacity: 0, scale: 0.95, x: 20 }}
-      className="relative rounded-2xl overflow-hidden backdrop-blur-md flex flex-col items-center gap-2.5 p-3"
-      style={{
-  background: `linear-gradient(180deg, ${currentLetter.color}25, ${currentLetter.color}08)`,
-  border: `1.5px solid ${currentLetter.color}50`,
-  boxShadow: `0 8px 32px ${currentLetter.color}30`,
-  width: isMobile ? '100%' : '170px',
-}}
-    >
-      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full blur-3xl opacity-40 pointer-events-none" style={{ background: currentLetter.color }} />
-
-      <div className="flex items-center gap-1.5 justify-center relative z-10">
-        <Search size={14} style={{ color: currentLetter.color }} />
-        <span className="text-xs font-bold" style={{ color: `${currentLetter.color}dd` }}>
-          ابحث عن حرف {currentLetter.letter}
-        </span>
-        {boxes.length > 1 && (
-          <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black" style={{ background: `${currentLetter.color}33`, color: currentLetter.color }}>
-            ×{boxes.length}
-          </span>
-        )}
+    <div className="flex flex-col gap-2 w-full h-full">
+      {/* 1️⃣ Header: زرار الرجوع + المجموعة */}
+      <div className="flex items-center gap-2 px-1">
+        <button onClick={() => router.push('/character-and-map?from=lesson')}
+          className="p-1.5 rounded-xl border border-white/10 text-white flex-shrink-0 bg-white/5 hover:bg-white/10 transition-all"
+          title="ارجع للخريطة">
+          <ArrowLeft size={16} />
+        </button>
+        <div className="flex-1 min-w-0">
+          <div className="text-[10px] font-bold text-white/40 flex items-center gap-1 justify-end truncate">
+            <span>⚓</span>
+            <span className="truncate">{groupTitle} — {phaseLabel}</span>
+          </div>
+          <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-0.5">
+            <motion.div className="h-full rounded-full"
+              style={{ background: `linear-gradient(to right, ${currentLetter?.color || '#4CC9F0'}, #7209B7)` }}
+              animate={{ width: `${(totalLettersLearned / totalLetters) * 100}%` }}
+              transition={{ duration: 0.6 }} />
+          </div>
+        </div>
       </div>
 
-      <motion.div 
-  animate={{ scale: [1, 1.05, 1] }}
-  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-  className="relative z-10 w-20 h-20 rounded-2xl flex items-center justify-center font-black border-2"
-  style={{
-    background: `linear-gradient(135deg, ${currentLetter.gradient[0]}, ${currentLetter.gradient[1]})`,
-    borderColor: 'rgba(255,255,255,0.3)',
-    color: 'white',
-    fontSize: '3.2rem',
-    boxShadow: `0 10px 30px ${currentLetter.color}66, inset 0 1px 0 rgba(255,255,255,0.3)`,
-  }}
->
-        {currentLetter.letter}
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: 'linear' }} className="absolute -top-2 -right-2">
-          <Sparkles size={20} style={{ color: '#FFD700' }} />
-        </motion.div>
-      </motion.div>
+      {/* 2️⃣ Letters checkmarks */}
+      <div className="flex gap-1 justify-center flex-wrap px-1">
+        {group.letters.map((l: any, i: number) => {
+          const isDone = phase === 'test' || phase === 'group-success' || i < letterIdx || (i === letterIdx && phase === 'learn-word');
+          const isCurrent = i === letterIdx;
+          return (
+            <div key={l.letter}
+              className="w-7 h-7 text-[10px] rounded-lg flex items-center justify-center font-black border-2 flex-shrink-0"
+              style={{
+                background: isDone ? `linear-gradient(135deg, ${l.gradient[0]}55, ${l.gradient[1]}33)`
+                  : isCurrent ? `linear-gradient(135deg, ${l.gradient[0]}33, ${l.gradient[1]}11)`
+                  : 'rgba(255,255,255,0.03)',
+                borderColor: isDone ? l.color : isCurrent ? `${l.color}88` : 'rgba(255,255,255,0.08)',
+                color: isDone ? 'white' : isCurrent ? 'white' : 'rgba(255,255,255,0.2)',
+                boxShadow: isCurrent && !isDone ? `0 0 12px ${l.color}66` : 'none',
+              }}>
+              {isDone ? '✓' : l.letter}
+            </div>
+          );
+        })}
+      </div>
 
-      <div className="font-black text-white text-base text-center relative z-10" style={{ textShadow: `0 2px 8px ${currentLetter.color}66` }}>
-  {currentLetter.wordAr}
-</div>
+      {/* 3️⃣ Stars + Counter Row */}
+      <div className="flex items-center justify-between px-2 py-1.5 rounded-xl bg-white/5 border border-white/10">
+        <div className="flex items-center gap-1">
+          <svg width={16} height={16} viewBox="0 0 40 40">
+            <polygon points="20,2 24.9,14.5 38.5,14.5 27.8,22.3 31.7,35.5 20,27.5 8.3,35.5 12.2,22.3 1.5,14.5 15.1,14.5"
+              fill="#FFD700" stroke="#FFA500" strokeWidth="1" />
+          </svg>
+          <span className="font-black text-sm text-yellow-400">{totalStars}</span>
+        </div>
+        <span className="text-[10px] font-bold text-white/40">
+          {totalLettersLearned + 1}/{totalLetters}
+        </span>
+        <div className="flex items-center gap-0.5">
+          {[1,2,3].map(s => (
+            <Star key={s} size={12} fill={totalStars >= s * 9 ? '#FFD700' : 'rgba(255,255,255,0.2)'} color={totalStars >= s * 9 ? '#FFD700' : 'rgba(255,255,255,0.2)'} />
+          ))}
+        </div>
+      </div>
 
-<div className="flex items-center gap-1.5 justify-center relative z-10 px-2.5 py-1.5 rounded-xl w-full" style={{ background: `${currentLetter.color}15`, border: `1px solid ${currentLetter.color}33` }}>
-  <span className="text-xl">{currentLetter.emoji}</span>
-  <span className="font-black text-sm" style={{ color: currentLetter.color }}>{currentLetter.word}</span>
-</div>
+      {/* 4️⃣ كارت الحرف */}
+      <AnimatePresence mode="wait">
+        {currentLetter && (
+          <motion.div 
+            key={currentLetter.letter}
+            initial={{ opacity: 0, scale: 0.9 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="relative rounded-2xl overflow-hidden backdrop-blur-md flex flex-col items-center gap-2.5 p-3 flex-1"
+            style={{
+              background: `linear-gradient(180deg, ${currentLetter.color}25, ${currentLetter.color}08)`,
+              border: `1.5px solid ${currentLetter.color}50`,
+              boxShadow: `0 8px 32px ${currentLetter.color}30`,
+            }}
+          >
+            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full blur-3xl opacity-40 pointer-events-none" style={{ background: currentLetter.color }} />
 
-      <motion.button 
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onSpeak}
-        className="relative z-10 w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border-2 transition-all"
-        style={{
-          borderColor: `${currentLetter.color}66`,
-          background: `linear-gradient(135deg, ${currentLetter.color}33, ${currentLetter.color}11)`,
-          color: 'white',
-          boxShadow: `0 4px 12px ${currentLetter.color}33`,
-        }}
-      >
-        <Volume2 size={16} />
-        استمع
-      </motion.button>
-    </motion.div>
+            <div className="flex items-center gap-1.5 justify-center relative z-10">
+              <Search size={12} style={{ color: currentLetter.color }} />
+              <span className="text-[11px] font-bold" style={{ color: `${currentLetter.color}dd` }}>
+                ابحث عن حرف {currentLetter.letter}
+              </span>
+              {boxes.length > 1 && (
+                <span className="px-1 py-0.5 rounded-md text-[9px] font-black" style={{ background: `${currentLetter.color}33`, color: currentLetter.color }}>
+                  ×{boxes.length}
+                </span>
+              )}
+            </div>
+
+            <motion.div 
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              className="relative z-10 w-20 h-20 rounded-2xl flex items-center justify-center font-black border-2"
+              style={{
+                background: `linear-gradient(135deg, ${currentLetter.gradient[0]}, ${currentLetter.gradient[1]})`,
+                borderColor: 'rgba(255,255,255,0.3)',
+                color: 'white',
+                fontSize: '3.2rem',
+                boxShadow: `0 10px 30px ${currentLetter.color}66`,
+              }}
+            >
+              {currentLetter.letter}
+              <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: 'linear' }} className="absolute -top-1.5 -right-1.5">
+                <Sparkles size={16} style={{ color: '#FFD700' }} />
+              </motion.div>
+            </motion.div>
+
+            <div className="font-black text-white text-base text-center relative z-10" style={{ textShadow: `0 2px 8px ${currentLetter.color}66` }}>
+              {currentLetter.wordAr}
+            </div>
+
+            <div className="flex items-center gap-1.5 justify-center relative z-10 px-2.5 py-1.5 rounded-xl w-full" style={{ background: `${currentLetter.color}15`, border: `1px solid ${currentLetter.color}33` }}>
+              <span className="text-xl">{currentLetter.emoji}</span>
+              <span className="font-black text-sm" style={{ color: currentLetter.color }}>{currentLetter.word}</span>
+            </div>
+
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onSpeak}
+              className="relative z-10 w-full py-2 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border-2"
+              style={{
+                borderColor: `${currentLetter.color}66`,
+                background: `linear-gradient(135deg, ${currentLetter.color}33, ${currentLetter.color}11)`,
+                color: 'white',
+                boxShadow: `0 4px 12px ${currentLetter.color}33`,
+              }}
+            >
+              <Volume2 size={14} />
+              استمع
+            </motion.button>
+
+            {/* زر التلميح */}
+            <button onClick={() => setShowHint((v: boolean) => !v)}
+              className="text-[10px] px-2.5 py-1 font-bold rounded-lg border relative z-10"
+              style={{
+                color: showHint ? currentLetter.color : 'rgba(255,255,255,0.4)',
+                borderColor: showHint ? `${currentLetter.color}66` : 'rgba(255,255,255,0.1)',
+                background: showHint ? `${currentLetter.color}18` : 'rgba(255,255,255,0.03)',
+              }}>
+              💡 {showHint ? 'إخفاء التلميح' : 'إظهار التلميح'}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Wrong indicator */}
+      {wrong > 0 && (
+        <div className="text-center text-xs font-bold" style={{ color: wrong >= 3 ? '#FF6B6B' : 'rgba(255,255,255,0.4)' }}>
+          {'❌'.repeat(Math.min(wrong, 5))} {wrong}/5
+        </div>
+      )}
+    </div>
   );
 }
 
 // ═══════════════════════════════════════
-// اختبار الميناء - الصورة كبيرة + الكارت على اليمين
+// اختبار الميناء - Layout جديد
 // ═══════════════════════════════════════
-function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, onKarlReact, onCombo, isMobile }: {
-  groupLetters: Letter[];
-  totalStars: number;
-  onPass: () => void;
-  onFail: () => void;
-  onStarEarned: (x: number, y: number) => void;
-  onKarlReact: (mood: KarlMood) => void;
-  onCombo: () => void;
-  isMobile: boolean;
-}) {
+function HarborTest({ 
+  groupLetters, totalStars, onPass, onFail, onStarEarned, onKarlReact, onCombo, isMobile,
+  totalLettersLearned, totalLetters, groupTitle, phaseLabel, group, letterIdx, phase, router,
+}: any) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [wrong, setWrong] = useState(0);
   const [showFeedback, setShowFeedback] = useState<'correct' | 'wrong' | null>(null);
@@ -576,12 +666,11 @@ function HarborTest({ groupLetters, totalStars, onPass, onFail, onStarEarned, on
     const containerW = rect.width;
     const containerH = rect.height;
 
-    // ✅ نستخدم contain - الصورة كاملة من غير قص
-const scale = Math.min(containerW / harborImage.width, containerH / harborImage.height);
-const renderedW = harborImage.width * scale;
-const renderedH = harborImage.height * scale;
-const offsetX = (containerW - renderedW) / 2;
-const offsetY = (containerH - renderedH) / 2;
+    const scale = Math.min(containerW / harborImage.width, containerH / harborImage.height);
+    const renderedW = harborImage.width * scale;
+    const renderedH = harborImage.height * scale;
+    const offsetX = (containerW - renderedW) / 2;
+    const offsetY = (containerH - renderedH) / 2;
 
     const clickX = e.clientX - rect.left - offsetX;
     const clickY = e.clientY - rect.top - offsetY;
@@ -591,7 +680,7 @@ const offsetY = (containerH - renderedH) / 2;
     const pctX = (clickX / renderedW) * 100;
     const pctY = (clickY / renderedH) * 100;
 
-    const hit = boxes.some(b =>
+    const hit = boxes.some((b: any) =>
       pctX >= b.x && pctX <= b.x + b.w &&
       pctY >= b.y && pctY <= b.y + b.h
     );
@@ -636,31 +725,23 @@ const offsetY = (containerH - renderedH) / 2;
     }
   }, [showFeedback, finished, boxes, currentLetter, harborImage, currentIdx, groupLetters.length, wrong, onCombo, onKarlReact, onStarEarned, onPass, onFail]);
 
-  // 🖼️ مكون الصورة - الصورة تملى الإطار كامل
   const ImageBox = (
     <div
       ref={containerRef}
       className="relative w-full h-full rounded-2xl overflow-hidden border-2 border-white/10"
-      style={{ 
-        cursor: 'pointer', 
-        background: '#0a1628',
-      }}
+      style={{ cursor: 'pointer', background: '#0a1628' }}
       onClick={handleImageClick}
     >
       <img 
-  src={harborImage.src} 
-  alt="ميناء" 
-  className="w-full h-full"
-  style={{ 
-    objectFit: 'contain',
-    pointerEvents: 'none', 
-    display: 'block',
-  }}
-  draggable={false} 
-/>
+        src={harborImage.src} 
+        alt="ميناء" 
+        className="w-full h-full"
+        style={{ objectFit: 'contain', pointerEvents: 'none', display: 'block' }}
+        draggable={false} 
+      />
 
       <AnimatePresence>
-        {showHint && boxes.length > 0 && currentLetter && boxes.map((b, idx) => (
+        {showHint && boxes.length > 0 && currentLetter && boxes.map((b: any, idx: number) => (
           <motion.div key={`hint-${idx}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.5, 1, 0.5] }}
@@ -711,7 +792,7 @@ const offsetY = (containerH - renderedH) / 2;
           <div className="text-6xl">🎉</div>
           <p className="font-black text-white text-2xl">ممتاز!</p>
           <div className="flex gap-1">
-            {groupLetters.map(l => <Star key={l.letter} size={20} fill="#FFD700" color="#FFD700" />)}
+            {groupLetters.map((l: any) => <Star key={l.letter} size={20} fill="#FFD700" color="#FFD700" />)}
           </div>
         </motion.div>
       )}
@@ -722,78 +803,65 @@ const offsetY = (containerH - renderedH) / 2;
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
-      className="w-full max-w-7xl mx-auto px-2"
+      className="w-full"
+      style={{ height: isMobile ? 'auto' : 'calc(100vh - 30px)' }}
     >
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-1 mb-2">
-        <div className="flex items-center gap-1">
-          {Array.from({ length: Math.min(totalStars, isMobile ? 5 : 8) }).map((_, i) => (
-            <motion.div key={i} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: i * 0.05 }}>
-              <Star size={isMobile ? 12 : 16} fill="#FFD700" color="#FFD700" />
-            </motion.div>
-          ))}
-          {totalStars > (isMobile ? 5 : 8) && <span className="text-[10px] font-black text-yellow-400">+{totalStars - (isMobile ? 5 : 8)}</span>}
-        </div>
-        <span className="text-[10px] font-bold" style={{ color: wrong >= 3 ? '#FF6B6B' : 'rgba(255,255,255,0.25)' }}>
-          {wrong > 0 && '❌'.repeat(Math.min(wrong, 5))} {wrong}/5
-        </span>
-      </div>
-
-      {/* 📱 الموبايل: كارت فوق + صورة تحت */}
-      {/* 🖥️ الديسكتوب: صورة شمال + كارت يمين */}
       {isMobile ? (
-        <div className="flex flex-col gap-3">
-          <AnimatePresence mode="wait">
-            {!finished && currentLetter && (
-              <SideLetterCard currentLetter={currentLetter} boxes={boxes} isMobile={true} onSpeak={() => speakWord(currentLetter.word)} />
-            )}
-          </AnimatePresence>
+        <div className="flex flex-col gap-2 px-2">
+          <SidePanel 
+            currentLetter={currentLetter}
+            boxes={boxes}
+            onSpeak={() => speakWord(currentLetter.word)}
+            totalStars={totalStars}
+            wrong={wrong}
+            totalLettersLearned={totalLettersLearned}
+            totalLetters={totalLetters}
+            groupTitle={groupTitle}
+            phaseLabel={phaseLabel}
+            group={group}
+            letterIdx={letterIdx}
+            phase={phase}
+            router={router}
+            isMobile={true}
+            foundLetters={foundLetters}
+            groupLetters={groupLetters}
+            showHint={showHint}
+            setShowHint={setShowHint}
+          />
           <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
-    ) : (
-        <div className="flex gap-3 items-stretch" style={{ height: '82vh' }}>
-          {/* الكارت الجانبي - على اليمين */}
-          <div className="flex-shrink-0 flex items-center">
-            <AnimatePresence mode="wait">
-              {!finished && currentLetter && (
-                <SideLetterCard currentLetter={currentLetter} boxes={boxes} isMobile={false} onSpeak={() => speakWord(currentLetter.word)} />
-              )}
-            </AnimatePresence>
-          </div>
-          
+      ) : (
+        <div className="flex gap-3 h-full px-3">
           {/* الصورة - تاخد المساحة الأكبر */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 h-full">
             {ImageBox}
           </div>
+          
+          {/* الكارت الجانبي - عرض ثابت */}
+          <div className="flex-shrink-0 h-full" style={{ width: '240px' }}>
+            <SidePanel 
+              currentLetter={currentLetter}
+              boxes={boxes}
+              onSpeak={() => speakWord(currentLetter.word)}
+              totalStars={totalStars}
+              wrong={wrong}
+              totalLettersLearned={totalLettersLearned}
+              totalLetters={totalLetters}
+              groupTitle={groupTitle}
+              phaseLabel={phaseLabel}
+              group={group}
+              letterIdx={letterIdx}
+              phase={phase}
+              router={router}
+              isMobile={false}
+              foundLetters={foundLetters}
+              groupLetters={groupLetters}
+              showHint={showHint}
+              setShowHint={setShowHint}
+            />
+          </div>
         </div>
       )}
-
-      {/* Progress dots */}
-      {!finished && (
-        <div className="flex gap-1 px-1 mt-3">
-          {groupLetters.map((l, i) => (
-            <div key={l.letter} className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
-              <motion.div className="h-full rounded-full" style={{ 
-                background: foundLetters.includes(l.letter) ? `linear-gradient(90deg, ${l.gradient[0]}, ${l.gradient[1]})` : i === currentIdx ? `${l.color}88` : 'transparent',
-                width: foundLetters.includes(l.letter) || i === currentIdx ? '100%' : '0%',
-              }} />
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between px-1 mt-2">
-        <button onClick={() => setShowHint(v => !v)}
-          className={`${isMobile ? 'text-[10px] px-3 py-1.5' : 'text-xs px-4 py-2'} font-bold rounded-xl border`}
-          style={{
-            color: showHint ? (currentLetter?.color ?? 'white') : 'rgba(255,255,255,0.4)',
-            borderColor: showHint ? `${currentLetter?.color ?? 'white'}66` : 'rgba(255,255,255,0.1)',
-            background: showHint ? `${currentLetter?.color ?? 'white'}18` : 'rgba(255,255,255,0.03)',
-          }}>
-          💡 {showHint ? 'إخفاء التلميح' : 'إظهار التلميح'}
-        </button>
-        <span className="text-[10px] font-bold text-white/30">{foundLetters.length} / {groupLetters.length}</span>
-      </div>
     </motion.div>
   );
 }
@@ -997,74 +1065,78 @@ export default function GermanLetterLessonPage() {
       <ComboDisplay combo={combo} />
       <FlyingStars stars={flyingStars} />
 
-      <div className="fixed top-0 left-0 right-0 z-30"
-        style={{ 
-          background: 'linear-gradient(to bottom, rgba(2,5,15,0.98) 70%, transparent)',
-          paddingTop: 'env(safe-area-inset-top, 0px)',
-        }}>
-        <div className={`max-w-6xl mx-auto ${isMobile ? 'px-2 py-2' : 'px-4 py-2'}`}>
-          <div className={`flex items-center gap-2 ${isMobile ? 'mb-1.5' : 'mb-2'}`}>
-            <button onClick={() => router.push('/character-and-map?from=lesson')}
-              className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-xl border border-white/10 text-white flex-shrink-0 bg-white/5`}
-              title="ارجع للخريطة">
-              <ArrowLeft size={isMobile ? 16 : 18} />
-            </button>
-            <div className="flex-1 min-w-0">
-              <div className={`flex justify-between ${isMobile ? 'text-[10px]' : 'text-xs'} font-bold mb-1 text-white/40`}>
-                <span className="flex items-center gap-1 truncate">
-                  <span>⚓</span>
-                  {isMobile ? group.title : `${group.title} — ${phaseLabel[phase]}`}
-                </span>
-                <span className="flex-shrink-0">{Math.min(totalLettersLearned + 1, totalLetters)}/{totalLetters}</span>
-              </div>
-              <div className={`w-full ${isMobile ? 'h-1.5' : 'h-2'} bg-white/5 rounded-full overflow-hidden border border-white/5`}>
-                <motion.div className="h-full rounded-full"
-                  style={{ background: `linear-gradient(to right, ${activeColor}, #7209B7)` }}
-                  animate={{ width: `${(totalLettersLearned / totalLetters) * 100}%` }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }} />
-              </div>
-            </div>
-            <motion.div key={totalStars} animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 0.35 }}
-              className={`flex items-center gap-1 flex-shrink-0 ${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'} rounded-xl border border-yellow-400/30`}
-              style={{ background: 'rgba(255,215,0,0.1)' }}>
-              <svg width={isMobile ? 14 : 16} height={isMobile ? 14 : 16} viewBox="0 0 40 40">
-                <polygon points="20,2 24.9,14.5 38.5,14.5 27.8,22.3 31.7,35.5 20,27.5 8.3,35.5 12.2,22.3 1.5,14.5 15.1,14.5"
-                  fill="#FFD700" stroke="#FFA500" strokeWidth="1" />
-              </svg>
-              <span className={`font-black ${isMobile ? 'text-xs' : 'text-sm'} text-yellow-400`}>{totalStars}</span>
-            </motion.div>
-          </div>
-
-          <div className={`flex gap-1 justify-center ${isMobile ? 'flex-wrap' : ''}`}>
-            {group.letters.map((l, i) => {
-              const isDone = phase === 'test' || phase === 'group-success' || i < letterIdx || (i === letterIdx && phase === 'learn-word');
-              const isCurrent = i === letterIdx;
-              return (
-                <div key={l.letter}
-                  className={`${isMobile ? 'w-7 h-7 text-[10px]' : 'w-9 h-9 text-sm'} rounded-lg flex items-center justify-center font-black border-2 flex-shrink-0`}
-                  style={{
-                    background: isDone ? `linear-gradient(135deg, ${l.gradient[0]}55, ${l.gradient[1]}33)`
-                      : isCurrent ? `linear-gradient(135deg, ${l.gradient[0]}33, ${l.gradient[1]}11)`
-                      : 'rgba(255,255,255,0.03)',
-                    borderColor: isDone ? l.color : isCurrent ? `${l.color}88` : 'rgba(255,255,255,0.08)',
-                    color: isDone ? 'white' : isCurrent ? 'white' : 'rgba(255,255,255,0.2)',
-                    boxShadow: isCurrent && !isDone ? `0 0 12px ${l.color}66` : 'none',
-                  }}>
-                  {isDone ? '✓' : l.letter}
+      {/* ✨ في مرحلة الاختبار: مفيش header علوي - الكارت الجانبي بيحتوي كل حاجة */}
+      {phase !== 'test' && (
+        <div className="fixed top-0 left-0 right-0 z-30"
+          style={{ 
+            background: 'linear-gradient(to bottom, rgba(2,5,15,0.98) 70%, transparent)',
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+          }}>
+          <div className={`max-w-6xl mx-auto ${isMobile ? 'px-2 py-2' : 'px-4 py-2'}`}>
+            <div className={`flex items-center gap-2 ${isMobile ? 'mb-1.5' : 'mb-2'}`}>
+              <button onClick={() => router.push('/character-and-map?from=lesson')}
+                className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-xl border border-white/10 text-white flex-shrink-0 bg-white/5`}
+                title="ارجع للخريطة">
+                <ArrowLeft size={isMobile ? 16 : 18} />
+              </button>
+              <div className="flex-1 min-w-0">
+                <div className={`flex justify-between ${isMobile ? 'text-[10px]' : 'text-xs'} font-bold mb-1 text-white/40`}>
+                  <span className="flex items-center gap-1 truncate">
+                    <span>⚓</span>
+                    {isMobile ? group.title : `${group.title} — ${phaseLabel[phase]}`}
+                  </span>
+                  <span className="flex-shrink-0">{Math.min(totalLettersLearned + 1, totalLetters)}/{totalLetters}</span>
                 </div>
-              );
-            })}
+                <div className={`w-full ${isMobile ? 'h-1.5' : 'h-2'} bg-white/5 rounded-full overflow-hidden border border-white/5`}>
+                  <motion.div className="h-full rounded-full"
+                    style={{ background: `linear-gradient(to right, ${activeColor}, #7209B7)` }}
+                    animate={{ width: `${(totalLettersLearned / totalLetters) * 100}%` }}
+                    transition={{ duration: 0.6 }} />
+                </div>
+              </div>
+              <motion.div key={totalStars} animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 0.35 }}
+                className={`flex items-center gap-1 flex-shrink-0 ${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'} rounded-xl border border-yellow-400/30`}
+                style={{ background: 'rgba(255,215,0,0.1)' }}>
+                <svg width={isMobile ? 14 : 16} height={isMobile ? 14 : 16} viewBox="0 0 40 40">
+                  <polygon points="20,2 24.9,14.5 38.5,14.5 27.8,22.3 31.7,35.5 20,27.5 8.3,35.5 12.2,22.3 1.5,14.5 15.1,14.5"
+                    fill="#FFD700" stroke="#FFA500" strokeWidth="1" />
+                </svg>
+                <span className={`font-black ${isMobile ? 'text-xs' : 'text-sm'} text-yellow-400`}>{totalStars}</span>
+              </motion.div>
+            </div>
+
+            <div className={`flex gap-1 justify-center ${isMobile ? 'flex-wrap' : ''}`}>
+              {group.letters.map((l: any, i: number) => {
+                const isDone = phase === 'test' || phase === 'group-success' || i < letterIdx || (i === letterIdx && phase === 'learn-word');
+                const isCurrent = i === letterIdx;
+                return (
+                  <div key={l.letter}
+                    className={`${isMobile ? 'w-7 h-7 text-[10px]' : 'w-9 h-9 text-sm'} rounded-lg flex items-center justify-center font-black border-2 flex-shrink-0`}
+                    style={{
+                      background: isDone ? `linear-gradient(135deg, ${l.gradient[0]}55, ${l.gradient[1]}33)`
+                        : isCurrent ? `linear-gradient(135deg, ${l.gradient[0]}33, ${l.gradient[1]}11)`
+                        : 'rgba(255,255,255,0.03)',
+                      borderColor: isDone ? l.color : isCurrent ? `${l.color}88` : 'rgba(255,255,255,0.08)',
+                      color: isDone ? 'white' : isCurrent ? 'white' : 'rgba(255,255,255,0.2)',
+                      boxShadow: isCurrent && !isDone ? `0 0 12px ${l.color}66` : 'none',
+                    }}>
+                    {isDone ? '✓' : l.letter}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div 
-  className={`${isMobile ? 'px-1' : 'px-3'} min-h-screen flex flex-col justify-start relative`}
-  style={{ 
-    zIndex: 10,
-    paddingTop: isMobile ? '110px' : '95px',
-    paddingBottom: '10px',
-  }}>
+        className={`${isMobile ? 'px-1' : 'px-0'} min-h-screen flex flex-col relative`}
+        style={{ 
+          zIndex: 10,
+          paddingTop: phase === 'test' ? '15px' : (isMobile ? '110px' : '105px'),
+          paddingBottom: '15px',
+          justifyContent: phase === 'test' ? 'flex-start' : 'center',
+        }}>
         <AnimatePresence mode="wait">
           {phase === 'learn-letter' && (
             <LearnLetterPhase key={`ll-${groupIdx}-${letterIdx}`} letterData={letterData} onDone={handleLetterDone} onKarlReact={handleKarlReact} onCombo={handleCombo} isMobile={isMobile} />
@@ -1073,8 +1145,24 @@ export default function GermanLetterLessonPage() {
             <LearnWordPhase key={`lw-${groupIdx}-${letterIdx}`} letterData={letterData} onDone={handleWordDone} onKarlReact={handleKarlReact} onCombo={handleCombo} isMobile={isMobile} />
           )}
           {phase === 'test' && (
-            <HarborTest groupLetters={group.letters} totalStars={totalStars} onPass={handleTestPass}
-              onFail={handleTestFail} onStarEarned={handleStarEarned} onKarlReact={handleKarlReact} onCombo={handleCombo} isMobile={isMobile} />
+            <HarborTest 
+              groupLetters={group.letters} 
+              totalStars={totalStars} 
+              onPass={handleTestPass}
+              onFail={handleTestFail} 
+              onStarEarned={handleStarEarned} 
+              onKarlReact={handleKarlReact} 
+              onCombo={handleCombo} 
+              isMobile={isMobile}
+              totalLettersLearned={totalLettersLearned}
+              totalLetters={totalLetters}
+              groupTitle={group.title}
+              phaseLabel={phaseLabel[phase]}
+              group={group}
+              letterIdx={letterIdx}
+              phase={phase}
+              router={router}
+            />
           )}
           {phase === 'group-success' && <SuccessScreen key="success" groupTitle={group.title} onNext={handleGroupNext} />}
           {phase === 'group-fail' && <FailScreen key="fail" onRetry={handleRetry} />}
@@ -1105,10 +1193,7 @@ export default function GermanLetterLessonPage() {
                   router.push('/character-and-map?from=lesson');
                 }}
                 className="flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-base md:text-lg text-white"
-                style={{
-                  background: 'linear-gradient(135deg, #58CC02, #096A02)',
-                  boxShadow: '0 10px 30px rgba(88,204,2,0.4)',
-                }}>
+                style={{ background: 'linear-gradient(135deg, #58CC02, #096A02)', boxShadow: '0 10px 30px rgba(88,204,2,0.4)' }}>
                 <Trophy size={20} /> الخريطة
               </motion.button>
             </motion.div>
