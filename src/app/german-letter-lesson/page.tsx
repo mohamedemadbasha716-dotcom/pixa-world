@@ -832,14 +832,14 @@ function HarborTest({
           <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
       ) : (
-        <div className="flex gap-3 h-full px-3">
-          {/* الصورة - تاخد المساحة الأكبر */}
-          <div className="flex-1 min-w-0 h-full">
-            {ImageBox}
-          </div>
-          
-          {/* الكارت الجانبي - عرض ثابت */}
-          <div className="flex-shrink-0 h-full" style={{ width: '240px' }}>
+        <div className="flex gap-3 h-full px-3" style={{ flexDirection: 'row-reverse' }}>
+  {/* الصورة - تاخد المساحة الأكبر */}
+  <div className="flex-1 min-w-0 h-full">
+    {ImageBox}
+  </div>
+  
+  {/* الكارت الجانبي - عرض ثابت */}
+  <div className="flex-shrink-0 h-full" style={{ width: '240px' }}>
             <SidePanel 
               currentLetter={currentLetter}
               boxes={boxes}
