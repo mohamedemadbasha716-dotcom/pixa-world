@@ -80,9 +80,11 @@ const LANDMARKS_BASE = [
 
 // ═══════════════════════════════════════
 // 🖥️ إحداثيات الديسكتوب
+// ✅ centerY لهامبورغ: 9 → 18 (بعيد عن اللافتة لتحت)
+// ✅ centerX لهامبورغ: 41 → 36 (شوية على الشمال)
 // ═══════════════════════════════════════
 const COORDS_DESKTOP: Record<string, { centerX: number; centerY: number; clickArea: { x: number; y: number; w: number; h: number } }> = {
-  hamburg:        { centerX: 41, centerY: 9,  clickArea: { x: 35, y: 3,  w: 13, h: 14 } },
+  hamburg:        { centerX: 36, centerY: 18, clickArea: { x: 35, y: 3,  w: 13, h: 14 } },
   cologne:        { centerX: 23, centerY: 41, clickArea: { x: 16, y: 25, w: 15, h: 33 } },
   center:         { centerX: 49, centerY: 46, clickArea: { x: 43, y: 36, w: 13, h: 20 } },
   berlin:         { centerX: 71, centerY: 21, clickArea: { x: 62, y: 8,  w: 18, h: 28 } },
@@ -92,9 +94,11 @@ const COORDS_DESKTOP: Record<string, { centerX: number; centerY: number; clickAr
 
 // ═══════════════════════════════════════
 // 📱 إحداثيات الموبايل
+// ✅ centerY لهامبورغ: 12 → 20 (بعيد عن اللافتة لتحت)
+// ✅ centerX لهامبورغ: 60 → 50 (شوية على الشمال)
 // ═══════════════════════════════════════
 const COORDS_MOBILE: Record<string, { centerX: number; centerY: number; clickArea: { x: number; y: number; w: number; h: number } }> = {
-  hamburg:        { centerX: 60, centerY: 12, clickArea: { x: 40, y: 5,  w: 45, h: 16 } },
+  hamburg:        { centerX: 50, centerY: 20, clickArea: { x: 40, y: 5,  w: 45, h: 16 } },
   cologne:        { centerX: 22, centerY: 30, clickArea: { x: 8,  y: 18, w: 30, h: 22 } },
   berlin:         { centerX: 78, centerY: 30, clickArea: { x: 62, y: 22, w: 30, h: 16 } },
   center:         { centerX: 50, centerY: 55, clickArea: { x: 32, y: 45, w: 36, h: 20 } },

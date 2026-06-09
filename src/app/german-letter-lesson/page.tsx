@@ -661,12 +661,12 @@ function HarborTest({
     const containerW = rect.width;
     const containerH = rect.height;
 
-// الـ container بنفس نسبة الصورة → مفيش letterboxing
-const renderedW = containerW;
-const renderedH = containerH;
+    // الـ container بنفس نسبة الصورة → مفيش letterboxing
+    const renderedW = containerW;
+    const renderedH = containerH;
 
-const clickX = e.clientX - rect.left;
-const clickY = e.clientY - rect.top;
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
 
     if (clickX < 0 || clickY < 0 || clickX > renderedW || clickY > renderedH) return;
 
@@ -716,7 +716,7 @@ const clickY = e.clientY - rect.top;
         if (newWrong >= 5) onFail();
       }, 700);
     }
-  }, [showFeedback, finished, boxes, currentLetter, harborImage, currentIdx, groupLetters.length, wrong, onCombo, onKarlReact, onStarEarned, onPass, onFail]);
+  }, [showFeedback, finished, boxes, currentLetter, currentIdx, groupLetters.length, wrong, onCombo, onKarlReact, onStarEarned, onPass, onFail]);
 
   const ImageBox = (
     <div
@@ -725,13 +725,13 @@ const clickY = e.clientY - rect.top;
       style={{ cursor: 'pointer', background: '#0a1628' }}
       onClick={handleImageClick}
     >
-<img 
-  src={harborImage.src} 
-  alt="ميناء" 
-  className="w-full h-full"
-  style={{ objectFit: 'fill', pointerEvents: 'none', display: 'block' }}
-  draggable={false} 
-/>
+      <img 
+        src={harborImage.src} 
+        alt="ميناء" 
+        className="w-full h-full"
+        style={{ objectFit: 'fill', pointerEvents: 'none', display: 'block' }}
+        draggable={false} 
+      />
 
       <AnimatePresence>
         {showHint && boxes.length > 0 && currentLetter && boxes.map((b: any, idx: number) => (
@@ -794,14 +794,14 @@ const clickY = e.clientY - rect.top;
 
   return (
     <motion.div 
-  initial={{ opacity: 0 }} 
-  animate={{ opacity: 1 }} 
-  className="w-full"
-  style={{ 
-    height: isMobile ? 'auto' : 'calc(100vh - 20px)',
-    maxWidth: '100vw',
-  }}
->
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      className="w-full"
+      style={{ 
+        height: isMobile ? 'auto' : 'calc(100vh - 20px)',
+        maxWidth: '100vw',
+      }}
+    >
       {isMobile ? (
         <div className="flex flex-col gap-2 px-2">
           <SidePanel 
@@ -824,42 +824,51 @@ const clickY = e.clientY - rect.top;
             showHint={showHint}
             setShowHint={setShowHint}
           />
-          <div style={{ height: '60vh' }}>{ImageBox}</div>
+          {/* ✅ صورة الموبايل بنسبتها الأصلية 768/1376 = عرض الشاشة كامل */}
+          <div 
+            className="w-full"
+            style={{ 
+              aspectRatio: `${harborImage.width} / ${harborImage.height}`,
+            }}
+          >
+            {ImageBox}
+          </div>
         </div>
-  ) : (
-<div className="flex h-full items-center justify-center w-full" style={{ flexDirection: 'row-reverse', gap: '40px' }}>    {/* الصورة - بنسبتها الأصلية */}
-    <div style={{ 
-      height: '100%',
-      aspectRatio: '1537/1023',
-    }}>
-      {ImageBox}
-    </div>
-    
-    {/* الكارت الجانبي - لاصق في الصورة */}
-    <div className="flex-shrink-0 h-full" style={{ width: '260px' }}>
-      <SidePanel 
-        currentLetter={currentLetter}
-        boxes={boxes}
-        onSpeak={() => speakWord(currentLetter.word)}
-        totalStars={totalStars}
-        wrong={wrong}
-        totalLettersLearned={totalLettersLearned}
-        totalLetters={totalLetters}
-        groupTitle={groupTitle}
-        phaseLabel={phaseLabel}
-        group={group}
-        letterIdx={letterIdx}
-        phase={phase}
-        router={router}
-        isMobile={false}
-        foundLetters={foundLetters}
-        groupLetters={groupLetters}
-        showHint={showHint}
-        setShowHint={setShowHint}
-      />
-    </div>
-  </div>
-)}
+      ) : (
+        <div className="flex h-full items-center justify-center w-full" style={{ flexDirection: 'row-reverse', gap: '40px' }}>
+          {/* الصورة - بنسبتها الأصلية */}
+          <div style={{ 
+            height: '100%',
+            aspectRatio: `${harborImage.width} / ${harborImage.height}`,
+          }}>
+            {ImageBox}
+          </div>
+          
+          {/* الكارت الجانبي - لاصق في الصورة */}
+          <div className="flex-shrink-0 h-full" style={{ width: '260px' }}>
+            <SidePanel 
+              currentLetter={currentLetter}
+              boxes={boxes}
+              onSpeak={() => speakWord(currentLetter.word)}
+              totalStars={totalStars}
+              wrong={wrong}
+              totalLettersLearned={totalLettersLearned}
+              totalLetters={totalLetters}
+              groupTitle={groupTitle}
+              phaseLabel={phaseLabel}
+              group={group}
+              letterIdx={letterIdx}
+              phase={phase}
+              router={router}
+              isMobile={false}
+              foundLetters={foundLetters}
+              groupLetters={groupLetters}
+              showHint={showHint}
+              setShowHint={setShowHint}
+            />
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -1057,11 +1066,12 @@ export default function GermanLetterLessonPage() {
   const activeColor = letterData?.color ?? '#4CC9F0';
 
   return (
-    <div className="min-h-screen text-white relative overflow-hidden" style={{ fontFamily: "'Tajawal', sans-serif" }} dir="rtl">
+    /* ✅ شيلنا overflow-hidden عشان pull-to-refresh يشتغل */
+    <div className="min-h-screen text-white relative" style={{ fontFamily: "'Tajawal', sans-serif" }} dir="rtl">
       <PremiumOceanBackground activeColor={activeColor} />
       <div style={{ transform: 'scale(0.6)', transformOrigin: 'bottom right', position: 'fixed', bottom: 0, right: 0, zIndex: 40 }}>
-  <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" />
-</div>
+        <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" />
+      </div>
       <ComboDisplay combo={combo} />
       <FlyingStars stars={flyingStars} />
 
@@ -1107,7 +1117,7 @@ export default function GermanLetterLessonPage() {
 
             <div className={`flex gap-1 justify-center ${isMobile ? 'flex-wrap' : ''}`}>
               {group.letters.map((l: any, i: number) => {
-               const isDone = (phase as string) === 'test' || (phase as string) === 'group-success' || i < letterIdx || (i === letterIdx && (phase as string) === 'learn-word');
+                const isDone = (phase as string) === 'test' || (phase as string) === 'group-success' || i < letterIdx || (i === letterIdx && (phase as string) === 'learn-word');
                 const isCurrent = i === letterIdx;
                 return (
                   <div key={l.letter}
@@ -1130,15 +1140,15 @@ export default function GermanLetterLessonPage() {
       )}
 
       <div 
-  className={`${isMobile ? 'px-1' : ''} min-h-screen flex flex-col relative`}
-  style={{ 
-    zIndex: 10,
-    paddingTop: phase === 'test' ? '10px' : (isMobile ? '110px' : '105px'),
-    paddingBottom: '10px',
-    paddingLeft: phase === 'test' && !isMobile ? '0' : undefined,
-    paddingRight: phase === 'test' && !isMobile ? '0' : undefined,
-    justifyContent: phase === 'test' ? 'flex-start' : 'center',
-  }}>
+        className={`${isMobile ? 'px-1' : ''} min-h-screen flex flex-col relative`}
+        style={{ 
+          zIndex: 10,
+          paddingTop: phase === 'test' ? '10px' : (isMobile ? '110px' : '105px'),
+          paddingBottom: '10px',
+          paddingLeft: phase === 'test' && !isMobile ? '0' : undefined,
+          paddingRight: phase === 'test' && !isMobile ? '0' : undefined,
+          justifyContent: phase === 'test' ? 'flex-start' : 'center',
+        }}>
         <AnimatePresence mode="wait">
           {phase === 'learn-letter' && (
             <LearnLetterPhase key={`ll-${groupIdx}-${letterIdx}`} letterData={letterData} onDone={handleLetterDone} onKarlReact={handleKarlReact} onCombo={handleCombo} isMobile={isMobile} />
