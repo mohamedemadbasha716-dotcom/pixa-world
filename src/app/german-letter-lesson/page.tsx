@@ -832,44 +832,41 @@ const clickY = e.clientY - rect.top;
           />
           <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
-   ) : (
-  <div className="flex h-full items-center justify-center" style={{ flexDirection: 'row-reverse', gap: '0px' }}>
-    {/* الصورة - بنسبتها الأصلية، متمركزة */}
-    <div className="h-full flex items-center justify-start" style={{ flex: '1 1 auto' }}>
-      <div style={{ 
-        height: '100%',
-        aspectRatio: '1537/1023',
-        maxWidth: '100%',
-      }}>
-        {ImageBox}
-      </div>
+  ) : (
+  <div className="flex h-full items-center justify-center w-full" style={{ flexDirection: 'row-reverse', gap: '8px' }}>
+    {/* الصورة - بنسبتها الأصلية */}
+    <div style={{ 
+      height: '100%',
+      aspectRatio: '1537/1023',
+    }}>
+      {ImageBox}
     </div>
     
-    {/* الكارت الجانبي */}
-    <div className="flex-shrink-0 h-full" style={{ width: '280px', paddingRight: '8px' }}>
-            <SidePanel 
-              currentLetter={currentLetter}
-              boxes={boxes}
-              onSpeak={() => speakWord(currentLetter.word)}
-              totalStars={totalStars}
-              wrong={wrong}
-              totalLettersLearned={totalLettersLearned}
-              totalLetters={totalLetters}
-              groupTitle={groupTitle}
-              phaseLabel={phaseLabel}
-              group={group}
-              letterIdx={letterIdx}
-              phase={phase}
-              router={router}
-              isMobile={false}
-              foundLetters={foundLetters}
-              groupLetters={groupLetters}
-              showHint={showHint}
-              setShowHint={setShowHint}
-            />
-          </div>
-        </div>
-      )}
+    {/* الكارت الجانبي - لاصق في الصورة */}
+    <div className="flex-shrink-0 h-full" style={{ width: '260px' }}>
+      <SidePanel 
+        currentLetter={currentLetter}
+        boxes={boxes}
+        onSpeak={() => speakWord(currentLetter.word)}
+        totalStars={totalStars}
+        wrong={wrong}
+        totalLettersLearned={totalLettersLearned}
+        totalLetters={totalLetters}
+        groupTitle={groupTitle}
+        phaseLabel={phaseLabel}
+        group={group}
+        letterIdx={letterIdx}
+        phase={phase}
+        router={router}
+        isMobile={false}
+        foundLetters={foundLetters}
+        groupLetters={groupLetters}
+        showHint={showHint}
+        setShowHint={setShowHint}
+      />
+    </div>
+  </div>
+)}
     </motion.div>
   );
 }
