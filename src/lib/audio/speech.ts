@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// 🎙️ Speech.ts - نظام النطق الألماني (صوت المتصفح)
+// 🎙️ Speech.ts - صوت راجل ألماني (مع فلتر للأصوات النسائية)
 // ═══════════════════════════════════════════════════════════════
 
 // 🎯 قائمة الأصوات الذكورية الألمانية - مرتبة من الأفضل
@@ -21,10 +21,17 @@ const GERMAN_MALE_VOICES_PRIORITY = [
   'Bernd',
 ];
 
+// 🚫 أصوات نسائية معروفة - نرفضها
+const FEMALE_VOICES_BLACKLIST = [
+  'anna', 'petra', 'marlene', 'vicki', 'katja', 
+  'hedda', 'helga', 'hanna', 'amala', 'female',
+  'eva', 'ingrid', 'gisela', 'erika', 'klara'
+];
+
 let cachedVoice: SpeechSynthesisVoice | null = null;
 
 /**
- * 🎯 يجيب أفضل صوت ألماني متاح
+ * 🎯 يجيب أفضل صوت راجل ألماني
  */
 export function getBestGermanVoice(): SpeechSynthesisVoice | null {
   if (typeof window === 'undefined' || !window.speechSynthesis) return null;
@@ -33,37 +40,48 @@ export function getBestGermanVoice(): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices();
   if (voices.length === 0) return null;
   
-  const germanVoices = voices.filter(v => v.lang.startsWith('de'));
-  if (germanVoices.length === 0) return null;
+  const allGermanVoices = voices.filter(v => v.lang.startsWith('de'));
+  if (allGermanVoices.length === 0) return null;
   
-  // ابحث بالترتيب
+  // 🚫 شيل الأصوات النسائية
+  const maleVoices = allGermanVoices.filter(v => {
+    const nameLower = v.name.toLowerCase();
+    return !FEMALE_VOICES_BLACKLIST.some(female => nameLower.includes(female));
+  });
+  
+  const germanVoices = maleVoices.length > 0 ? maleVoices : allGermanVoices;
+  
+  console.log('🎙️ Male voices found:', maleVoices.map(v => v.name));
+  
+  // 1️⃣ بحث دقيق
   for (const priorityName of GERMAN_MALE_VOICES_PRIORITY) {
     const exact = germanVoices.find(v => v.name === priorityName);
     if (exact) {
       cachedVoice = exact;
-      console.log('🎙️ Voice:', exact.name);
+      console.log('🎙️ ✅', exact.name);
       return exact;
     }
   }
   
+  // 2️⃣ بحث جزئي
   for (const priorityName of GERMAN_MALE_VOICES_PRIORITY) {
     const partial = germanVoices.find(v => 
       v.name.toLowerCase().includes(priorityName.toLowerCase())
     );
     if (partial) {
       cachedVoice = partial;
-      console.log('🎙️ Voice:', partial.name);
+      console.log('🎙️ ✅', partial.name);
       return partial;
     }
   }
   
-  // أول صوت ألماني
+  // 3️⃣ أول صوت راجل
   cachedVoice = germanVoices[0];
-  console.log('🎙️ Voice (fallback):', cachedVoice.name);
+  console.log('🎙️ ⚠️', cachedVoice.name);
   return cachedVoice;
 }
 
-// 🔄 إعادة تحميل الأصوات
+// 🔄 تحديث الأصوات
 if (typeof window !== 'undefined' && window.speechSynthesis) {
   window.speechSynthesis.onvoiceschanged = () => {
     cachedVoice = null;
@@ -91,7 +109,7 @@ export function speak(text: string, options: SpeechOptions = {}) {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = 'de-DE';
   utterance.rate = options.rate ?? 0.85;
-  utterance.pitch = options.pitch ?? 1.0;
+  utterance.pitch = options.pitch ?? 0.95; // ⬇️ أقل شوية = صوت أعمق
   utterance.volume = options.volume ?? 1.0;
   
   const voice = getBestGermanVoice();
@@ -101,19 +119,19 @@ export function speak(text: string, options: SpeechOptions = {}) {
 }
 
 export function speakLetter(letter: string) {
-  speak(letter, { rate: 0.6 });
+  speak(letter, { rate: 0.6, pitch: 0.95 });
 }
 
 export function speakWord(word: string) {
-  speak(word, { rate: 0.75 });
+  speak(word, { rate: 0.75, pitch: 0.95 });
 }
 
 export function speakNumber(text: string) {
-  speak(text, { rate: 0.7 });
+  speak(text, { rate: 0.7, pitch: 0.95 });
 }
 
 export function speakSentence(sentence: string) {
-  speak(sentence, { rate: 0.8 });
+  speak(sentence, { rate: 0.8, pitch: 0.95 });
 }
 
 export function stopSpeaking() {
@@ -127,9 +145,9 @@ export function logAvailableGermanVoices() {
   const voices = window.speechSynthesis.getVoices();
   const german = voices.filter(v => v.lang.startsWith('de'));
   console.log('═══════════════════════════════════');
-  console.log('🎙️ الأصوات الألمانية المتاحة:');
+  console.log('🎙️ All German voices:');
   german.forEach((v, i) => {
-    console.log(`${i + 1}. ${v.name} | ${v.lang} | ${v.localService ? '💻' : '☁️'}`);
+    console.log(`${i + 1}. "${v.name}" | ${v.lang}`);
   });
   console.log('═══════════════════════════════════');
 }
