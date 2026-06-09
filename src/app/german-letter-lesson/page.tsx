@@ -667,14 +667,12 @@ function HarborTest({
     const containerW = rect.width;
     const containerH = rect.height;
 
-    const scale = Math.min(containerW / harborImage.width, containerH / harborImage.height);
-    const renderedW = harborImage.width * scale;
-    const renderedH = harborImage.height * scale;
-    const offsetX = (containerW - renderedW) / 2;
-    const offsetY = (containerH - renderedH) / 2;
+// الـ container بنفس نسبة الصورة → مفيش letterboxing
+const renderedW = containerW;
+const renderedH = containerH;
 
-    const clickX = e.clientX - rect.left - offsetX;
-    const clickY = e.clientY - rect.top - offsetY;
+const clickX = e.clientX - rect.left;
+const clickY = e.clientY - rect.top;
 
     if (clickX < 0 || clickY < 0 || clickX > renderedW || clickY > renderedH) return;
 
@@ -733,11 +731,11 @@ function HarborTest({
       style={{ cursor: 'pointer', background: '#0a1628' }}
       onClick={handleImageClick}
     >
-      <img 
+<img 
   src={harborImage.src} 
   alt="ميناء" 
   className="w-full h-full"
-  style={{ objectFit: 'cover', pointerEvents: 'none', display: 'block' }}
+  style={{ objectFit: 'fill', pointerEvents: 'none', display: 'block' }}
   draggable={false} 
 />
 
@@ -834,23 +832,21 @@ function HarborTest({
           />
           <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
-    ) : (
-  <div className="flex gap-2 items-center h-full" style={{ flexDirection: 'row-reverse', paddingRight: '8px', paddingLeft: '0px' }}>
-    {/* الصورة - تاخد المساحة الأكبر وبنسبة الصورة الأصلية */}
-    <div className="flex-1 min-w-0 h-full flex items-center justify-center">
+   ) : (
+  <div className="flex h-full items-center justify-center" style={{ flexDirection: 'row-reverse', gap: '0px' }}>
+    {/* الصورة - بنسبتها الأصلية، متمركزة */}
+    <div className="h-full flex items-center justify-start" style={{ flex: '1 1 auto' }}>
       <div style={{ 
-        width: '100%', 
         height: '100%',
-        maxHeight: '100%',
         aspectRatio: '1537/1023',
         maxWidth: '100%',
       }}>
         {ImageBox}
       </div>
     </div>
-  
-  {/* الكارت الجانبي - عرض ثابت */}
-  <div className="flex-shrink-0 h-full" style={{ width: '240px' }}>
+    
+    {/* الكارت الجانبي */}
+    <div className="flex-shrink-0 h-full" style={{ width: '280px', paddingRight: '8px' }}>
             <SidePanel 
               currentLetter={currentLetter}
               boxes={boxes}
