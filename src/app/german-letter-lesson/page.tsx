@@ -833,8 +833,7 @@ const clickY = e.clientY - rect.top;
           <div style={{ height: '60vh' }}>{ImageBox}</div>
         </div>
   ) : (
-  <div className="flex h-full items-center justify-center w-full" style={{ flexDirection: 'row-reverse', gap: '8px' }}>
-    {/* الصورة - بنسبتها الأصلية */}
+<div className="flex h-full items-center justify-center w-full" style={{ flexDirection: 'row-reverse', gap: '40px' }}>    {/* الصورة - بنسبتها الأصلية */}
     <div style={{ 
       height: '100%',
       aspectRatio: '1537/1023',
