@@ -284,14 +284,15 @@ export default function PixiHomePage() {
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a3e] via-[#2d1b4e] to-[#1e1b4b] text-white font-sans overflow-x-hidden selection:bg-[#FF4D6D] selection:text-white relative" dir="rtl">
       <FloatingParticles />
 
-      {/* 1. الهيدر */}
+      {/* 1. الهيدر - النسخة المعدلة للموبايل */}
       <motion.header
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: 'spring', stiffness: 100 }}
-        className="w-full max-w-7xl mx-auto px-6 py-4 flex justify-between items-center border-b border-white/10 backdrop-blur-xl bg-[#1a1a3e]/50 sticky top-0 z-50"
+        className="w-full max-w-7xl mx-auto px-3 md:px-6 py-3 md:py-4 flex justify-between items-center gap-2 border-b border-white/10 backdrop-blur-xl bg-[#1a1a3e]/50 sticky top-0 z-50"
       >
-        <div className="flex items-center gap-3">
+        {/* الجانب الأيمن (بسبب RTL): الزرار */}
+        <div className="flex items-center gap-2 md:gap-3 order-2">
           <button className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-xl hover:bg-white/10">
             <span>تسجيل دخول الأبطال</span>
             <span className="text-lg">👋</span>
@@ -299,32 +300,34 @@ export default function PixiHomePage() {
           <motion.button
             whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(255,77,109,0.5)' }}
             whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-[#FF4D6D] to-[#F72585] text-white px-7 py-3 rounded-2xl font-black text-sm shadow-lg shadow-[#FF4D6D]/30 flex items-center gap-2"
+            className="bg-gradient-to-r from-[#FF4D6D] to-[#F72585] text-white px-3 md:px-7 py-2 md:py-3 rounded-xl md:rounded-2xl font-black text-[11px] md:text-sm shadow-lg shadow-[#FF4D6D]/30 flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
           >
-            <Rocket size={16} />
-            ابدأ المغامرة مجاناً
+            <Rocket size={14} className="md:w-4 md:h-4" />
+            <span>ابدأ المغامرة</span>
+            <span className="hidden md:inline">مجاناً</span>
           </motion.button>
         </div>
+
+        {/* الجانب الأيسر (بسبب RTL): اللوجو */}
         <motion.div
-          className="flex items-center gap-3 cursor-pointer"
+          className="flex items-center gap-2 md:gap-3 cursor-pointer order-1 flex-shrink-0"
           whileHover={{ scale: 1.02 }}
         >
-          <span className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-200">
+          <span className="text-base md:text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-200 whitespace-nowrap">
             PIXA WORLD
           </span>
           <motion.div
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#FF4D6D] via-[#F72585] to-[#9D4EDD] flex items-center justify-center font-black text-xl shadow-lg shadow-[#FF4D6D]/40"
+            className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl bg-gradient-to-tr from-[#FF4D6D] via-[#F72585] to-[#9D4EDD] flex items-center justify-center font-black text-base md:text-xl shadow-lg shadow-[#FF4D6D]/40 flex-shrink-0"
           >
             P
           </motion.div>
         </motion.div>
       </motion.header>
 
-      {/* 2. الهيرو - النسخة المحسّنة */}
+      {/* 2. الهيرو */}
       <section className="relative w-full max-w-5xl mx-auto text-center px-6 pt-20 pb-12 space-y-8 z-10">
-        {/* الإيموجي على الجوانب فقط */}
         {FLOATING_EMOJIS.map((emoji, i) => (
           <motion.span
             key={i}
@@ -348,7 +351,6 @@ export default function PixiHomePage() {
           </motion.span>
         ))}
 
-        {/* الشارة العلوية */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -364,81 +366,75 @@ export default function PixiHomePage() {
           </motion.div>
         </motion.div>
 
-        {/* 🎯 العنوان الرئيسي - النسخة المتنسقة */}
-<motion.div
-  initial={{ opacity: 0, y: 30 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.4 }}
-  className="space-y-6 py-4"
->
-  {/* السطر الأول */}
-  <motion.h2
-    initial={{ opacity: 0, x: -30 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ delay: 0.5 }}
-    className="text-3xl md:text-5xl font-black text-white drop-shadow-2xl"
-    style={{ textShadow: '0 2px 20px rgba(255,255,255,0.2)' }}
-  >
-    خلي طفلك يتكلم
-  </motion.h2>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="space-y-6 py-4"
+        >
+          <motion.h2
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-3xl md:text-5xl font-black text-white drop-shadow-2xl"
+            style={{ textShadow: '0 2px 20px rgba(255,255,255,0.2)' }}
+          >
+            خلي طفلك يتكلم
+          </motion.h2>
 
-  {/* السطر الثاني - الكلمة الرئيسية */}
-  <motion.div
-    initial={{ opacity: 0, scale: 0.8 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ delay: 0.7, type: 'spring', stiffness: 200 }}
-    className="relative inline-block"
-  >
-    {/* توهج خلفي */}
-    <div 
-      className="absolute inset-0 blur-3xl opacity-50"
-      style={{ background: 'linear-gradient(90deg, #FF4D6D, #F72585, #9D4EDD)' }}
-    />
-    
-    <h1 
-      className="relative text-6xl md:text-8xl font-black bg-clip-text text-transparent leading-none px-4"
-      style={{ 
-        backgroundImage: 'linear-gradient(135deg, #FF4D6D, #F72585, #9D4EDD)',
-        WebkitTextStroke: '1px rgba(255,255,255,0.1)',
-        filter: 'drop-shadow(0 0 40px rgba(247,37,133,0.6))',
-      }}
-    >
-      5 لغات نادرة
-    </h1>
-  </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.7, type: 'spring', stiffness: 200 }}
+            className="relative inline-block"
+          >
+            <div 
+              className="absolute inset-0 blur-3xl opacity-50"
+              style={{ background: 'linear-gradient(90deg, #FF4D6D, #F72585, #9D4EDD)' }}
+            />
+            
+            <h1 
+              className="relative text-6xl md:text-8xl font-black bg-clip-text text-transparent leading-none px-4"
+              style={{ 
+                backgroundImage: 'linear-gradient(135deg, #FF4D6D, #F72585, #9D4EDD)',
+                WebkitTextStroke: '1px rgba(255,255,255,0.1)',
+                filter: 'drop-shadow(0 0 40px rgba(247,37,133,0.6))',
+              }}
+            >
+              5 لغات نادرة
+            </h1>
+          </motion.div>
 
-  {/* السطر الثالث */}
-  <motion.div
-    initial={{ opacity: 0, x: 30 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ delay: 0.9 }}
-    className="flex items-center justify-center gap-3 flex-wrap"
-  >
-    <h2 
-      className="text-3xl md:text-5xl font-black text-white drop-shadow-2xl"
-      style={{ textShadow: '0 2px 20px rgba(255,255,255,0.2)' }}
-    >
-      قبل ما يدخل إعدادي
-    </h2>
-    <motion.span
-      className="text-4xl md:text-5xl inline-block"
-      animate={{ 
-        y: [0, -15, 0], 
-        rotate: [0, 15, -15, 0],
-      }}
-      transition={{ 
-        duration: 2, 
-        repeat: Infinity,
-        ease: 'easeInOut',
-      }}
-      style={{ filter: 'drop-shadow(0 0 15px rgba(255,77,109,0.6))' }}
-    >
-      🚀
-    </motion.span>
-  </motion.div>
-</motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.9 }}
+            className="flex items-center justify-center gap-3 flex-wrap"
+          >
+            <h2 
+              className="text-3xl md:text-5xl font-black text-white drop-shadow-2xl"
+              style={{ textShadow: '0 2px 20px rgba(255,255,255,0.2)' }}
+            >
+              قبل ما يدخل إعدادي
+            </h2>
+            <motion.span
+              className="text-4xl md:text-5xl inline-block"
+              animate={{ 
+                y: [0, -15, 0], 
+                rotate: [0, 15, -15, 0],
+              }}
+              transition={{ 
+                duration: 2, 
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+              style={{ filter: 'drop-shadow(0 0 15px rgba(255,77,109,0.6))' }}
+            >
+              🚀
+            </motion.span>
+          </motion.div>
+        </motion.div>
 
-        {/* 🌍 الرسالة الذهبية - النسخة المحسّنة */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -460,7 +456,6 @@ export default function PixiHomePage() {
           </p>
         </motion.div>
 
-        {/* 📝 الوصف المحسّن */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -470,7 +465,6 @@ export default function PixiHomePage() {
           المنصة العربية الوحيدة اللي بتأسس طفلك في <span className="text-[#FFD700] font-black">5 لغات عالمية نادرة</span> من الصفر للاحتراف، بنظام مستويات تدريجي وأسلوب ألعاب يحبه الأطفال 🎮
         </motion.p>
 
-        {/* Stats bar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -539,7 +533,7 @@ export default function PixiHomePage() {
         </motion.div>
       </section>
 
-      {/* 4. الرسائل التسويقية */}
+      {/* 4. الرسائل التسويقية - "ليه تختار PIXA WORLD؟" */}
       <section className="w-full max-w-6xl mx-auto px-6 mb-24 space-y-12 z-10 relative">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -551,8 +545,24 @@ export default function PixiHomePage() {
             <Sparkles size={14} />
             مميزات حصرية
           </div>
-          <h2 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
-            ليه بيكسا وورلد؟
+          {/* ✏️ تم تعديل العنوان */}
+          <h2 className="text-3xl md:text-5xl font-black flex items-center justify-center gap-3 flex-wrap">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
+              ليه تختار
+            </span>
+            <span 
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage: 'linear-gradient(135deg, #FF4D6D, #F72585, #9D4EDD)',
+                filter: 'drop-shadow(0 0 20px rgba(247,37,133,0.4))',
+              }}
+              dir="ltr"
+            >
+              PIXA WORLD
+            </span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
+              ؟
+            </span>
           </h2>
           <p className="text-gray-300 text-sm max-w-lg mx-auto">
             اكتشف كل المميزات اللي بتخلي أطفالك يحبوا تعلم اللغات
@@ -931,8 +941,10 @@ export default function PixiHomePage() {
             <div className="space-y-4 md:col-span-2">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#FF4D6D] to-[#9D4EDD] flex items-center justify-center font-black text-lg shadow-lg shadow-[#FF4D6D]/30">P</div>
-                <span className="text-xl font-black">PIXA WORLD</span>
+                {/* ✏️ تم تعديل الاسم */}
+                <span className="text-xl font-black" dir="ltr">PIXA WORLD</span>
               </div>
+              {/* ✏️ تم تعديل النص */}
               <p className="text-gray-300 text-sm leading-relaxed max-w-sm">
                 منصة تعليمية تفاعلية تحول تعلم اللغات لمغامرة مثيرة للأطفال من 6-11 سنة. 5 لغات عالمية بأسلوب ألعاب مبتكر.
               </p>
@@ -951,9 +963,15 @@ export default function PixiHomePage() {
 
             <div className="space-y-4">
               <h4 className="font-black text-sm text-white">روابط سريعة</h4>
-              {['عن بيكسا وورلد', 'المنهج التعليمي', 'الأسعار', 'تواصل معنا'].map((link, i) => (
+              {/* ✏️ تم تعديل أول رابط */}
+              {[
+                { label: 'عن المنصة', en: '' },
+                { label: 'المنهج التعليمي', en: '' },
+                { label: 'الأسعار', en: '' },
+                { label: 'تواصل معنا', en: '' },
+              ].map((link, i) => (
                 <a key={i} href="#" className="block text-gray-300 text-sm hover:text-[#4CC9F0] transition-colors font-medium">
-                  {link}
+                  {link.label}
                 </a>
               ))}
             </div>
@@ -974,8 +992,9 @@ export default function PixiHomePage() {
           </div>
 
           <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            {/* ✏️ تم تعديل النص */}
             <p className="text-[11px] text-gray-400 font-bold">
-              © {new Date().getFullYear()} بيكسا وورلد. جميع الحقوق محفوظة 🎮✨
+              © {new Date().getFullYear()} <span dir="ltr" className="inline-block mx-1">PIXA WORLD</span>. جميع الحقوق محفوظة 🎮✨
             </p>
             <div className="flex gap-6 text-[11px] text-gray-400 font-bold">
               <a href="#" className="hover:text-white transition-colors">سياسة الخصوصية</a>
