@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Star, Sparkles } from 'lucide-react';
+import { ArrowLeft, Star, Sparkles, Volume2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { saveLessonProgress, getLessonProgress } from '@/lib/playerData';
 
@@ -28,51 +28,51 @@ import { NUMBERS, NUMBER_GROUPS, type NumberItem } from '@/data/german/numbers';
 type Phase = 'listen' | 'write' | 'test';
 
 // ═══════════════════════════════════════
-// 📱 Hook لكشف الموبايل والكيبورد
+// 🆕 Hook للكشف عن الموبايل
 // ═══════════════════════════════════════
-function useMobileKeyboard() {
+function useIsMobile(breakpoint: number = 768): boolean {
   const [isMobile, setIsMobile] = useState(false);
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
-
   useEffect(() => {
-    const checkMobile = () => {
-      if (typeof window === 'undefined') return;
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  useEffect(() => {
-    if (!isMobile || typeof window === 'undefined') return;
-    const initialHeight = window.innerHeight;
-
-    const handleResize = () => {
-      const heightDiff = initialHeight - window.innerHeight;
-      setKeyboardOpen(heightDiff > 150);
-    };
-
-    window.addEventListener('resize', handleResize);
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleResize);
-    }
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleResize);
-      }
-    };
-  }, [isMobile]);
-
-  return { isMobile, keyboardOpen };
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [breakpoint]);
+  return isMobile;
 }
 
 // ═══════════════════════════════════════
-// خلفية الكاتدرائية (نفس الكود)
+// 🆕 Hook للكشف عن الكيبورد
+// ═══════════════════════════════════════
+function useKeyboardOpen(): boolean {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+
+    const initialHeight = window.visualViewport.height;
+    let threshold = 150; // لو الفرق أكبر من 150px = الكيبورد مفتوح
+
+    const handleResize = () => {
+      if (!window.visualViewport) return;
+      const currentHeight = window.visualViewport.height;
+      const diff = initialHeight - currentHeight;
+      setIsOpen(diff > threshold);
+    };
+
+    window.visualViewport.addEventListener('resize', handleResize);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  return isOpen;
+}
+
+// ═══════════════════════════════════════
+// خلفية الكاتدرائية
 // ═══════════════════════════════════════
 function PremiumCathedralBackground({ activeColor }: { activeColor: string }) {
-  // ... نفس الكود اللي عندك بالظبط
   const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number }>>([]);
 
   useEffect(() => {
@@ -147,51 +147,130 @@ function PremiumCathedralBackground({ activeColor }: { activeColor: string }) {
 }
 
 // ═══════════════════════════════════════
-// 🎯 Hero Number Display - متجاوب!
+// 🆕 بطاقات الأرقام المتعلمة (للموبايل بس - تحت)
 // ═══════════════════════════════════════
-function HeroNumberDisplay({ numData, isMobile, keyboardOpen }: {
-  numData: NumberItem;
-  isMobile?: boolean;
-  keyboardOpen?: boolean;
+function LearnedNumbersCards({ completedNums, allNumbers, activeColor }: {
+  completedNums: Set<number>;
+  allNumbers: NumberItem[];
+  activeColor: string;
 }) {
-  // 📱 حجم متجاوب
-  const size = keyboardOpen ? 120 : isMobile ? 180 : 260;
-  const fontSize = keyboardOpen ? '4rem' : isMobile ? '6rem' : '10rem';
-  const deFontSize = keyboardOpen ? 'text-base' : isMobile ? 'text-lg' : 'text-2xl';
+  const learned = allNumbers.filter(n => completedNums.has(n.num));
+
+  if (learned.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="w-full px-4 pb-4"
+      >
+        <div className="rounded-2xl p-5 text-center backdrop-blur-md border"
+          style={{
+            background: `linear-gradient(135deg, ${activeColor}15, ${activeColor}05)`,
+            borderColor: `${activeColor}33`,
+          }}
+        >
+          <div className="text-4xl mb-2">📚</div>
+          <div className="font-black text-white text-sm mb-1">ابدأ رحلتك!</div>
+          <div className="text-white/50 text-xs">الأرقام اللي هتتعلمها هتظهر هنا</div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
-    <div className="relative flex items-center justify-center transition-all duration-300"
-      style={{ width: size, height: size }}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+      className="w-full px-3 pb-4"
+    >
+      <div className="flex items-center justify-between mb-2 px-1">
+        <div className="flex items-center gap-1.5">
+          <Sparkles size={12} style={{ color: activeColor }} />
+          <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: `${activeColor}cc` }}>
+            اتعلمتها · {learned.length}
+          </span>
+        </div>
+        <span className="text-[10px] text-white/30 font-bold">اضغط للسماع 🔊</span>
+      </div>
 
-      {!keyboardOpen && (
-        <>
-          <motion.div
-            className="absolute inset-0 rounded-full border-2"
-            style={{ borderColor: `${numData.color}33` }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+      <div className="grid grid-cols-3 gap-2">
+        {learned.map((n, i) => (
+          <motion.button
+            key={n.num}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: i * 0.05, type: 'spring', stiffness: 300 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => speakNumber(n.de)}
+            className="relative rounded-xl p-2.5 flex flex-col items-center gap-1 backdrop-blur-md border-2"
+            style={{
+              background: `linear-gradient(135deg, ${n.gradient[0]}25, ${n.gradient[1]}10)`,
+              borderColor: `${n.color}55`,
+              boxShadow: `0 4px 12px ${n.color}33, inset 0 1px 0 ${n.color}44`,
+            }}
           >
-            <div className="absolute w-3 h-3 rounded-full" style={{
-              background: numData.color,
-              top: -6, left: '50%', transform: 'translateX(-50%)',
-              boxShadow: `0 0 15px ${numData.color}`,
-            }} />
-          </motion.div>
+            <div className="flex items-center gap-1 w-full justify-center">
+              <span className="text-base">{n.emoji}</span>
+              <span className="font-black text-xl tabular-nums"
+                style={{
+                  color: 'white',
+                  textShadow: `0 0 10px ${n.color}aa`,
+                }}>
+                {n.num}
+              </span>
+            </div>
+            <span className="font-black text-[11px] truncate w-full text-center" style={{
+              color: n.color,
+              direction: 'ltr',
+              textShadow: `0 0 8px ${n.color}66`,
+            }}>
+              {n.de}
+            </span>
+            <Volume2 size={9} className="absolute top-1 left-1" style={{ color: `${n.color}aa` }} />
+          </motion.button>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
 
-          <motion.div
-            className="absolute inset-4 rounded-full border"
-            style={{ borderColor: `${numData.color}22` }}
-            animate={{ rotate: -360 }}
-            transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-          >
-            <div className="absolute w-2 h-2 rounded-full" style={{
-              background: numData.gradient[1],
-              bottom: -4, right: '30%',
-              boxShadow: `0 0 10px ${numData.gradient[1]}`,
-            }} />
-          </motion.div>
-        </>
-      )}
+// ═══════════════════════════════════════
+// Hero Number Display
+// ═══════════════════════════════════════
+function HeroNumberDisplay({ numData, isMobile }: { numData: NumberItem; isMobile?: boolean }) {
+  const size = isMobile ? 180 : 260;
+  const fontSize = isMobile ? '6rem' : '10rem';
+  const deFontSize = isMobile ? 'text-lg' : 'text-2xl';
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <motion.div
+        className="absolute inset-0 rounded-full border-2"
+        style={{ borderColor: `${numData.color}33` }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+      >
+        <div className="absolute w-3 h-3 rounded-full" style={{
+          background: numData.color,
+          top: -6, left: '50%', transform: 'translateX(-50%)',
+          boxShadow: `0 0 15px ${numData.color}`,
+        }} />
+      </motion.div>
+
+      <motion.div
+        className="absolute inset-4 rounded-full border"
+        style={{ borderColor: `${numData.color}22` }}
+        animate={{ rotate: -360 }}
+        transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+      >
+        <div className="absolute w-2 h-2 rounded-full" style={{
+          background: numData.gradient[1],
+          bottom: -4, right: '30%',
+          boxShadow: `0 0 10px ${numData.gradient[1]}`,
+        }} />
+      </motion.div>
 
       <motion.div
         className="absolute inset-8 rounded-full blur-3xl"
@@ -201,7 +280,7 @@ function HeroNumberDisplay({ numData, isMobile, keyboardOpen }: {
       />
 
       <motion.div
-        animate={keyboardOpen ? {} : { scale: [1, 1.04, 1], rotate: [-1, 1, -1] }}
+        animate={{ scale: [1, 1.04, 1], rotate: [-1, 1, -1] }}
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         className="relative rounded-[2.5rem] flex flex-col items-center justify-center select-none"
         style={{
@@ -232,16 +311,19 @@ function HeroNumberDisplay({ numData, isMobile, keyboardOpen }: {
           {numData.num}
         </span>
 
-        {!keyboardOpen && (
-          <div className="relative z-10 text-center -mt-2">
-            <div className={`font-black ${deFontSize}`} style={{ color: numData.color, textShadow: `0 0 20px ${numData.color}` }}>
-              {numData.de}
-            </div>
+        <div className="relative z-10 text-center -mt-2">
+          <div className={`font-black ${deFontSize}`} style={{ color: numData.color, textShadow: `0 0 20px ${numData.color}` }}>
+            {numData.de}
           </div>
-        )}
+        </div>
+
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-2/3 h-1 rounded-full opacity-60" style={{
+          background: `radial-gradient(ellipse, ${numData.color}88, transparent)`,
+          filter: 'blur(2px)',
+        }} />
       </motion.div>
 
-      {!isMobile && !keyboardOpen && [...Array(6)].map((_, i) => (
+      {!isMobile && [...Array(6)].map((_, i) => (
         <motion.div
           key={i}
           className="absolute"
@@ -257,26 +339,22 @@ function HeroNumberDisplay({ numData, isMobile, keyboardOpen }: {
 }
 
 // ═══════════════════════════════════════
-// EmojiCount (نفس الكود)
+// EmojiCount
 // ═══════════════════════════════════════
-function EmojiCount({ emoji, count, color, isMobile }: {
-  emoji: string;
-  count: number;
-  color: string;
-  isMobile?: boolean;
-}) {
+function EmojiCount({ emoji, count, color, isMobile }: { emoji: string; count: number; color: string; isMobile?: boolean }) {
   const rows: number[] = count <= 5 ? [count] : [5, count - 5];
-  const size = isMobile ? 'text-2xl' : 'text-4xl';
+  const emojiSize = isMobile ? 'text-2xl' : 'text-4xl';
+  const gap = isMobile ? 'gap-1.5' : 'gap-2.5';
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className={`flex flex-col items-center ${gap}`}>
       {rows.map((n, ri) => (
-        <div key={ri} className="flex flex-wrap justify-center gap-2">
+        <div key={ri} className={`flex flex-wrap justify-center ${gap}`}>
           {Array.from({ length: n }).map((_, i) => (
             <motion.span key={i}
               initial={{ scale: 0, opacity: 0, y: -10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06 + ri * 0.2, type: 'spring', stiffness: 400 }}
-              className={`${size} select-none`}
+              className={`${emojiSize} select-none`}
               style={{ filter: `drop-shadow(0 4px 12px ${color}99)` }}>
               {emoji}
             </motion.span>
@@ -288,7 +366,7 @@ function EmojiCount({ emoji, count, color, isMobile }: {
 }
 
 // ═══════════════════════════════════════
-// MatchGame (نفس الكود - مش هتغير حاجة)
+// Match Game
 // ═══════════════════════════════════════
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -299,13 +377,16 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function MatchGame({ group, groupTitle, onComplete, onStar, onKarlReact, onCombo }: {
-  group: NumberItem[]; groupTitle: string; onComplete: () => void;
+function MatchGame({
+  group, groupTitle, onComplete, onStar, onKarlReact, onCombo,
+}: {
+  group: NumberItem[];
+  groupTitle: string;
+  onComplete: () => void;
   onStar: (x: number, y: number) => void;
-  onKarlReact: (mood: KarlMood) => void; onCombo: () => void;
+  onKarlReact: (mood: KarlMood) => void;
+  onCombo: () => void;
 }) {
-  // 👇 نفس الكود اللي عندك بالظبط (مش هكرره عشان طويل)
-  // ✅ هنسخ من الكود الأصلي
   const [matched, setMatched] = useState<Set<number>>(new Set());
   const [deOrder, setDeOrder] = useState<NumberItem[]>(() => shuffle(group));
   const [dragging, setDragging] = useState<number | null>(null);
@@ -315,6 +396,7 @@ function MatchGame({ group, groupTitle, onComplete, onStar, onKarlReact, onCombo
   const [errors, setErrors] = useState(0);
   const [confettiTrigger, setConfettiTrigger] = useState(0);
   const [confettiPos, setConfettiPos] = useState({ x: 0, y: 0 });
+
   const touchDragging = useRef<number | null>(null);
   const touchCloneRef = useRef<HTMLElement | null>(null);
   const touchOffRef = useRef({ x: 0, y: 0 });
@@ -356,7 +438,9 @@ function MatchGame({ group, groupTitle, onComplete, onStar, onKarlReact, onCombo
 
   const handleDragStart = (num: number) => setDragging(num);
   const handleDragEnd = () => { setDragging(null); setOverTarget(null); };
-  const handleDragOver = (e: React.DragEvent, num: number) => { e.preventDefault(); setOverTarget(num); };
+  const handleDragOver = (e: React.DragEvent, num: number) => {
+    e.preventDefault(); setOverTarget(num);
+  };
   const handleDrop = (e: React.DragEvent, toNum: number) => {
     e.preventDefault();
     setOverTarget(null);
@@ -369,9 +453,17 @@ function MatchGame({ group, groupTitle, onComplete, onStar, onKarlReact, onCombo
     touchDragging.current = num;
     const card = e.currentTarget as HTMLElement;
     const rect = card.getBoundingClientRect();
-    touchOffRef.current = { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    touchOffRef.current = {
+      x: e.touches[0].clientX - rect.left,
+      y: e.touches[0].clientY - rect.top,
+    };
     const clone = card.cloneNode(true) as HTMLElement;
-    clone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;opacity:.88;pointer-events:none;z-index:9998;border-radius:20px;transition:none;`;
+    clone.style.cssText = `
+      position:fixed;left:${rect.left}px;top:${rect.top}px;
+      width:${rect.width}px;height:${rect.height}px;
+      opacity:.88;pointer-events:none;z-index:9998;
+      border-radius:20px;transition:none;
+    `;
     document.body.appendChild(clone);
     touchCloneRef.current = clone;
   };
@@ -412,10 +504,14 @@ function MatchGame({ group, groupTitle, onComplete, onStar, onKarlReact, onCombo
   return (
     <>
       <ConfettiBurst trigger={confettiTrigger} x={confettiPos.x} y={confettiPos.y} colors={['#FFD700', '#A78BFA', '#F472B6', '#FFFFFF']} />
-      <motion.div key="match-game"
-        initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }}
+      <motion.div
+        key="match-game"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -30 }}
         transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-        className="w-full flex flex-col items-center gap-5 max-w-2xl mx-auto">
+        className="w-full flex flex-col items-center gap-5 max-w-2xl mx-auto"
+      >
         <div className="flex flex-col items-center gap-1.5">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full animate-pulse bg-purple-400" />
@@ -425,9 +521,11 @@ function MatchGame({ group, groupTitle, onComplete, onStar, onKarlReact, onCombo
           </div>
           <p className="text-white/30 text-sm">اسحب كل رقم وضعه على ترجمته بالألمانية</p>
         </div>
+
         <div className="flex gap-2.5">
           {group.map(n => (
-            <motion.div key={n.num}
+            <motion.div
+              key={n.num}
               animate={matched.has(n.num) ? { scale: [1, 1.5, 1] } : {}}
               transition={{ duration: 0.4 }}
               className="w-3 h-3 rounded-full transition-all duration-300"
@@ -438,19 +536,27 @@ function MatchGame({ group, groupTitle, onComplete, onStar, onKarlReact, onCombo
             />
           ))}
         </div>
+
         {errors > 0 && (
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-md"
-            style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5' }}>
-            {Array.from({ length: Math.min(errors, 5) }).map((_, i) => <span key={i} style={{ fontSize: 10 }}>❌</span>)}
+            style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5' }}
+          >
+            {Array.from({ length: Math.min(errors, 5) }).map((_, i) => (
+              <span key={i} style={{ fontSize: 10 }}>❌</span>
+            ))}
             <span className="mr-1">{errors} خطأ</span>
           </motion.div>
         )}
+
         <div className="w-full max-w-xl" dir="rtl">
           <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 32px 1fr' }}>
             <div className="text-center text-xs text-white/30 tracking-widest uppercase pb-2 font-bold">الأرقام</div>
             <div />
             <div className="text-center text-xs text-white/30 tracking-widest uppercase pb-2 font-bold">بالألمانية</div>
+
             {group.map((n, i) => {
               const deItem = deOrder[i];
               const numMatched = matched.has(n.num);
@@ -460,6 +566,7 @@ function MatchGame({ group, groupTitle, onComplete, onStar, onKarlReact, onCombo
               const isSuccessNum = successPair === n.num;
               const isSuccessDe = successPair === deItem.num;
               const isOver = overTarget === deItem.num && !deMatched;
+
               return (
                 <div key={`row-${i}`} className="contents">
                   <motion.div
@@ -470,76 +577,131 @@ function MatchGame({ group, groupTitle, onComplete, onStar, onKarlReact, onCombo
                     onTouchMove={onTouchMove}
                     onTouchEnd={onTouchEnd}
                     onClick={() => speakNumber(n.de)}
-                    animate={isWrongNum ? { x: [-8, 8, -6, 6, -3, 3, 0] } : isSuccessNum ? { scale: [1, 1.1, 1] } : {}}
+                    animate={
+                      isWrongNum ? { x: [-8, 8, -6, 6, -3, 3, 0] }
+                      : isSuccessNum ? { scale: [1, 1.1, 1] }
+                      : {}
+                    }
                     transition={{ duration: 0.35 }}
                     className="relative flex items-center justify-center gap-2 rounded-2xl px-3 py-3.5 select-none backdrop-blur-md"
                     style={{
                       cursor: numMatched ? 'default' : 'grab',
-                      background: numMatched ? `linear-gradient(135deg, ${n.gradient[0]}33, ${n.gradient[1]}15)`
-                        : dragging === n.num ? `linear-gradient(135deg, ${n.gradient[0]}44, ${n.gradient[1]}22)`
+                      background: numMatched
+                        ? `linear-gradient(135deg, ${n.gradient[0]}33, ${n.gradient[1]}15)`
+                        : dragging === n.num
+                        ? `linear-gradient(135deg, ${n.gradient[0]}44, ${n.gradient[1]}22)`
                         : `linear-gradient(135deg, ${n.color}11, rgba(255,255,255,0.03))`,
-                      border: `2px solid ${numMatched ? n.color + '88' : isWrongNum ? '#ef4444' : isSuccessNum ? '#22c55e' : n.color + '44'}`,
-                      boxShadow: numMatched ? `0 0 25px ${n.color}44, inset 0 1px 0 ${n.color}66`
-                        : dragging === n.num ? `0 10px 40px ${n.color}55, inset 0 1px 0 ${n.color}88`
+                      border: `2px solid ${
+                        numMatched ? n.color + '88'
+                        : isWrongNum ? '#ef4444'
+                        : isSuccessNum ? '#22c55e'
+                        : n.color + '44'
+                      }`,
+                      boxShadow: numMatched
+                        ? `0 0 25px ${n.color}44, inset 0 1px 0 ${n.color}66`
+                        : dragging === n.num
+                        ? `0 10px 40px ${n.color}55, inset 0 1px 0 ${n.color}88`
                         : `inset 0 1px 0 ${n.color}22`,
                       opacity: dragging !== null && dragging !== n.num && !numMatched ? 0.4 : 1,
                       transition: 'opacity .2s, background .2s, border-color .2s, box-shadow .2s',
-                    }}>
+                    }}
+                  >
                     <span className="text-xl select-none">{n.emoji}</span>
-                    <span className="text-2xl font-black tabular-nums"
-                      style={{ color: 'white', textShadow: `0 0 20px ${n.color}aa` }}>
+                    <span
+                      className="text-2xl font-black tabular-nums"
+                      style={{
+                        color: 'white',
+                        textShadow: `0 0 20px ${n.color}aa`,
+                      }}
+                    >
                       {n.num}
                     </span>
+
                     {numMatched && (
-                      <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
-                        className="text-sm font-bold" style={{ color: n.color }}>✓</motion.span>
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="text-sm font-bold"
+                        style={{ color: n.color }}
+                      >
+                        ✓
+                      </motion.span>
                     )}
                   </motion.div>
+
                   <div className="flex items-center justify-center">
-                    <motion.div className="w-1.5 h-1.5 rounded-full"
+                    <motion.div
+                      className="w-1.5 h-1.5 rounded-full"
                       style={{ background: 'rgba(255,255,255,0.15)' }}
                       animate={(numMatched && deMatched) ? { scale: [1, 1.5, 1] } : {}}
                     />
                   </div>
+
                   <motion.div
                     data-de-target={deItem.num}
                     onDragOver={e => !deMatched && handleDragOver(e, deItem.num)}
                     onDragLeave={() => setOverTarget(null)}
                     onDrop={e => !deMatched && handleDrop(e, deItem.num)}
                     onClick={() => speakNumber(deItem.de)}
-                    animate={isWrongDe ? { x: [-8, 8, -6, 6, -3, 3, 0] } : isSuccessDe ? { scale: [1, 1.1, 1] } : {}}
+                    animate={
+                      isWrongDe ? { x: [-8, 8, -6, 6, -3, 3, 0] }
+                      : isSuccessDe ? { scale: [1, 1.1, 1] }
+                      : {}
+                    }
                     transition={{ duration: 0.35 }}
                     className="relative flex items-center justify-center gap-2 rounded-2xl px-3 py-3.5 select-none backdrop-blur-md"
                     style={{
                       cursor: deMatched ? 'default' : 'pointer',
-                      background: deMatched ? `linear-gradient(135deg, ${deItem.gradient[0]}33, ${deItem.gradient[1]}15)`
-                        : isOver ? `linear-gradient(135deg, ${deItem.gradient[0]}44, ${deItem.gradient[1]}22)`
+                      background: deMatched
+                        ? `linear-gradient(135deg, ${deItem.gradient[0]}33, ${deItem.gradient[1]}15)`
+                        : isOver
+                        ? `linear-gradient(135deg, ${deItem.gradient[0]}44, ${deItem.gradient[1]}22)`
                         : 'rgba(255,255,255,0.04)',
-                      border: `2px ${deMatched ? 'solid' : 'dashed'} ${deMatched ? deItem.color + '88' : isOver ? deItem.color : isWrongDe ? '#ef4444' : 'rgba(255,255,255,0.18)'}`,
-                      boxShadow: isOver ? `0 0 30px ${deItem.color}66, inset 0 0 25px ${deItem.color}22`
-                        : deMatched ? `0 0 25px ${deItem.color}44, inset 0 1px 0 ${deItem.color}66` : 'none',
+                      border: `2px ${deMatched ? 'solid' : 'dashed'} ${
+                        deMatched ? deItem.color + '88'
+                        : isOver ? deItem.color
+                        : isWrongDe ? '#ef4444'
+                        : 'rgba(255,255,255,0.18)'
+                      }`,
+                      boxShadow: isOver
+                        ? `0 0 30px ${deItem.color}66, inset 0 0 25px ${deItem.color}22`
+                        : deMatched
+                        ? `0 0 25px ${deItem.color}44, inset 0 1px 0 ${deItem.color}66`
+                        : 'none',
                       transition: 'all .2s',
-                    }}>
+                    }}
+                  >
                     {deMatched && (
-                      <span className="text-xl font-black tabular-nums"
-                        style={{ color: 'white', textShadow: `0 0 15px ${deItem.color}` }}>
+                      <span
+                        className="text-xl font-black tabular-nums"
+                        style={{ color: 'white', textShadow: `0 0 15px ${deItem.color}` }}
+                      >
                         {deItem.num}
                       </span>
                     )}
                     <div className="flex flex-col items-center leading-tight">
-                      <span className="font-black tracking-wide"
+                      <span
+                        className="font-black tracking-wide"
                         style={{
-                          fontSize: 18, direction: 'ltr',
+                          fontSize: 18,
+                          direction: 'ltr',
                           color: deMatched ? 'white' : 'rgba(255,255,255,0.9)',
                           textShadow: deMatched ? `0 0 15px ${deItem.color}cc` : 'none',
-                        }}>
+                        }}
+                      >
                         {deItem.de}
                       </span>
                       <span className="text-xs text-white/40">{deItem.ar}</span>
                     </div>
                     {deMatched && (
-                      <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
-                        className="text-sm font-bold" style={{ color: deItem.color }}>✓</motion.span>
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="text-sm font-bold"
+                        style={{ color: deItem.color }}
+                      >
+                        ✓
+                      </motion.span>
                     )}
                   </motion.div>
                 </div>
@@ -547,6 +709,7 @@ function MatchGame({ group, groupTitle, onComplete, onStar, onKarlReact, onCombo
             })}
           </div>
         </div>
+
         <p className="text-white/25 text-xs text-center">💡 اضغط على أي بطاقة لتسمع النطق</p>
       </motion.div>
     </>
@@ -554,15 +717,15 @@ function MatchGame({ group, groupTitle, onComplete, onStar, onKarlReact, onCombo
 }
 
 // ═══════════════════════════════════════
-// 🎯 PHASE 1 — Listen (متجاوب!)
+// PHASE 1 — استمع واكتب الرقم (Mobile + Desktop)
 // ═══════════════════════════════════════
-function ListenPhase({ numData, groupTitle, onDone, onKarlReact, onCombo, isMobile, keyboardOpen }: {
-  numData: NumberItem; groupTitle: string;
+function ListenPhase({ numData, groupTitle, onDone, onKarlReact, onCombo, isMobile }: {
+  numData: NumberItem;
+  groupTitle: string;
   onDone: () => void;
   onKarlReact: (mood: KarlMood) => void;
   onCombo: () => void;
   isMobile: boolean;
-  keyboardOpen: boolean;
 }) {
   const [input, setInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
@@ -573,7 +736,7 @@ function ListenPhase({ numData, groupTitle, onDone, onKarlReact, onCombo, isMobi
   useEffect(() => {
     setInput('');
     setStatus('idle');
-    const t = setTimeout(() => { speakNumber(numData.de); inputRef.current?.focus(); }, 500);
+    const t = setTimeout(() => { speakNumber(numData.de); }, 500);
     return () => clearTimeout(t);
   }, [numData.num]);
 
@@ -608,51 +771,36 @@ function ListenPhase({ numData, groupTitle, onDone, onKarlReact, onCombo, isMobi
         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
         className="w-full max-w-5xl mx-auto"
       >
-        {/* 📱 Mobile: Stack vertically | 💻 Desktop: Grid */}
-        <div className={`${
-          isMobile
-            ? 'flex flex-col items-center gap-4'
-            : 'grid lg:grid-cols-5 gap-8 items-center'
-        }`}>
-
-          {/* Hero Card */}
-          <div className={`${isMobile ? '' : 'lg:col-span-3'} flex flex-col items-center gap-3`}>
-            <HeroNumberDisplay numData={numData} isMobile={isMobile} keyboardOpen={keyboardOpen} />
-            {!keyboardOpen && (
-              <SoundButton onClick={() => speakNumber(numData.de)} color={numData.color} label="استمع للرقم" />
-            )}
-          </div>
-
-          {/* Input area */}
-          <div className={`${isMobile ? 'w-full' : 'lg:col-span-2'} space-y-3`}>
-            {!keyboardOpen && (
-              <div className="text-center lg:text-right">
-                <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${numData.color}aa` }}>
-                  Zahl · {groupTitle}
-                </div>
-                <div className="text-xl md:text-2xl font-black text-white">اكتب الرقم</div>
-                <div className="text-xs md:text-sm font-bold text-white/40 mt-1">بالأرقام (1, 2, 3...)</div>
+        {isMobile ? (
+          // 📱 Mobile Layout - مدمج وعموي
+          <div className="flex flex-col items-center gap-3 px-3">
+            <HeroNumberDisplay numData={numData} isMobile />
+            <SoundButton onClick={() => speakNumber(numData.de)} color={numData.color} label="استمع" />
+            <div className="text-center">
+              <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: `${numData.color}aa` }}>
+                Zahl · {groupTitle}
               </div>
-            )}
-
-            <GhostInput
-              ref={inputRef}
-              value={input}
-              onChange={v => { setInput(v); setStatus('idle'); }}
-              onEnter={handleCheck}
-              ghostText={String(numData.num)}
-              color={numData.color}
-              status={status}
-              fontSize={isMobile ? '3rem' : '4rem'}
-              maxLength={2}
-              inputMode="numeric"
-              numbersOnly
-            />
-
+              <div className="text-base font-black text-white mt-0.5">اكتب الرقم (1, 2, 3...)</div>
+            </div>
+            <div className="w-full">
+              <GhostInput
+                ref={inputRef}
+                value={input}
+                onChange={v => { setInput(v); setStatus('idle'); }}
+                onEnter={handleCheck}
+                ghostText={String(numData.num)}
+                color={numData.color}
+                status={status}
+                fontSize="2.8rem"
+                maxLength={2}
+                inputMode="numeric"
+                numbersOnly
+              />
+            </div>
             <AnimatePresence>
               {status !== 'idle' && (
                 <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  className="flex items-center justify-center gap-2 font-black text-sm py-2 rounded-xl backdrop-blur-sm"
+                  className="flex items-center justify-center gap-2 font-black text-xs py-2 px-4 rounded-xl"
                   style={{
                     background: status === 'correct' ? 'rgba(34,197,94,0.18)' : 'rgba(239,68,68,0.18)',
                     color: status === 'correct' ? '#22c55e' : '#ef4444',
@@ -662,36 +810,90 @@ function ListenPhase({ numData, groupTitle, onDone, onKarlReact, onCombo, isMobi
                 </motion.div>
               )}
             </AnimatePresence>
-
             <motion.button
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
               onClick={handleCheck} disabled={!input}
-              className="w-full py-3.5 md:py-4 rounded-2xl font-black text-base md:text-lg text-white disabled:opacity-25 transition-all"
+              className="w-full py-3 rounded-2xl font-black text-base text-white disabled:opacity-25 transition-all"
               style={{
                 background: `linear-gradient(135deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
-                boxShadow: `0 8px 30px ${numData.color}55, inset 0 1px 0 rgba(255,255,255,0.3)`,
-                borderBottom: `4px solid ${numData.color}77`,
+                boxShadow: `0 6px 20px ${numData.color}55`,
+                borderBottom: `3px solid ${numData.color}77`,
               }}
             >
               تحقق ✓
             </motion.button>
           </div>
-        </div>
+        ) : (
+          // 🖥️ Desktop Layout - الأصلي
+          <div className="grid lg:grid-cols-5 gap-8 items-center">
+            <div className="lg:col-span-3 flex flex-col items-center gap-4">
+              <HeroNumberDisplay numData={numData} />
+              <SoundButton onClick={() => speakNumber(numData.de)} color={numData.color} label="استمع للرقم" />
+            </div>
+            <div className="lg:col-span-2 space-y-5">
+              <div className="text-center lg:text-right">
+                <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${numData.color}aa` }}>
+                  Zahl · {groupTitle}
+                </div>
+                <div className="text-2xl font-black text-white">اكتب الرقم</div>
+                <div className="text-sm font-bold text-white/40 mt-1">بالأرقام (1, 2, 3...)</div>
+              </div>
+              <GhostInput
+                ref={inputRef}
+                value={input}
+                onChange={v => { setInput(v); setStatus('idle'); }}
+                onEnter={handleCheck}
+                ghostText={String(numData.num)}
+                color={numData.color}
+                status={status}
+                fontSize="4rem"
+                maxLength={2}
+                inputMode="numeric"
+                numbersOnly
+              />
+              <AnimatePresence>
+                {status !== 'idle' && (
+                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    className="flex items-center justify-center gap-2 font-black text-sm py-2.5 rounded-xl backdrop-blur-sm"
+                    style={{
+                      background: status === 'correct' ? 'rgba(34,197,94,0.18)' : 'rgba(239,68,68,0.18)',
+                      color: status === 'correct' ? '#22c55e' : '#ef4444',
+                      border: `1px solid ${status === 'correct' ? '#22c55e44' : '#ef444444'}`,
+                    }}>
+                    {status === 'correct' ? '✅ ممتاز!' : '❌ جرب تاني'}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <motion.button
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+                onClick={handleCheck} disabled={!input}
+                className="w-full py-4 rounded-2xl font-black text-lg text-white disabled:opacity-25 transition-all"
+                style={{
+                  background: `linear-gradient(135deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
+                  boxShadow: `0 8px 30px ${numData.color}55, inset 0 1px 0 rgba(255,255,255,0.3)`,
+                  borderBottom: `4px solid ${numData.color}77`,
+                }}
+              >
+                تحقق ✓
+              </motion.button>
+            </div>
+          </div>
+        )}
       </motion.div>
     </>
   );
 }
 
 // ═══════════════════════════════════════
-// 🎯 PHASE 2 — Write (متجاوب!)
+// PHASE 2 — اكتب بالألمانية (Mobile + Desktop)
 // ═══════════════════════════════════════
-function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo, isMobile, keyboardOpen }: {
-  numData: NumberItem; groupTitle: string;
+function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo, isMobile }: {
+  numData: NumberItem;
+  groupTitle: string;
   onDone: () => void;
   onKarlReact: (mood: KarlMood) => void;
   onCombo: () => void;
   isMobile: boolean;
-  keyboardOpen: boolean;
 }) {
   const [input, setInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
@@ -703,7 +905,6 @@ function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo, isMobil
   useEffect(() => {
     setInput('');
     setStatus('idle');
-    setTimeout(() => inputRef.current?.focus(), 300);
   }, [numData.num]);
 
   const handleCheck = (e?: React.MouseEvent) => {
@@ -743,112 +944,79 @@ function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo, isMobil
         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
         className="w-full max-w-5xl mx-auto"
       >
-        <div className={`${
-          isMobile
-            ? 'flex flex-col items-center gap-4'
-            : 'grid lg:grid-cols-5 gap-8 items-center'
-        }`}>
-
-          {/* Visual Card */}
-          <div className={`${isMobile ? '' : 'lg:col-span-3'} flex flex-col items-center gap-3`}>
+        {isMobile ? (
+          // 📱 Mobile Layout
+          <div className="flex flex-col items-center gap-3 px-3">
             <motion.div
-              animate={keyboardOpen ? {} : { y: [0, -8, 0], rotate: [-1, 1, -1] }}
+              animate={{ y: [0, -6, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               className="relative"
             >
-              <div className="absolute inset-0 rounded-[3rem] blur-3xl" style={{
+              <div className="absolute inset-0 rounded-[2rem] blur-2xl" style={{
                 background: `radial-gradient(circle, ${numData.color}66, transparent)`,
-                transform: 'scale(1.3)',
+                transform: 'scale(1.2)',
               }} />
-
-              <div className="relative rounded-[3rem] flex flex-col items-center justify-center gap-2 transition-all"
+              <div className="relative rounded-[2rem] flex flex-col items-center justify-center gap-2 p-4"
                 style={{
                   background: `linear-gradient(145deg, ${numData.gradient[0]}22, ${numData.gradient[1]}11)`,
-                  backdropFilter: 'blur(20px)',
                   border: `2px solid ${numData.color}55`,
-                  boxShadow: `0 20px 60px ${numData.color}44, inset 0 1px 0 ${numData.color}66`,
-                  minWidth: keyboardOpen ? 150 : isMobile ? 220 : 280,
-                  padding: keyboardOpen ? '12px' : isMobile ? '20px' : '32px',
+                  boxShadow: `0 12px 30px ${numData.color}44`,
+                  minWidth: 220,
                 }}>
-                <div className="absolute top-0 left-0 right-0 h-1/2 rounded-t-[3rem]" style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.15), transparent)',
-                }} />
-
-                {!keyboardOpen && (
-                  <div className="text-center relative z-10">
-                    <span className="text-white/60 text-xs md:text-sm font-bold">عدد </span>
-                    <span className="font-black text-2xl md:text-3xl tabular-nums" style={{ color: numData.color, textShadow: `0 0 20px ${numData.color}` }}>
-                      {numData.num}
-                    </span>
-                    <span className="text-white font-bold text-base md:text-lg mr-2">{numData.objAr}</span>
-                  </div>
-                )}
-
-                <div className="relative z-10">
-                  <EmojiCount emoji={numData.emoji} count={numData.num} color={numData.color} isMobile={isMobile} />
+                <div className="text-center">
+                  <span className="text-white/60 text-xs font-bold">عدد </span>
+                  <span className="font-black text-xl tabular-nums" style={{ color: numData.color, textShadow: `0 0 15px ${numData.color}` }}>
+                    {numData.num}
+                  </span>
+                  <span className="text-white font-bold text-sm mr-2">{numData.objAr}</span>
                 </div>
+                <EmojiCount emoji={numData.emoji} count={numData.num} color={numData.color} isMobile />
               </div>
-
-              {!keyboardOpen && (
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute -top-3 -right-3 w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-xl md:text-2xl border-2 shadow-2xl tabular-nums"
-                  style={{
-                    background: `linear-gradient(135deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
-                    borderColor: 'rgba(255,255,255,0.4)',
-                    color: 'white',
-                    boxShadow: `0 8px 24px ${numData.color}88`,
-                  }}
-                >
-                  {numData.num}
-                </motion.div>
-              )}
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute -top-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg border-2 shadow-2xl tabular-nums"
+                style={{
+                  background: `linear-gradient(135deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
+                  borderColor: 'rgba(255,255,255,0.4)',
+                  color: 'white',
+                }}
+              >
+                {numData.num}
+              </motion.div>
             </motion.div>
 
-            {!keyboardOpen && (
-              <SoundButton onClick={() => speakNumber(numData.de)} color={numData.color} label="استمع للكلمة" />
-            )}
-          </div>
+            <SoundButton onClick={() => speakNumber(numData.de)} color={numData.color} label="استمع" />
 
-          {/* Input area */}
-          <div className={`${isMobile ? 'w-full' : 'lg:col-span-2'} space-y-3`}>
-            {!keyboardOpen && (
-              <div className="text-center lg:text-right">
-                <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${numData.color}aa` }}>
-                  Wort · بالألمانية
-                </div>
-                <div className="text-xl md:text-2xl font-black text-white">اكتب الكلمة</div>
-                <div className="text-xs md:text-sm font-bold text-white/40 mt-1">{numData.ar}</div>
+            <div className="text-center">
+              <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: `${numData.color}aa` }}>
+                Wort · بالألمانية
               </div>
-            )}
+              <div className="text-base font-black text-white mt-0.5">اكتب الكلمة</div>
+              <div className="text-xs font-bold text-white/40">{numData.ar}</div>
+            </div>
 
-            <GhostInput
-              ref={inputRef}
-              value={input}
-              onChange={v => { setInput(v); setStatus('idle'); }}
-              onEnter={handleCheck}
-              ghostText={numData.de}
-              color={numData.color}
-              status={status}
-              fontSize={isMobile ? '1.5rem' : '1.8rem'}
-            />
+            <div className="w-full">
+              <GhostInput
+                ref={inputRef}
+                value={input}
+                onChange={v => { setInput(v); setStatus('idle'); }}
+                onEnter={handleCheck}
+                ghostText={numData.de}
+                color={numData.color}
+                status={status}
+                fontSize="1.4rem"
+              />
+            </div>
 
             {requiredChars.length > 0 && (
-              <div className="space-y-2 pt-1">
-                {!keyboardOpen && (
-                  <p className="text-center text-[10px] font-black text-white/40 tracking-widest uppercase">
-                    💡 الحروف الخاصة
-                  </p>
-                )}
-                <SpecialCharsKeyboard chars={requiredChars} onChar={handleSpecialChar} color={numData.color} />
-              </div>
+              <SpecialCharsKeyboard chars={requiredChars} onChar={handleSpecialChar} color={numData.color} />
             )}
 
             <AnimatePresence>
               {status !== 'idle' && (
                 <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  className="flex items-center justify-center gap-2 font-black text-sm py-2 rounded-xl backdrop-blur-sm"
+                  className="flex items-center justify-center gap-2 font-black text-xs py-2 px-4 rounded-xl"
                   style={{
                     background: status === 'correct' ? 'rgba(34,197,94,0.18)' : 'rgba(239,68,68,0.18)',
                     color: status === 'correct' ? '#22c55e' : '#ef4444',
@@ -862,28 +1030,133 @@ function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo, isMobil
             <motion.button
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
               onClick={handleCheck} disabled={!input}
-              className="w-full py-3.5 md:py-4 rounded-2xl font-black text-base md:text-lg text-white disabled:opacity-25 transition-all"
+              className="w-full py-3 rounded-2xl font-black text-base text-white disabled:opacity-25 transition-all"
               style={{
                 background: `linear-gradient(135deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
-                boxShadow: `0 8px 30px ${numData.color}55, inset 0 1px 0 rgba(255,255,255,0.3)`,
-                borderBottom: `4px solid ${numData.color}77`,
+                boxShadow: `0 6px 20px ${numData.color}55`,
+                borderBottom: `3px solid ${numData.color}77`,
               }}
             >
               تحقق ✓
             </motion.button>
           </div>
-        </div>
+        ) : (
+          // 🖥️ Desktop Layout - الأصلي
+          <div className="grid lg:grid-cols-5 gap-8 items-center">
+            <div className="lg:col-span-3 flex flex-col items-center gap-5">
+              <motion.div
+                animate={{ y: [0, -8, 0], rotate: [-1, 1, -1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                className="relative"
+              >
+                <div className="absolute inset-0 rounded-[3rem] blur-3xl" style={{
+                  background: `radial-gradient(circle, ${numData.color}66, transparent)`,
+                  transform: 'scale(1.3)',
+                }} />
+                <div className="relative rounded-[3rem] flex flex-col items-center justify-center gap-3 p-8"
+                  style={{
+                    background: `linear-gradient(145deg, ${numData.gradient[0]}22, ${numData.gradient[1]}11)`,
+                    backdropFilter: 'blur(20px)',
+                    border: `2px solid ${numData.color}55`,
+                    boxShadow: `0 20px 60px ${numData.color}44, inset 0 1px 0 ${numData.color}66`,
+                    minWidth: 280,
+                  }}>
+                  <div className="absolute top-0 left-0 right-0 h-1/2 rounded-t-[3rem]" style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.15), transparent)',
+                  }} />
+                  <div className="text-center relative z-10">
+                    <span className="text-white/60 text-sm font-bold">عدد </span>
+                    <span className="font-black text-3xl tabular-nums" style={{ color: numData.color, textShadow: `0 0 20px ${numData.color}` }}>
+                      {numData.num}
+                    </span>
+                    <span className="text-white font-bold text-lg mr-2">{numData.objAr}</span>
+                  </div>
+                  <div className="relative z-10">
+                    <EmojiCount emoji={numData.emoji} count={numData.num} color={numData.color} />
+                  </div>
+                </div>
+                <motion.div
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="absolute -top-3 -right-3 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl border-2 shadow-2xl tabular-nums"
+                  style={{
+                    background: `linear-gradient(135deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
+                    borderColor: 'rgba(255,255,255,0.4)',
+                    color: 'white',
+                    boxShadow: `0 8px 24px ${numData.color}88`,
+                  }}
+                >
+                  {numData.num}
+                </motion.div>
+              </motion.div>
+              <SoundButton onClick={() => speakNumber(numData.de)} color={numData.color} label="استمع للكلمة" />
+            </div>
+            <div className="lg:col-span-2 space-y-4">
+              <div className="text-center lg:text-right">
+                <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${numData.color}aa` }}>
+                  Wort · بالألمانية
+                </div>
+                <div className="text-2xl font-black text-white">اكتب الكلمة</div>
+                <div className="text-sm font-bold text-white/40 mt-1">{numData.ar}</div>
+              </div>
+              <GhostInput
+                ref={inputRef}
+                value={input}
+                onChange={v => { setInput(v); setStatus('idle'); }}
+                onEnter={handleCheck}
+                ghostText={numData.de}
+                color={numData.color}
+                status={status}
+                fontSize="1.8rem"
+              />
+              {requiredChars.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  <p className="text-center text-[10px] font-black text-white/40 tracking-widest uppercase">
+                    💡 الحروف الخاصة
+                  </p>
+                  <SpecialCharsKeyboard chars={requiredChars} onChar={handleSpecialChar} color={numData.color} />
+                </div>
+              )}
+              <AnimatePresence>
+                {status !== 'idle' && (
+                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    className="flex items-center justify-center gap-2 font-black text-sm py-2.5 rounded-xl backdrop-blur-sm"
+                    style={{
+                      background: status === 'correct' ? 'rgba(34,197,94,0.18)' : 'rgba(239,68,68,0.18)',
+                      color: status === 'correct' ? '#22c55e' : '#ef4444',
+                      border: `1px solid ${status === 'correct' ? '#22c55e44' : '#ef444444'}`,
+                    }}>
+                    {status === 'correct' ? '✅ ممتاز!' : '❌ جرب تاني'}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <motion.button
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+                onClick={handleCheck} disabled={!input}
+                className="w-full py-4 rounded-2xl font-black text-lg text-white disabled:opacity-25 transition-all"
+                style={{
+                  background: `linear-gradient(135deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
+                  boxShadow: `0 8px 30px ${numData.color}55, inset 0 1px 0 rgba(255,255,255,0.3)`,
+                  borderBottom: `4px solid ${numData.color}77`,
+                }}
+              >
+                تحقق ✓
+              </motion.button>
+            </div>
+          </div>
+        )}
       </motion.div>
     </>
   );
 }
 
 // ═══════════════════════════════════════
-// 🎯 الصفحة الرئيسية
+// الصفحة الرئيسية
 // ═══════════════════════════════════════
 export default function GermanNumberLesson() {
   const router = useRouter();
-  const { isMobile, keyboardOpen } = useMobileKeyboard();
+  const isMobile = useIsMobile();
+  const isKeyboardOpen = useKeyboardOpen();
   const [groupIdx, setGroupIdx] = useState(0);
   const [numIdx, setNumIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>('listen');
@@ -896,10 +1169,17 @@ export default function GermanNumberLesson() {
       const progress = await getLessonProgress(LESSON_ID);
       if (progress) {
         setTotalStars(progress.stars);
+        
         if (!progress.completed) {
-          if (progress.current_group !== undefined && progress.current_group !== null) setGroupIdx(progress.current_group);
-          if (progress.current_letter !== undefined && progress.current_letter !== null) setNumIdx(progress.current_letter);
-          if (progress.current_phase) setPhase(progress.current_phase as Phase);
+          if (progress.current_group !== undefined && progress.current_group !== null) {
+            setGroupIdx(progress.current_group);
+          }
+          if (progress.current_letter !== undefined && progress.current_letter !== null) {
+            setNumIdx(progress.current_letter);
+          }
+          if (progress.current_phase) {
+            setPhase(progress.current_phase as Phase);
+          }
         }
       }
       setIsLoading(false);
@@ -972,7 +1252,7 @@ export default function GermanNumberLesson() {
     setPhase('write');
     savePosition(groupIdx, numIdx, 'write');
   };
-
+  
   const handleWriteDone = () => {
     setCompletedNums(prev => new Set([...prev, currentNum.num]));
     if (numIdx < currentGroup.numbers.length - 1) {
@@ -985,7 +1265,7 @@ export default function GermanNumberLesson() {
       savePosition(groupIdx, numIdx, 'test');
     }
   };
-
+  
   const handleTestComplete = () => setTestSuccess(true);
 
   const nextGroup = async () => {
@@ -1022,70 +1302,70 @@ export default function GermanNumberLesson() {
 
   const activeColor = currentNum?.color ?? '#A78BFA';
   const isTestPhase = phase === 'test';
+  const isInputPhase = phase === 'listen' || phase === 'write';
 
   return (
     <div className="min-h-screen text-white relative" style={{ fontFamily: "'Tajawal', sans-serif" }} dir="rtl">
       <PremiumCathedralBackground activeColor={activeColor} />
-      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#A78BFA" />
+      
+      {/* 🦅 كارل - يختفي في الموبايل لما الكيبورد يفتح */}
+      {!(isMobile && isKeyboardOpen) && (
+        <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#A78BFA" />
+      )}
+      
       <ComboDisplay combo={combo} />
       <FlyingStars stars={flyingStars} />
 
-      {/* 🎯 HEADER - متجاوب! */}
-      <div
-        className="fixed top-0 left-0 right-0 z-30 transition-all duration-300"
-        style={{
-          background: 'linear-gradient(to bottom, rgba(5,3,16,0.95) 70%, transparent)',
-          padding: keyboardOpen ? '6px 12px 4px' : isMobile ? '10px 12px 8px' : '16px 16px 12px',
-        }}
-      >
+      {/* Header */}
+      <div className="fixed top-0 left-0 right-0 z-30 px-4 pt-4 pb-3"
+        style={{ background: 'linear-gradient(to bottom, rgba(5,3,16,0.95) 70%, transparent)' }}>
         <div className="max-w-6xl mx-auto">
-          <div className={`flex items-center gap-2 ${keyboardOpen ? 'mb-0' : 'mb-2'}`}>
+          <div className="flex items-center gap-3 mb-3">
             <button onClick={() => router.push('/character-and-map?from=lesson')}
-              className="p-2 rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md hover:bg-white/10"
-              style={{ background: 'rgba(255,255,255,0.05)' }}>
+              className={`${isMobile ? 'p-2' : 'p-2.5'} rounded-xl border border-white/10 text-white flex-shrink-0 transition-all backdrop-blur-md hover:bg-white/10`}
+              style={{ background: 'rgba(255,255,255,0.05)' }}
+              title="ارجع للخريطة">
               <ArrowLeft size={isMobile ? 16 : 20} />
             </button>
-            <div className="flex-1 min-w-0">
-              {!keyboardOpen && (
-                <div className="flex justify-between text-[10px] md:text-xs font-bold mb-1 text-white/40">
-                  <span className="flex items-center gap-1 truncate">
-                    <span style={{ fontSize: 12 }}>⛪</span>
-                    <span className="truncate">{currentGroup.title} — {phase === 'listen' ? 'استمع' : phase === 'write' ? 'اكتب' : 'اختبار'}</span>
-                  </span>
-                  <span className="flex-shrink-0">{progress}%</span>
-                </div>
-              )}
-              <div className={`w-full bg-white/5 rounded-full overflow-hidden border border-white/5 ${keyboardOpen ? 'h-1.5' : 'h-2 md:h-2.5'}`}>
+            <div className="flex-1">
+              <div className={`flex justify-between ${isMobile ? 'text-[10px]' : 'text-xs'} font-bold mb-1 text-white/40`}>
+                <span className="flex items-center gap-1.5">
+                  <span style={{ fontSize: isMobile ? 12 : 14 }}>⛪</span>
+                  {currentGroup.title} — {phase === 'listen' ? 'استمع' : phase === 'write' ? 'اكتب' : 'اختبار'}
+                </span>
+                <span>{progress}%</span>
+              </div>
+              <div className={`w-full ${isMobile ? 'h-1.5' : 'h-2.5'} bg-white/5 rounded-full overflow-hidden border border-white/5`}>
                 <motion.div className="h-full rounded-full relative"
                   style={{ background: `linear-gradient(to right, ${activeColor}, #EC4899)`, boxShadow: `0 0 15px ${activeColor}66` }}
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}>
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.3), transparent)' }} />
+                  <div className="absolute inset-0" style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.3), transparent)',
+                  }} />
                 </motion.div>
               </div>
             </div>
             <motion.div key={totalStars} animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 0.35 }}
-              className="flex items-center gap-1 flex-shrink-0 px-2 py-1 md:px-3 md:py-1.5 rounded-xl border border-yellow-400/30"
+              className={`flex items-center gap-1 flex-shrink-0 ${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'} rounded-xl border border-yellow-400/30`}
               style={{ background: 'rgba(255,215,0,0.1)', backdropFilter: 'blur(10px)' }}>
               <svg width={isMobile ? 14 : 18} height={isMobile ? 14 : 18} viewBox="0 0 40 40">
                 <polygon points="20,2 24.9,14.5 38.5,14.5 27.8,22.3 31.7,35.5 20,27.5 8.3,35.5 12.2,22.3 1.5,14.5 15.1,14.5"
                   fill="#FFD700" stroke="#FFA500" strokeWidth="1" />
               </svg>
-              <span className="font-black text-xs md:text-sm text-yellow-400">{totalStars}</span>
+              <span className={`font-black ${isMobile ? 'text-xs' : 'text-sm'} text-yellow-400`}>{totalStars}</span>
             </motion.div>
           </div>
 
-          {/* Mini-map - يظهر بس لما الكيبورد مقفول */}
-          {!isTestPhase && !testSuccess && !keyboardOpen && (
-            <div className="flex gap-1 md:gap-1.5 justify-center">
+          {!isTestPhase && !testSuccess && (
+            <div className="flex gap-1.5 justify-center">
               {currentGroup.numbers.map((n, i) => {
                 const isDone = completedNums.has(n.num);
                 const isCurrent = i === numIdx;
-                const sz = isMobile ? 'w-7 h-7 text-xs' : 'w-10 h-10 text-sm';
                 return (
                   <motion.div key={n.num}
                     whileHover={{ scale: 1.1, y: -2 }}
-                    className={`${sz} rounded-xl flex items-center justify-center font-black border-2 transition-all backdrop-blur-md tabular-nums`}
+                    className={`${isMobile ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm'} rounded-xl flex items-center justify-center font-black border-2 transition-all backdrop-blur-md tabular-nums`}
                     style={{
                       background: isDone ? `linear-gradient(135deg, ${n.gradient[0]}55, ${n.gradient[1]}33)`
                         : isCurrent ? `linear-gradient(135deg, ${n.gradient[0]}33, ${n.gradient[1]}11)`
@@ -1103,16 +1383,8 @@ export default function GermanNumberLesson() {
         </div>
       </div>
 
-      {/* 🎯 MAIN CONTENT - متجاوب! */}
-      <div
-        className="px-4 md:px-6 min-h-screen flex flex-col relative transition-all duration-300"
-        style={{
-          zIndex: 10,
-          paddingTop: keyboardOpen ? '50px' : isMobile ? '90px' : '144px',
-          paddingBottom: keyboardOpen ? '10px' : isMobile ? '20px' : '128px',
-          justifyContent: keyboardOpen ? 'flex-start' : 'center',
-        }}
-      >
+      {/* Main Content */}
+      <div className={`${isMobile ? 'pt-28 pb-2 px-2' : 'pt-36 pb-32 px-6'} min-h-screen flex flex-col ${isMobile ? '' : 'justify-center'} relative`} style={{ zIndex: 10 }}>
         <AnimatePresence mode="wait">
           {phase === 'listen' && (
             <ListenPhase
@@ -1123,7 +1395,6 @@ export default function GermanNumberLesson() {
               onKarlReact={handleKarlReact}
               onCombo={handleCombo}
               isMobile={isMobile}
-              keyboardOpen={keyboardOpen}
             />
           )}
           {phase === 'write' && (
@@ -1135,7 +1406,6 @@ export default function GermanNumberLesson() {
               onKarlReact={handleKarlReact}
               onCombo={handleCombo}
               isMobile={isMobile}
-              keyboardOpen={keyboardOpen}
             />
           )}
           {phase === 'test' && !testSuccess && (
@@ -1153,7 +1423,8 @@ export default function GermanNumberLesson() {
             <motion.div key="success"
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center gap-6 text-center px-6 max-w-md mx-auto">
+              className="flex flex-col items-center gap-6 text-center px-6 max-w-md mx-auto"
+            >
               <motion.div
                 animate={{ rotate: [0, 10, -10, 10, 0], y: [0, -10, 0] }}
                 transition={{ duration: 0.7, delay: 0.1 }}
@@ -1194,6 +1465,17 @@ export default function GermanNumberLesson() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* 🆕 بطاقات الأرقام المتعلمة - للموبايل بس + بس في مرحلة input + لما الكيبورد مقفول */}
+        {isMobile && isInputPhase && !isKeyboardOpen && (
+          <AnimatePresence>
+            <LearnedNumbersCards
+              completedNums={completedNums}
+              allNumbers={NUMBERS}
+              activeColor={activeColor}
+            />
+          </AnimatePresence>
+        )}
       </div>
     </div>
   );
