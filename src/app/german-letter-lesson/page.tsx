@@ -158,6 +158,138 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
   onHome: () => void;
   isMobile: boolean;
 }) {
+  // ===== الموبايل: تصميم مدمج ومتناسق =====
+  if (isMobile) {
+    return (
+      <div className="fixed top-0 left-0 right-0 z-30 px-2 pt-2" 
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}>
+        
+        {/* الصف الأول: كل العناصر بحجم متساوي */}
+        <div className="flex items-center justify-between gap-1.5">
+          
+          {/* الجانب اليمين: الكاركتر + المستوى */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              className="relative w-8 h-8 rounded-full overflow-hidden border-2 flex-shrink-0"
+              style={{
+                borderColor: '#FFD700',
+                boxShadow: '0 0 10px rgba(255,215,0,0.5)',
+                background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
+              }}
+            >
+              <img src="/characters/karl-3d.png" alt="character" className="w-full h-full object-cover" />
+            </motion.div>
+            <div className="flex flex-col items-start leading-none gap-0.5">
+              <span className="text-[7px] font-bold text-white/80">المستوى</span>
+              <div className="flex items-center gap-1">
+                <span className="font-black text-[11px] text-white">{level}</span>
+                <div id="level-bar-target" className="relative w-10 h-1.5 bg-white/15 rounded-full overflow-hidden border border-white/20">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ background: 'linear-gradient(to right, #4CC9F0, #7209B7)' }}
+                    animate={{ width: `${stats.levelProgress}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* الوسط: العدادات الثلاثة بحجم متساوي */}
+          <div className="flex items-center gap-1 flex-1 justify-center max-w-[200px]">
+            {/* النجوم */}
+            <motion.div
+              key={`points-${stats.points}`}
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-1 px-1.5 py-1 rounded-lg flex-1 justify-center"
+              style={{
+                background: 'rgba(15,10,45,0.7)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,215,0,0.35)',
+                minWidth: 0,
+              }}
+            >
+              <img id="star-target" src="/treasuer/star.png" alt="star" className="w-3 h-3 flex-shrink-0" 
+                style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
+              <span className="font-black text-[10px] text-white truncate">{stats.points}</span>
+            </motion.div>
+
+            {/* السلسلة */}
+            <motion.div
+              key={`streak-${stats.streak}`}
+              animate={{ scale: stats.streak > 0 ? [1, 1.05, 1] : 1 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-1 px-1.5 py-1 rounded-lg flex-1 justify-center"
+              style={{
+                background: 'rgba(15,10,45,0.7)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,77,109,0.35)',
+                minWidth: 0,
+              }}
+            >
+              <Flame size={12} className="text-orange-400 flex-shrink-0" 
+                style={{ filter: 'drop-shadow(0 0 4px rgba(255,77,109,0.8))', fill: stats.streak > 0 ? '#FF4D6D' : 'transparent' }} />
+              <span className="font-black text-[10px] text-white truncate">{stats.streak}</span>
+            </motion.div>
+
+            {/* الجواهر */}
+            <motion.div
+              key={`gems-${stats.gems}`}
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-1 px-1.5 py-1 rounded-lg flex-1 justify-center"
+              style={{
+                background: 'rgba(15,10,45,0.7)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(157,78,221,0.35)',
+                minWidth: 0,
+              }}
+            >
+              <Gem id="gem-target" size={12} className="text-purple-300 flex-shrink-0" 
+                style={{ filter: 'drop-shadow(0 0 4px rgba(157,78,221,0.8))', fill: '#9D4EDD' }} />
+              <span className="font-black text-[10px] text-white truncate">{stats.gems}</span>
+            </motion.div>
+          </div>
+
+          {/* الجانب الشمال: زر البيت */}
+          <motion.button
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            onClick={onHome}
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{
+              background: 'rgba(15,10,45,0.7)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.2)',
+            }}
+          >
+            <Home size={14} className="text-white" />
+          </motion.button>
+        </div>
+
+        {/* الصف التاني: Stepper صغير */}
+        <div className="flex justify-center mt-1.5">
+          <div className="flex items-center gap-0.5 px-2 py-1 rounded-xl"
+            style={{
+              background: 'rgba(15,10,45,0.7)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.18)',
+            }}>
+            <Stepper currentStep={currentStep} totalSteps={totalSteps} isMobile={true} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ===== الديسكتوب: التصميم الأصلي =====
   return (
     <div className="fixed top-0 left-0 right-0 z-30 px-4 md:px-6 pt-3 md:pt-4" 
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}>
@@ -188,38 +320,27 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
                   animate={{ width: `${stats.levelProgress}%` }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
                 />
-                <motion.div
-                  key={stats.levelProgress}
-                  className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{ background: 'rgba(76,201,240,0.6)' }}
-                  initial={{ opacity: 0.8 }}
-                  animate={{ opacity: 0 }}
-                  transition={{ duration: 0.6 }}
-                />
               </div>
             </div>
           </div>
         </div>
 
-        {!isMobile && (
-          <div className="flex-1 flex justify-center">
-            <div className="flex items-center gap-1 px-4 py-2 rounded-2xl"
-              style={{
-                background: 'rgba(15,10,45,0.65)',
-                backdropFilter: 'blur(20px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                border: '2px solid rgba(255,255,255,0.18)',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-              }}>
-              <Stepper currentStep={currentStep} totalSteps={totalSteps} isMobile={false} />
-            </div>
+        <div className="flex-1 flex justify-center">
+          <div className="flex items-center gap-1 px-4 py-2 rounded-2xl"
+            style={{
+              background: 'rgba(15,10,45,0.65)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: '2px solid rgba(255,255,255,0.18)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+            }}>
+            <Stepper currentStep={currentStep} totalSteps={totalSteps} isMobile={false} />
           </div>
-        )}
+        </div>
 
         <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
           <motion.div
             key={`gems-${stats.gems}`}
-            initial={{ scale: 1 }}
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 0.3 }}
             className="flex items-center gap-1.5 md:gap-2 px-3 md:px-3.5 py-2 md:py-2.5 rounded-2xl"
@@ -234,13 +355,12 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
             <span className="font-black text-xs md:text-sm text-white" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
               {stats.gems}
             </span>
-            <Gem id="gem-target" size={isMobile ? 16 : 18} className="text-purple-300" 
+            <Gem id="gem-target" size={18} className="text-purple-300" 
               style={{ filter: 'drop-shadow(0 0 6px rgba(157,78,221,0.8))', fill: '#9D4EDD' }} />
           </motion.div>
 
           <motion.div
             key={`streak-${stats.streak}`}
-            initial={{ scale: 1 }}
             animate={{ scale: stats.streak > 0 ? [1, 1.05, 1] : 1 }}
             transition={{ duration: 0.3 }}
             className="flex items-center gap-1.5 md:gap-2 px-3 md:px-3.5 py-2 md:py-2.5 rounded-2xl"
@@ -258,18 +378,12 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
               </span>
               <span className="text-[7px] md:text-[8px] text-orange-200/90 font-bold mt-0.5">سلسلة</span>
             </div>
-            <motion.div
-              animate={{ rotate: stats.streak > 0 ? [0, -10, 10, 0] : 0 }}
-              transition={{ duration: 0.5, repeat: stats.streak > 0 ? Infinity : 0, repeatDelay: 1 }}
-            >
-              <Flame size={isMobile ? 16 : 18} className="text-orange-400" 
-                style={{ filter: 'drop-shadow(0 0 6px rgba(255,77,109,0.8))', fill: stats.streak > 0 ? '#FF4D6D' : 'transparent' }} />
-            </motion.div>
+            <Flame size={18} className="text-orange-400" 
+              style={{ filter: 'drop-shadow(0 0 6px rgba(255,77,109,0.8))', fill: stats.streak > 0 ? '#FF4D6D' : 'transparent' }} />
           </motion.div>
 
           <motion.div
             key={stats.points}
-            initial={{ scale: 1 }}
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 0.3 }}
             className="flex items-center gap-1.5 md:gap-2 px-3 md:px-3.5 py-2 md:py-2.5 rounded-2xl"
@@ -301,25 +415,10 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
               boxShadow: '0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
             }}
           >
-            <Home size={isMobile ? 16 : 20} className="text-white" />
+            <Home size={20} className="text-white" />
           </motion.button>
         </div>
       </div>
-
-      {isMobile && (
-        <div className="flex justify-center mt-2">
-          <div className="flex items-center gap-1 px-3 py-1.5 rounded-2xl"
-            style={{
-              background: 'rgba(15,10,45,0.65)',
-              backdropFilter: 'blur(20px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-              border: '2px solid rgba(255,255,255,0.18)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-            }}>
-            <Stepper currentStep={currentStep} totalSteps={totalSteps} isMobile={true} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -330,7 +429,7 @@ function Stepper({ currentStep, totalSteps, isMobile }: {
   isMobile: boolean;
 }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5 md:gap-1">
       {Array.from({ length: totalSteps }).map((_, i) => {
         const isActive = i === currentStep;
         const isDone = i < currentStep;
@@ -343,8 +442,8 @@ function Stepper({ currentStep, totalSteps, isMobile }: {
               transition={{ duration: 2, repeat: Infinity }}
               className="relative flex items-center justify-center rounded-full font-black border-2"
               style={{
-                width: isActive ? (isMobile ? 26 : 30) : (isMobile ? 22 : 25),
-                height: isActive ? (isMobile ? 26 : 30) : (isMobile ? 22 : 25),
+                width: isActive ? (isMobile ? 22 : 30) : (isMobile ? 18 : 25),
+                height: isActive ? (isMobile ? 22 : 30) : (isMobile ? 18 : 25),
                 background: isActive 
                   ? 'linear-gradient(135deg, #9D4EDD, #7209B7)'
                   : isDone 
@@ -352,14 +451,14 @@ function Stepper({ currentStep, totalSteps, isMobile }: {
                     : 'rgba(255,255,255,0.1)',
                 borderColor: isActive ? '#9D4EDD' : isDone ? '#58CC02' : 'rgba(255,255,255,0.25)',
                 color: isLocked ? 'rgba(255,255,255,0.5)' : 'white',
-                fontSize: isMobile ? '9px' : '11px',
+                fontSize: isMobile ? '8px' : '11px',
                 boxShadow: isActive ? '0 0 12px rgba(157,78,221,0.6)' : isDone ? '0 0 8px rgba(88,204,2,0.4)' : 'none',
               }}
             >
               {isLocked ? '🔒' : isDone ? '✓' : stepNum}
             </motion.div>
             {i < totalSteps - 1 && (
-              <div className="w-3 md:w-4 h-0.5" style={{ background: isDone ? '#58CC02' : 'rgba(255,255,255,0.2)' }} />
+              <div className={`${isMobile ? 'w-1.5' : 'w-3 md:w-4'} h-0.5`} style={{ background: isDone ? '#58CC02' : 'rgba(255,255,255,0.2)' }} />
             )}
           </div>
         );
@@ -513,9 +612,9 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
   const treasureImg = `/treasuer/${treasureState}.png`;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-30 px-3 md:px-4 pb-1 md:pb-1.5 pointer-events-none"
+    <div className="fixed bottom-0 left-0 right-0 z-30 px-2 md:px-4 pb-1 md:pb-1.5 pointer-events-none"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 4px)' }}>
-            <div className={`mx-auto pointer-events-auto ${isMobile ? 'max-w-md' : 'w-full max-w-[1500px]'}`}>
+      <div className={`mx-auto pointer-events-auto ${isMobile ? 'max-w-md' : 'w-full max-w-[1500px]'}`}>
         <div className="relative rounded-xl px-3 md:px-6 py-1 md:py-1.5"
           style={{
             background: 'linear-gradient(135deg, rgba(20,15,55,0.85) 0%, rgba(15,10,45,0.9) 100%)',
@@ -619,12 +718,14 @@ function RewardButton({ children, label, color, isMobile, onClick, badge, disabl
   );
 }
 
-function GlassCard({ children, className = '', accentColor = '#9D4EDD', isMobile = false, style }: {
+// ===== GlassCard مع خلفية صورة للموبايل =====
+function GlassCard({ children, className = '', accentColor = '#9D4EDD', isMobile = false, style, useBgImage = false }: {
   children: React.ReactNode;
   className?: string;
   accentColor?: string;
   isMobile?: boolean;
   style?: React.CSSProperties;
+  useBgImage?: boolean;
 }) {
   if (isMobile) {
     return (
@@ -637,6 +738,22 @@ function GlassCard({ children, className = '', accentColor = '#9D4EDD', isMobile
           boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 50px ${accentColor}33, inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.2)`,
           ...(style || {}),
         }}>
+        {/* خلفية الصورة لو مفعّلة */}
+        {useBgImage && (
+          <>
+            <div className="absolute inset-0 pointer-events-none rounded-[1.5rem]"
+              style={{
+                backgroundImage: `url('/card-image/card-mob.png')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                opacity: 0.5,
+              }} />
+            <div className="absolute inset-0 pointer-events-none rounded-[1.5rem]"
+              style={{
+                background: `linear-gradient(180deg, rgba(20,15,55,0.65) 0%, rgba(15,10,45,0.75) 100%)`,
+              }} />
+          </>
+        )}
         <div className="absolute inset-0 pointer-events-none rounded-[1.5rem]"
           style={{ background: `radial-gradient(ellipse at 50% 0%, ${accentColor}33, transparent 60%)` }} />
         <div className="relative z-10">{children}</div>
@@ -659,19 +776,35 @@ function GlassCard({ children, className = '', accentColor = '#9D4EDD', isMobile
   );
 }
 
-function LetterBox({ letterData, size }: { letterData: Letter; size: number }) {
+function LetterBox({ letterData, size, useBgImage = false }: { letterData: Letter; size: number; useBgImage?: boolean }) {
   return (
     <motion.div
       animate={{ scale: [1, 1.04, 1], rotate: [-1, 1, -1] }}
       transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-      className="relative rounded-[1.5rem] flex items-center justify-center select-none flex-shrink-0"
+      className="relative rounded-[1.5rem] flex items-center justify-center select-none flex-shrink-0 overflow-hidden"
       style={{
         width: size, height: size,
         background: 'linear-gradient(145deg, rgba(35,25,85,0.9), rgba(20,15,55,0.95))',
         border: `2px solid ${letterData.color}99`,
         boxShadow: `0 10px 30px ${letterData.color}77, inset 0 1px 0 ${letterData.color}66`,
       }}>
-      <span className="font-black"
+      {/* خلفية الصورة للموبايل */}
+      {useBgImage && (
+        <>
+          <div className="absolute inset-0 pointer-events-none rounded-[1.5rem]"
+            style={{
+              backgroundImage: `url('/card-image/card-mob.png')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              opacity: 0.4,
+            }} />
+          <div className="absolute inset-0 pointer-events-none rounded-[1.5rem]"
+            style={{
+              background: `linear-gradient(135deg, ${letterData.gradient[0]}55, ${letterData.gradient[1]}66)`,
+            }} />
+        </>
+      )}
+      <span className="font-black relative z-10"
         style={{
           fontSize: size * 0.6,
           background: `linear-gradient(180deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
@@ -715,14 +848,14 @@ function LearnLetterMobile({ letterData, input, status, onChange, onCheck, input
   onChange: (v: string) => void; onCheck: (e?: React.MouseEvent) => void; inputRef: InputRefType;
 }) {
   return (
-    <GlassCard className="w-full max-w-md mx-auto p-4" accentColor={letterData.color} isMobile={true}>
+    <GlassCard className="w-full max-w-md mx-auto p-4" accentColor={letterData.color} isMobile={true} useBgImage={true}>
       <div className="flex flex-col items-center gap-3">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
           className="px-4 py-2 rounded-2xl"
           style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', border: `2px solid ${letterData.color}66`, boxShadow: `0 4px 15px ${letterData.color}44` }}>
           <span className="font-black text-xs text-gray-800">استمع جيداً وأكتب الحرف</span>
         </motion.div>
-        <LetterBox letterData={letterData} size={110} />
+        <LetterBox letterData={letterData} size={110} useBgImage={true} />
         <CircularSoundButton onClick={() => speakLetter(letterData.letter)} color={letterData.color} size={44} />
         <div className="flex items-center gap-1.5">
           <span className="font-black text-white text-sm">اكتب الحرف</span>
@@ -910,7 +1043,7 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect, i
         transition={{ type: 'spring', stiffness: 300, damping: 28 }} className="w-full">
         
         {isMobile ? (
-          <GlassCard className="w-full max-w-md mx-auto p-4" accentColor={letterData.color} isMobile={true}>
+          <GlassCard className="w-full max-w-md mx-auto p-4" accentColor={letterData.color} isMobile={true} useBgImage={true}>
             <div className="flex flex-col items-center gap-2.5">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
                 className="px-4 py-2 rounded-2xl"
@@ -918,14 +1051,22 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect, i
                 <span className="font-black text-xs text-gray-800">استمع للكلمة واكتبها</span>
               </motion.div>
               <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                className="rounded-2xl flex items-center justify-center border-2 flex-shrink-0"
+                className="rounded-2xl flex items-center justify-center border-2 flex-shrink-0 relative overflow-hidden"
                 style={{ 
                   width: 90, height: 90,
                   background: `linear-gradient(145deg, ${letterData.gradient[0]}44, ${letterData.gradient[1]}33)`, 
                   borderColor: `${letterData.color}77`, 
                   boxShadow: `0 8px 20px ${letterData.color}66` 
                 }}>
-                <span style={{ fontSize: '3.5rem', filter: `drop-shadow(0 4px 8px ${letterData.color}cc)` }}>{letterData.emoji}</span>
+                {/* خلفية الصورة */}
+                <div className="absolute inset-0 pointer-events-none"
+                  style={{
+                    backgroundImage: `url('/card-image/card-mob.png')`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    opacity: 0.3,
+                  }} />
+                <span className="relative z-10" style={{ fontSize: '3.5rem', filter: `drop-shadow(0 4px 8px ${letterData.color}cc)` }}>{letterData.emoji}</span>
               </motion.div>
               <div className="text-center">
                 <div className="font-black text-xl text-white" style={{ textShadow: `0 0 20px ${letterData.color}aa, 0 2px 6px rgba(0,0,0,0.6)` }}>{letterData.word}</div>
@@ -1276,9 +1417,8 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
 
   if (!currentLetter) return null;
 
-  // ===== كرت المعلومات =====
   const InfoCard = () => (
-    <GlassCard className="p-3 w-full h-full flex flex-col" accentColor={currentLetter.color} isMobile={isMobile}>
+    <GlassCard className="p-3 w-full h-full flex flex-col" accentColor={currentLetter.color} isMobile={isMobile} useBgImage={isMobile}>
       <div className="flex flex-col items-center justify-around h-full gap-2">
         
         <motion.div 
@@ -1300,7 +1440,7 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
         <motion.div
           animate={{ scale: [1, 1.04, 1] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          className="relative rounded-2xl flex items-center justify-center flex-shrink-0"
+          className="relative rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden"
           style={{
             width: 85, height: 85,
             background: `linear-gradient(145deg, ${currentLetter.gradient[0]}, ${currentLetter.gradient[1]})`,
@@ -1308,6 +1448,17 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
             boxShadow: `0 10px 30px ${currentLetter.color}99, 0 0 40px ${currentLetter.color}55, inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.25)`,
           }}
         >
+          {isMobile && (
+            <div className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: `url('/card-image/card-mob.png')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                opacity: 0.25,
+                mixBlendMode: 'overlay',
+              }} />
+          )}
+          
           <div className="absolute inset-0 rounded-2xl pointer-events-none"
             style={{
               background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), transparent 60%)`,
@@ -1335,7 +1486,7 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
         <motion.div
           animate={{ y: [0, -3, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          className="relative rounded-xl flex items-center justify-center flex-shrink-0"
+          className="relative rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
           style={{
             width: 62, height: 62,
             background: `linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05))`,
@@ -1405,7 +1556,6 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
     </GlassCard>
   );
 
-  // ===== كرت الصورة - بنسبة الصورة الطبيعية =====
   const ImageCard = () => (
     <GlassCard 
       className="p-2 h-full" 
@@ -1498,7 +1648,7 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
           <ImageCard />
         </div>
       ) : (
-                <div className="flex items-stretch justify-center gap-3 w-full max-w-[1500px] mx-auto px-3"
+        <div className="flex items-stretch justify-center gap-3 w-full max-w-[1500px] mx-auto px-3"
           style={{ height: 'calc(100vh - 175px)' }}>
           
           <div className="flex-shrink-0" style={{ width: '270px' }}>
@@ -1774,10 +1924,10 @@ function GermanLetterLessonPageInner() {
       />
 
       <div className="flex flex-col items-center justify-center relative px-3 md:px-6"
-                style={{ 
+        style={{ 
           zIndex: 10, height: '100vh',
-          paddingTop: isMobile ? '140px' : '80px',     // ⬅️ من 100 لـ 80
-          paddingBottom: isMobile ? '100px' : '95px',  // ⬅️ من 115 لـ 95
+          paddingTop: isMobile ? '110px' : '80px',
+          paddingBottom: isMobile ? '95px' : '95px',
         }}>
         <div className="w-full flex items-center justify-center">
           <AnimatePresence mode="wait">
