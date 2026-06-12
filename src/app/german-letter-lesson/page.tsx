@@ -158,16 +158,13 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
   onHome: () => void;
   isMobile: boolean;
 }) {
-  // ===== الموبايل: تصميم مدمج ومتناسق =====
   if (isMobile) {
     return (
       <div className="fixed top-0 left-0 right-0 z-30 px-2 pt-2" 
         style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}>
         
-        {/* الصف الأول: كل العناصر بحجم متساوي */}
         <div className="flex items-center justify-between gap-1.5">
           
-          {/* الجانب اليمين: الكاركتر + المستوى */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <motion.div
               whileHover={{ scale: 1.1 }}
@@ -196,9 +193,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
             </div>
           </div>
 
-          {/* الوسط: العدادات الثلاثة بحجم متساوي */}
           <div className="flex items-center gap-1 flex-1 justify-center max-w-[200px]">
-            {/* النجوم */}
             <motion.div
               key={`points-${stats.points}`}
               animate={{ scale: [1, 1.05, 1] }}
@@ -217,7 +212,6 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
               <span className="font-black text-[10px] text-white truncate">{stats.points}</span>
             </motion.div>
 
-            {/* السلسلة */}
             <motion.div
               key={`streak-${stats.streak}`}
               animate={{ scale: stats.streak > 0 ? [1, 1.05, 1] : 1 }}
@@ -236,7 +230,6 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
               <span className="font-black text-[10px] text-white truncate">{stats.streak}</span>
             </motion.div>
 
-            {/* الجواهر */}
             <motion.div
               key={`gems-${stats.gems}`}
               animate={{ scale: [1, 1.05, 1] }}
@@ -256,7 +249,6 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
             </motion.div>
           </div>
 
-          {/* الجانب الشمال: زر البيت */}
           <motion.button
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
@@ -273,9 +265,9 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
           </motion.button>
         </div>
 
-        {/* الصف التاني: Stepper صغير */}
-        <div className="flex justify-center mt-1.5">
-          <div className="flex items-center gap-0.5 px-2 py-1 rounded-xl"
+        {/* الـ Stepper - 8px من فوق */}
+        <div className="flex justify-center" style={{ marginTop: '8px' }}>
+          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg"
             style={{
               background: 'rgba(15,10,45,0.7)',
               backdropFilter: 'blur(10px)',
@@ -289,7 +281,6 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
     );
   }
 
-  // ===== الديسكتوب: التصميم الأصلي =====
   return (
     <div className="fixed top-0 left-0 right-0 z-30 px-4 md:px-6 pt-3 md:pt-4" 
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}>
@@ -440,25 +431,26 @@ function Stepper({ currentStep, totalSteps, isMobile }: {
             <motion.div
               animate={isActive ? { scale: [1, 1.1, 1] } : {}}
               transition={{ duration: 2, repeat: Infinity }}
-              className="relative flex items-center justify-center rounded-full font-black border-2"
+              className="relative flex items-center justify-center rounded-full font-black border"
               style={{
-                width: isActive ? (isMobile ? 22 : 30) : (isMobile ? 18 : 25),
-                height: isActive ? (isMobile ? 22 : 30) : (isMobile ? 18 : 25),
+                width: isActive ? (isMobile ? 16 : 30) : (isMobile ? 13 : 25),
+                height: isActive ? (isMobile ? 16 : 30) : (isMobile ? 13 : 25),
                 background: isActive 
                   ? 'linear-gradient(135deg, #9D4EDD, #7209B7)'
                   : isDone 
                     ? 'linear-gradient(135deg, #58CC02, #4AA802)'
                     : 'rgba(255,255,255,0.1)',
                 borderColor: isActive ? '#9D4EDD' : isDone ? '#58CC02' : 'rgba(255,255,255,0.25)',
+                borderWidth: isMobile ? '1px' : '2px',
                 color: isLocked ? 'rgba(255,255,255,0.5)' : 'white',
-                fontSize: isMobile ? '8px' : '11px',
-                boxShadow: isActive ? '0 0 12px rgba(157,78,221,0.6)' : isDone ? '0 0 8px rgba(88,204,2,0.4)' : 'none',
+                fontSize: isMobile ? '6px' : '11px',
+                boxShadow: isActive ? '0 0 8px rgba(157,78,221,0.6)' : isDone ? '0 0 6px rgba(88,204,2,0.4)' : 'none',
               }}
             >
               {isLocked ? '🔒' : isDone ? '✓' : stepNum}
             </motion.div>
             {i < totalSteps - 1 && (
-              <div className={`${isMobile ? 'w-1.5' : 'w-3 md:w-4'} h-0.5`} style={{ background: isDone ? '#58CC02' : 'rgba(255,255,255,0.2)' }} />
+              <div className={`${isMobile ? 'w-1' : 'w-3 md:w-4'} h-0.5`} style={{ background: isDone ? '#58CC02' : 'rgba(255,255,255,0.2)' }} />
             )}
           </div>
         );
@@ -718,7 +710,6 @@ function RewardButton({ children, label, color, isMobile, onClick, badge, disabl
   );
 }
 
-// ===== GlassCard مع خلفية صورة للموبايل =====
 function GlassCard({ children, className = '', accentColor = '#9D4EDD', isMobile = false, style, useBgImage = false }: {
   children: React.ReactNode;
   className?: string;
@@ -738,7 +729,6 @@ function GlassCard({ children, className = '', accentColor = '#9D4EDD', isMobile
           boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 50px ${accentColor}33, inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.2)`,
           ...(style || {}),
         }}>
-        {/* خلفية الصورة لو مفعّلة */}
         {useBgImage && (
           <>
             <div className="absolute inset-0 pointer-events-none rounded-[1.5rem]"
@@ -788,7 +778,6 @@ function LetterBox({ letterData, size, useBgImage = false }: { letterData: Lette
         border: `2px solid ${letterData.color}99`,
         boxShadow: `0 10px 30px ${letterData.color}77, inset 0 1px 0 ${letterData.color}66`,
       }}>
-      {/* خلفية الصورة للموبايل */}
       {useBgImage && (
         <>
           <div className="absolute inset-0 pointer-events-none rounded-[1.5rem]"
@@ -1058,7 +1047,6 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect, i
                   borderColor: `${letterData.color}77`, 
                   boxShadow: `0 8px 20px ${letterData.color}66` 
                 }}>
-                {/* خلفية الصورة */}
                 <div className="absolute inset-0 pointer-events-none"
                   style={{
                     backgroundImage: `url('/card-image/card-mob.png')`,
@@ -1417,8 +1405,126 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
 
   if (!currentLetter) return null;
 
-  const InfoCard = () => (
-    <GlassCard className="p-3 w-full h-full flex flex-col" accentColor={currentLetter.color} isMobile={isMobile} useBgImage={isMobile}>
+  // ═══════════════════════════════════════
+  // 📱 InfoCard للموبايل - أصغر + مرفوع 3px
+  // ═══════════════════════════════════════
+  const InfoCardMobile = () => (
+    <div className="w-full rounded-lg overflow-hidden relative flex-shrink-0"
+      style={{
+        background: 'rgba(15,10,45,0.7)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        border: `1px solid ${currentLetter.color}66`,
+        boxShadow: `0 3px 12px rgba(0,0,0,0.5), 0 0 15px ${currentLetter.color}44`,
+        marginTop: '-3px', // 🔼 رفع 3px لفوق
+      }}>
+      
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: `radial-gradient(ellipse at top, ${currentLetter.color}33, transparent 70%)` }} />
+
+      <div className="relative z-10 px-1.5 py-0.5">
+        {/* العنوان */}
+        <div className="flex items-center justify-center gap-1 mb-0.5">
+          <Search size={7} style={{ color: currentLetter.color, filter: `drop-shadow(0 0 2px ${currentLetter.color})` }} />
+          <span className="font-black text-[8px] text-white" 
+            style={{ textShadow: `0 0 4px ${currentLetter.color}, 0 1px 1px rgba(0,0,0,0.7)` }}>
+            ابحث عن حرف {currentLetter.letter}
+          </span>
+        </div>
+
+        {/* صف العناصر */}
+        <div className="flex items-center justify-between gap-1">
+          
+          {/* زر الصوت */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.92 }}
+            onClick={() => speakWord(currentLetter.word)}
+            className="relative rounded-full flex items-center justify-center border flex-shrink-0"
+            style={{
+              width: 24, height: 24,
+              background: `linear-gradient(135deg, ${currentLetter.color}, ${currentLetter.gradient[1]})`,
+              borderColor: 'rgba(255,255,255,0.5)',
+              boxShadow: `0 2px 6px ${currentLetter.color}aa`,
+            }}>
+            <Volume2 size={10} className="text-white" />
+          </motion.button>
+
+          {/* الكلمة */}
+          <div className="flex-1 text-center min-w-0">
+            <div className="font-black text-[11px] text-white leading-tight truncate"
+              style={{ textShadow: `0 0 6px ${currentLetter.color}cc, 0 1px 2px rgba(0,0,0,0.8)` }}>
+              {currentLetter.word}
+            </div>
+            <div className="font-bold text-[7px] truncate leading-tight"
+              style={{ color: currentLetter.color, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
+              {currentLetter.wordAr}
+            </div>
+          </div>
+
+          {/* الإيموجي */}
+          <motion.div
+            animate={{ y: [0, -2, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="relative rounded flex items-center justify-center flex-shrink-0"
+            style={{
+              width: 26, height: 26,
+              background: `linear-gradient(145deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05))`,
+              border: `1px solid ${currentLetter.color}77`,
+              boxShadow: `0 2px 5px ${currentLetter.color}44`,
+            }}>
+            <span style={{ 
+              fontSize: '0.95rem',
+              filter: `drop-shadow(0 1px 2px ${currentLetter.color}aa)`,
+              lineHeight: 1,
+            }}>
+              {currentLetter.emoji}
+            </span>
+          </motion.div>
+
+          {/* الحرف */}
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="relative rounded-md flex items-center justify-center flex-shrink-0"
+            style={{
+              width: 28, height: 28,
+              background: `linear-gradient(145deg, ${currentLetter.gradient[0]}, ${currentLetter.gradient[1]})`,
+              border: `1px solid rgba(255,255,255,0.5)`,
+              boxShadow: `0 2px 8px ${currentLetter.color}aa, inset 0 1px 0 rgba(255,255,255,0.35)`,
+            }}>
+            <span className="font-black text-white"
+              style={{
+                fontSize: '1.15rem', lineHeight: 1,
+                textShadow: `0 1px 4px rgba(0,0,0,0.5)`,
+              }}>
+              {currentLetter.letter}
+            </span>
+          </motion.div>
+        </div>
+
+        {/* المحاولات */}
+        {wrong > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-center justify-center gap-1 mt-0.5 px-1.5 py-0 rounded-full mx-auto w-fit"
+            style={{ 
+              background: 'rgba(255,68,68,0.3)', 
+              border: '1px solid rgba(255,68,68,0.5)',
+            }}>
+            <span className="text-[7px] font-black text-red-200">{wrong}/5 محاولات</span>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ═══════════════════════════════════════
+  // 🖥️ InfoCard للديسكتوب (زي ما هو)
+  // ═══════════════════════════════════════
+  const InfoCardDesktop = () => (
+    <GlassCard className="p-3 w-full h-full flex flex-col" accentColor={currentLetter.color} isMobile={false}>
       <div className="flex flex-col items-center justify-around h-full gap-2">
         
         <motion.div 
@@ -1446,39 +1552,23 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
             background: `linear-gradient(145deg, ${currentLetter.gradient[0]}, ${currentLetter.gradient[1]})`,
             border: `2.5px solid rgba(255,255,255,0.45)`,
             boxShadow: `0 10px 30px ${currentLetter.color}99, 0 0 40px ${currentLetter.color}55, inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.25)`,
-          }}
-        >
-          {isMobile && (
-            <div className="absolute inset-0 pointer-events-none"
-              style={{
-                backgroundImage: `url('/card-image/card-mob.png')`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                opacity: 0.25,
-                mixBlendMode: 'overlay',
-              }} />
-          )}
-          
+          }}>
           <div className="absolute inset-0 rounded-2xl pointer-events-none"
             style={{
               background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), transparent 60%)`,
             }} />
-          
           <span className="font-black text-white relative"
             style={{
-              fontSize: '3.5rem',
-              lineHeight: 1,
+              fontSize: '3.5rem', lineHeight: 1,
               textShadow: `0 4px 15px rgba(0,0,0,0.6), 0 0 25px rgba(255,255,255,0.3)`,
             }}>
             {currentLetter.letter}
           </span>
-          
           <motion.div
             animate={{ rotate: [0, 20, -20, 0], scale: [1, 1.3, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
             className="absolute -top-1.5 -right-1.5 text-yellow-300 text-base"
-            style={{ filter: 'drop-shadow(0 0 8px rgba(255,215,0,1))' }}
-          >
+            style={{ filter: 'drop-shadow(0 0 8px rgba(255,215,0,1))' }}>
             ✨
           </motion.div>
         </motion.div>
@@ -1492,13 +1582,11 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
             background: `linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05))`,
             border: `2px solid ${currentLetter.color}77`,
             boxShadow: `0 6px 20px ${currentLetter.color}66, inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)`,
-          }}
-        >
+          }}>
           <div className="absolute inset-0 rounded-xl pointer-events-none"
             style={{
               background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), transparent 60%)`,
             }} />
-          
           <span className="relative" style={{ 
             fontSize: '2.5rem',
             filter: `drop-shadow(0 4px 8px ${currentLetter.color}bb)`,
@@ -1529,8 +1617,7 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
             background: `linear-gradient(135deg, ${currentLetter.color}, ${currentLetter.gradient[1]})`,
             borderColor: 'rgba(255,255,255,0.55)',
             boxShadow: `0 6px 20px ${currentLetter.color}cc, 0 0 30px ${currentLetter.color}77, inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.2)`,
-          }}
-        >
+          }}>
           <div className="absolute inset-0 rounded-full pointer-events-none"
             style={{
               background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 60%)`,
@@ -1556,103 +1643,124 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
     </GlassCard>
   );
 
+  // ═══════════════════════════════════════
+  // 🖼️ ImageCard - الصورة تكبر تاخد كل المساحة
+  // ═══════════════════════════════════════
   const ImageCard = () => (
-    <GlassCard 
-      className="p-2 h-full" 
-      accentColor={currentLetter.color} 
-      isMobile={isMobile}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-    >
-      <div ref={containerRef}
-        className="relative rounded-xl overflow-hidden"
-        style={{
-          cursor: 'pointer',
-          maxWidth: '100%',
-          maxHeight: '100%',
-          aspectRatio: `${harborImage.width} / ${harborImage.height}`,
-          height: '100%',
+    <div 
+      ref={containerRef}
+      className="relative overflow-hidden flex items-center justify-center"
+      style={{
+        cursor: 'pointer',
+        borderRadius: '12px',
+        boxShadow: `0 4px 18px rgba(0,0,0,0.6)`,
+        width: '100%',
+        height: '100%',
+      }}
+      onClick={handleImageClick}>
+      
+      <img src={harborImage.src} alt="ميناء"
+        className="block"
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          objectFit: 'cover', 
+          pointerEvents: 'none',
         }}
-        onClick={handleImageClick}>
-        <img src={harborImage.src} alt="ميناء"
-          className="absolute inset-0 w-full h-full"
-          style={{ objectFit: 'cover', pointerEvents: 'none', display: 'block' }}
-          draggable={false} />
+        draggable={false} />
 
-        <AnimatePresence>
-          {showHint && shapes.length > 0 && (
-            <motion.svg key="hint-svg"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0.4, 0.85, 0.4] }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.2, repeat: Infinity }}
-              className="absolute inset-0 w-full h-full pointer-events-none"
-              viewBox="0 0 100 100" preserveAspectRatio="none">
-              {shapes.map((shape: any, idx: number) => {
-                if (Array.isArray(shape))
-                  return <polygon key={idx} points={polygonToSvgPoints(shape)} fill={currentLetter.color} fillOpacity={0.35} stroke={currentLetter.color} strokeWidth={0.5} />;
-                else
-                  return <rect key={idx} x={shape.x} y={shape.y} width={shape.w} height={shape.h} fill={currentLetter.color} fillOpacity={0.35} stroke={currentLetter.color} strokeWidth={0.5} rx={1} />;
-              })}
-            </motion.svg>
-          )}
-        </AnimatePresence>
+      <AnimatePresence>
+        {showHint && shapes.length > 0 && (
+          <motion.svg key="hint-svg"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0.4, 0.85, 0.4] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, repeat: Infinity }}
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            viewBox="0 0 100 100" preserveAspectRatio="none">
+            {shapes.map((shape: any, idx: number) => {
+              if (Array.isArray(shape))
+                return <polygon key={idx} points={polygonToSvgPoints(shape)} fill={currentLetter.color} fillOpacity={0.35} stroke={currentLetter.color} strokeWidth={0.5} />;
+              else
+                return <rect key={idx} x={shape.x} y={shape.y} width={shape.w} height={shape.h} fill={currentLetter.color} fillOpacity={0.35} stroke={currentLetter.color} strokeWidth={0.5} rx={1} />;
+            })}
+          </motion.svg>
+        )}
+      </AnimatePresence>
 
-        <AnimatePresence>
-          {clickEffect && (
-            <motion.div initial={{ scale: 0.4, opacity: 1 }}
-              animate={{ scale: 2.2, opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="absolute pointer-events-none rounded-full"
-              style={{
-                left: `${clickEffect.x}%`, top: `${clickEffect.y}%`,
-                transform: 'translate(-50%, -50%)',
-                width: '40px', height: '40px',
-                background: clickEffect.correct ? 'rgba(88,204,2,0.6)' : 'rgba(255,68,68,0.6)'
-              }} />
-          )}
-        </AnimatePresence>
+      <AnimatePresence>
+        {clickEffect && (
+          <motion.div initial={{ scale: 0.4, opacity: 1 }}
+            animate={{ scale: 2.2, opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="absolute pointer-events-none rounded-full"
+            style={{
+              left: `${clickEffect.x}%`, top: `${clickEffect.y}%`,
+              transform: 'translate(-50%, -50%)',
+              width: '40px', height: '40px',
+              background: clickEffect.correct ? 'rgba(88,204,2,0.6)' : 'rgba(255,68,68,0.6)'
+            }} />
+        )}
+      </AnimatePresence>
 
-        <AnimatePresence>
-          {showFeedback === 'correct' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex items-end justify-center pb-4 pointer-events-none"
-              style={{ background: 'linear-gradient(to top, rgba(88,204,2,0.28), transparent)' }}>
-              <div className="flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-white text-lg"
-                style={{ background: 'rgba(88,204,2,0.92)' }}>
-                ✓ {currentLetter.word}!
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {finished && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="absolute inset-0 flex flex-col items-center justify-center gap-3"
-            style={{ background: 'rgba(0,10,20,0.85)' }}>
-            <div className="text-6xl">🎉</div>
-            <p className="font-black text-white text-2xl">ممتاز!</p>
-            <div className="flex gap-1">
-              {groupLetters.map((l: any) => <Star key={l.letter} size={20} fill="#FFD700" color="#FFD700" />)}
+      <AnimatePresence>
+        {showFeedback === 'correct' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-end justify-center pb-4 pointer-events-none"
+            style={{ background: 'linear-gradient(to top, rgba(88,204,2,0.28), transparent)' }}>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-white text-lg"
+              style={{ background: 'rgba(88,204,2,0.92)' }}>
+              ✓ {currentLetter.word}!
             </div>
           </motion.div>
         )}
-      </div>
-    </GlassCard>
+      </AnimatePresence>
+
+      {finished && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-30"
+          style={{ background: 'rgba(0,10,20,0.85)' }}>
+          <div className="text-6xl">🎉</div>
+          <p className="font-black text-white text-2xl">ممتاز!</p>
+          <div className="flex gap-1">
+            {groupLetters.map((l: any) => <Star key={l.letter} size={20} fill="#FFD700" color="#FFD700" />)}
+          </div>
+        </motion.div>
+      )}
+    </div>
   );
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full flex items-center justify-center">
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      className="w-full"
+      style={{ height: '100%', minHeight: 0 }}
+    >
       {isMobile ? (
-        <div className="flex flex-col gap-3 w-full max-w-md mx-auto px-2">
-          <InfoCard />
-          <ImageCard />
+        // 📱 موبايل: InfoCard فوق (مرفوع 3px) + 2px مسافة + الصورة الكبيرة
+        <div 
+          className="flex flex-col w-full mx-auto"
+          style={{ 
+            height: '100%',
+            maxWidth: '500px',
+            padding: '0 6px',
+          }}
+        >
+          <InfoCardMobile />
+          {/* مسافة 2px بين الكارت والصورة */}
+          <div style={{ height: '2px', flexShrink: 0 }} />
+          <div className="flex-1 min-h-0 w-full">
+            <ImageCard />
+          </div>
         </div>
       ) : (
+        // 🖥️ ديسكتوب
         <div className="flex items-stretch justify-center gap-3 w-full max-w-[1500px] mx-auto px-3"
           style={{ height: 'calc(100vh - 175px)' }}>
           
           <div className="flex-shrink-0" style={{ width: '270px' }}>
-            <InfoCard />
+            <InfoCardDesktop />
           </div>
           
           <div className="flex-1 flex items-center justify-center" style={{ minWidth: 0 }}>
@@ -1900,6 +2008,12 @@ function GermanLetterLessonPageInner() {
 
   const totalStepsInGroup = group.letters.length;
   const activeColor = letterData?.color ?? '#4CC9F0';
+  
+  // 🎯 paddings للموبايل
+  // في مرحلة البحث: TopHUD(~50px) + 8px gap + Stepper(~22px) = ~80px
+  // BottomHUD ~80px + 2px = ~82px
+  const mobilePaddingTop = phase === 'test' ? '82px' : '110px';
+  const mobilePaddingBottom = phase === 'test' ? '82px' : '95px';
 
   return (
     <div className="text-white relative overflow-hidden" 
@@ -1926,10 +2040,10 @@ function GermanLetterLessonPageInner() {
       <div className="flex flex-col items-center justify-center relative px-3 md:px-6"
         style={{ 
           zIndex: 10, height: '100vh',
-          paddingTop: isMobile ? '110px' : '80px',
-          paddingBottom: isMobile ? '95px' : '95px',
+          paddingTop: isMobile ? mobilePaddingTop : '80px',
+          paddingBottom: isMobile ? mobilePaddingBottom : '95px',
         }}>
-        <div className="w-full flex items-center justify-center">
+        <div className="w-full flex items-center justify-center" style={{ height: '100%' }}>
           <AnimatePresence mode="wait">
             {phase === 'learn-letter' && (
               <LearnLetterPhase key={`ll-${groupIdx}-${letterIdx}`} letterData={letterData}
