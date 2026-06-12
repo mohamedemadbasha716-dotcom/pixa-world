@@ -643,7 +643,7 @@ function LearnLetterMobile({ letterData, input, status, onChange, onCheck, input
   status: 'idle' | 'correct' | 'wrong';
   onChange: (v: string) => void;
   onCheck: (e?: React.MouseEvent) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   return (
     <GlassCard className="w-full max-w-md mx-auto p-4" accentColor={letterData.color}>
