@@ -855,7 +855,7 @@ function LearnLetterMobile({ letterData, input, status, onChange, onCheck, input
           style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', border: `2px solid ${letterData.color}66`, boxShadow: `0 4px 15px ${letterData.color}44` }}>
           <span className="font-black text-xs text-gray-800">استمع جيداً وأكتب الحرف</span>
         </motion.div>
-        <LetterBox letterData={letterData} size={110} useBgImage={true} />
+        <LetterBox letterData={letterData} size={110} />
         <CircularSoundButton onClick={() => speakLetter(letterData.letter)} color={letterData.color} size={44} />
         <div className="flex items-center gap-1.5">
           <span className="font-black text-white text-sm">اكتب الحرف</span>
