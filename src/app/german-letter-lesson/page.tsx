@@ -1299,7 +1299,7 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
           <CircularSoundButton onClick={() => speakWord(word)} color={letterData.color} size={38} />
 
           {/* المربعات الفاضية بالحروف الشفافة (Ghost) */}
-          <div className="flex items-center justify-center gap-1.5 flex-wrap mt-1">
+<div className="flex items-center justify-center gap-1.5 flex-wrap mt-1" dir="ltr">
             {word.split('').map((letter, idx) => {
               const isFilled = idx < placedIndices.length;
               return (
@@ -1358,7 +1358,7 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
           </div>
 
           {/* الحروف المبعثرة */}
-          <div className="flex items-center justify-center gap-2 flex-wrap mt-1">
+<div className="flex items-center justify-center gap-2 flex-wrap mt-1" dir="ltr">
             {shuffledLetters.map((letter, idx) => {
               const isPlaced = placedIndices.includes(idx);
               const isShaking = wrongShake === idx;
