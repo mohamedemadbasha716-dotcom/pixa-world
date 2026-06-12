@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, RefObject } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,6 +38,7 @@ import type { KarlMood } from '@/lib/types/lesson';
 import { ENCOURAGEMENTS, SAD_MESSAGES } from '@/lib/types/lesson';
 
 type FlyingStar = { id: number; x: number; y: number };
+type InputRefType = RefObject<HTMLInputElement | null>;
 
 // ═══════════════════════════════════════
 // 🎮 Game Stats Hook
@@ -643,7 +644,7 @@ function LearnLetterMobile({ letterData, input, status, onChange, onCheck, input
   status: 'idle' | 'correct' | 'wrong';
   onChange: (v: string) => void;
   onCheck: (e?: React.MouseEvent) => void;
-  inputRef: React.RefObject<HTMLInputElement | null>;
+  inputRef: InputRefType;
 }) {
   return (
     <GlassCard className="w-full max-w-md mx-auto p-4" accentColor={letterData.color}>
@@ -726,7 +727,7 @@ function LearnLetterMobile({ letterData, input, status, onChange, onCheck, input
 }
 
 // ═══════════════════════════════════════
-// 📚 Learn Letter Desktop (Compact - No Scroll)
+// 📚 Learn Letter Desktop
 // ═══════════════════════════════════════
 function LearnLetterDesktop({ letterData, input, status, onChange, onCheck, inputRef }: {
   letterData: Letter;
@@ -734,12 +735,11 @@ function LearnLetterDesktop({ letterData, input, status, onChange, onCheck, inpu
   status: 'idle' | 'correct' | 'wrong';
   onChange: (v: string) => void;
   onCheck: (e?: React.MouseEvent) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: InputRefType;
 }) {
   return (
     <div className="flex items-stretch justify-center gap-5 w-full max-w-4xl mx-auto">
       
-      {/* ⬅️ Left Card - Teaching */}
       <GlassCard className="flex-1 max-w-sm p-5" accentColor={letterData.color}>
         <div className="flex flex-col items-center gap-3 h-full justify-center">
           <motion.div
@@ -767,7 +767,6 @@ function LearnLetterDesktop({ letterData, input, status, onChange, onCheck, inpu
         </div>
       </GlassCard>
 
-      {/* ➡️ Right Card - Input ONLY */}
       <GlassCard className="flex-1 max-w-sm p-5" accentColor={letterData.color}>
         <div className="flex flex-col items-center gap-4 h-full justify-center">
           
@@ -895,7 +894,7 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect,
 }
 
 // ═══════════════════════════════════════
-// 📖 Learn Word Phase (Compact)
+// 📖 Learn Word Phase
 // ═══════════════════════════════════════
 function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect, isMobile }: {
   letterData: Letter; onDone: () => void; onKarlReact: (mood: KarlMood) => void;
@@ -945,7 +944,6 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect, i
         className="w-full">
         
         {isMobile ? (
-          // ─── Mobile ───
           <GlassCard className="w-full max-w-md mx-auto p-4" accentColor={letterData.color}>
             <div className="flex flex-col items-center gap-2.5">
               <motion.div
@@ -1024,7 +1022,6 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect, i
             </div>
           </GlassCard>
         ) : (
-          // ─── Desktop (Compact) ───
           <div className="flex items-stretch justify-center gap-5 w-full max-w-4xl mx-auto">
             
             <GlassCard className="flex-1 max-w-sm p-5" accentColor={letterData.color}>
@@ -1344,7 +1341,7 @@ function DebugBrushTool({ isMobile }: { isMobile: boolean }) {
 }
 
 // ═══════════════════════════════════════
-// 🗺️ HarborTest (Compact)
+// 🗺️ HarborTest
 // ═══════════════════════════════════════
 function HarborTest({ 
   groupLetters, onPass, onFail, onStarEarned, onKarlReact, onCombo, onCorrect, isMobile,
@@ -1572,7 +1569,7 @@ function FailScreen({ onRetry }: { onRetry: () => void }) {
 type Phase = 'learn-letter' | 'learn-word' | 'test' | 'group-success' | 'group-fail' | 'all-done';
 
 // ═══════════════════════════════════════
-// 🎮 MAIN COMPONENT (No Scroll Layout)
+// 🎮 MAIN COMPONENT
 // ═══════════════════════════════════════
 function GermanLetterLessonPageInner() {
   const router = useRouter();
@@ -1758,7 +1755,6 @@ function GermanLetterLessonPageInner() {
         isMobile={isMobile}
       />
 
-      {/* MAIN CONTENT - Fixed Height, No Scroll */}
       <div 
         className="flex flex-col items-center justify-center relative px-3 md:px-6"
         style={{ 
