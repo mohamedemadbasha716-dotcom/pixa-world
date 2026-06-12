@@ -99,6 +99,32 @@ function compareWords(input: string, target: string): boolean {
   return normalize(input) === normalize(target);
 }
 
+// ═══════════════════════════════════════
+// 🎲 توليد حروف عشوائية مع الحرف الصحيح
+// ═══════════════════════════════════════
+function generateLetterChoices(correctLetter: string, count: number = 3): string[] {
+  const allLetters = LETTERS.map(l => l.letter).filter(l => l !== correctLetter);
+  const shuffled = allLetters.sort(() => Math.random() - 0.5);
+  const wrongChoices = shuffled.slice(0, count - 1);
+  const choices = [...wrongChoices, correctLetter];
+  return choices.sort(() => Math.random() - 0.5);
+}
+
+// ═══════════════════════════════════════
+// 🎲 خلط حروف الكلمة
+// ═══════════════════════════════════════
+function shuffleWordLetters(word: string): string[] {
+  const letters = word.split('');
+  // ضمان إن الترتيب مش زي الأصلي
+  let shuffled = [...letters];
+  let attempts = 0;
+  while (shuffled.join('') === word && attempts < 10) {
+    shuffled = letters.sort(() => Math.random() - 0.5);
+    attempts++;
+  }
+  return shuffled;
+}
+
 function ScreenBackground({ isMobile, activeColor }: { isMobile: boolean; activeColor: string }) {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number }>>([]);
 
@@ -265,7 +291,6 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
           </motion.button>
         </div>
 
-        {/* الـ Stepper - 8px من فوق */}
         <div className="flex justify-center" style={{ marginTop: '8px' }}>
           <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg"
             style={{
@@ -832,46 +857,412 @@ function CircularSoundButton({ onClick, color, size = 48 }: { onClick: () => voi
   );
 }
 
-function LearnLetterMobile({ letterData, input, status, onChange, onCheck, inputRef }: {
-  letterData: Letter; input: string; status: 'idle' | 'correct' | 'wrong';
-  onChange: (v: string) => void; onCheck: (e?: React.MouseEvent) => void; inputRef: InputRefType;
+// ═══════════════════════════════════════
+// 🆕 LetterChoiceMobile - اختيار الحرف الصحيح من 3 خيارات
+// ═══════════════════════════════════════
+function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
+  letterData: Letter;
+  onCorrect: (clientX: number, clientY: number) => void;
+  onWrong: () => void;
 }) {
+  const [choices, setChoices] = useState<string[]>([]);
+  const [hiddenLetters, setHiddenLetters] = useState<Set<string>>(new Set());
+  const [wrongLetter, setWrongLetter] = useState<string | null>(null);
+  const [status, setStatus] = useState<'idle' | 'correct'>('idle');
+
+  useEffect(() => {
+    setChoices(generateLetterChoices(letterData.letter, 3));
+    setHiddenLetters(new Set());
+    setWrongLetter(null);
+    setStatus('idle');
+  }, [letterData.letter]);
+
+  const handleChoice = (choice: string, e: React.MouseEvent) => {
+    if (status === 'correct' || hiddenLetters.has(choice)) return;
+
+    if (choice === letterData.letter) {
+      setStatus('correct');
+      setHiddenLetters(prev => new Set(prev).add(choice));
+      onCorrect(e.clientX, e.clientY);
+    } else {
+      setWrongLetter(choice);
+      playBuzzSound();
+      onWrong();
+      setTimeout(() => setWrongLetter(null), 600);
+    }
+  };
+
   return (
     <GlassCard className="w-full max-w-md mx-auto p-4" accentColor={letterData.color} isMobile={true} useBgImage={true}>
       <div className="flex flex-col items-center gap-3">
+        
+        {/* العنوان */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
           className="px-4 py-2 rounded-2xl"
-          style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', border: `2px solid ${letterData.color}66`, boxShadow: `0 4px 15px ${letterData.color}44` }}>
-          <span className="font-black text-xs text-gray-800">استمع جيداً وأكتب الحرف</span>
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', 
+            border: `2px solid ${letterData.color}66`, 
+            boxShadow: `0 4px 15px ${letterData.color}44` 
+          }}>
+          <span className="font-black text-xs text-gray-800">استمع جيداً واختر الحرف</span>
         </motion.div>
-        <LetterBox letterData={letterData} size={110} />
+
+        {/* الحرف الكبير في النص */}
+        <LetterBox letterData={letterData} size={100} />
+
+        {/* زر الصوت */}
         <CircularSoundButton onClick={() => speakLetter(letterData.letter)} color={letterData.color} size={44} />
+
+        {/* عنوان "اختر الحرف الصحيح" */}
         <div className="flex items-center gap-1.5">
-          <span className="font-black text-white text-sm">اكتب الحرف</span>
-          <span className="text-base">✏️</span>
+          <span className="font-black text-white text-sm">اختر الحرف الصحيح</span>
+          <span className="text-base">👇</span>
         </div>
-        <div className="w-full max-w-[280px]">
-          <GhostInput ref={inputRef} value={input} onChange={v => onChange(v)} onEnter={onCheck}
-            ghostText={letterData.letter} color={letterData.color} status={status} fontSize="1.8rem" maxLength={1} uppercase />
+
+        {/* أزرار الاختيارات */}
+        <div className="flex items-center justify-center gap-3 w-full">
+          {choices.map((choice, idx) => {
+            const isHidden = hiddenLetters.has(choice);
+            const isWrong = wrongLetter === choice;
+            const isCorrect = status === 'correct' && choice === letterData.letter;
+
+            return (
+              <AnimatePresence key={`${letterData.letter}-${choice}-${idx}`} mode="wait">
+                {!isHidden && (
+                  <motion.button
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={isWrong ? { 
+                      x: [-10, 10, -10, 10, 0],
+                      scale: 1,
+                      opacity: 1,
+                    } : { 
+                      scale: isCorrect ? [1, 1.4, 0] : 1, 
+                      opacity: isCorrect ? [1, 1, 0] : 1,
+                      y: isCorrect ? [0, -100] : 0,
+                    }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={isCorrect 
+                      ? { duration: 0.8, times: [0, 0.5, 1] }
+                      : isWrong 
+                        ? { duration: 0.4 }
+                        : { delay: idx * 0.1, type: 'spring', stiffness: 300 }
+                    }
+                    whileHover={{ scale: 1.1, y: -3 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => handleChoice(choice, e)}
+                    disabled={status === 'correct' || isWrong}
+                    className="relative rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden border-2"
+                    style={{
+                      width: 70, height: 70,
+                      background: isWrong 
+                        ? 'linear-gradient(145deg, #FF4444, #CC0000)' 
+                        : 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))',
+                      borderColor: isWrong ? '#FF4444' : `${letterData.color}aa`,
+                      boxShadow: isWrong 
+                        ? '0 6px 20px rgba(255,68,68,0.6), 0 0 30px rgba(255,68,68,0.4)' 
+                        : `0 6px 20px ${letterData.color}66, 0 0 25px ${letterData.color}44`,
+                    }}
+                  >
+                    <span className="font-black"
+                      style={{
+                        fontSize: '2.5rem',
+                        lineHeight: 1,
+                        color: isWrong ? 'white' : letterData.color,
+                        textShadow: isWrong ? '0 2px 8px rgba(0,0,0,0.4)' : `0 2px 6px ${letterData.color}44`,
+                        filter: isWrong ? 'none' : `drop-shadow(0 2px 4px ${letterData.color}66)`,
+                      }}
+                    >
+                      {choice}
+                    </span>
+                    
+                    {/* Sparkles لما يكون الإجابة صح */}
+                    {isCorrect && (
+                      <motion.div
+                        className="absolute inset-0 pointer-events-none"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        {[0, 60, 120, 180, 240, 300].map(angle => (
+                          <motion.div
+                            key={angle}
+                            className="absolute"
+                            style={{
+                              top: '50%', left: '50%',
+                              width: 6, height: 6,
+                              background: '#FFD700',
+                              borderRadius: '50%',
+                              boxShadow: '0 0 10px #FFD700',
+                              transformOrigin: '0 0',
+                            }}
+                            initial={{ x: 0, y: 0, scale: 1, opacity: 1 }}
+                            animate={{
+                              x: Math.cos(angle * Math.PI / 180) * 50,
+                              y: Math.sin(angle * Math.PI / 180) * 50,
+                              scale: 0,
+                              opacity: 0,
+                            }}
+                            transition={{ duration: 0.6 }}
+                          />
+                        ))}
+                      </motion.div>
+                    )}
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            );
+          })}
         </div>
+
+        {/* رسالة النتيجة */}
         <AnimatePresence>
-          {status !== 'idle' && (
+          {status === 'correct' && (
             <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="flex items-center justify-center gap-2 font-black text-xs py-1.5 px-4 rounded-xl"
               style={{ 
-                background: status === 'correct' ? 'rgba(88,204,2,0.3)' : 'rgba(255,68,68,0.3)', 
-                color: status === 'correct' ? '#58CC02' : '#FF6B6B', 
-                border: `1.5px solid ${status === 'correct' ? '#58CC0288' : '#FF444488'}` 
+                background: 'rgba(88,204,2,0.3)', 
+                color: '#58CC02', 
+                border: '1.5px solid #58CC0288' 
               }}>
-              {status === 'correct' ? <><Check size={14} /> ممتاز!</> : <><X size={14} /> جرب تاني</>}
+              <Check size={14} /> ممتاز!
+            </motion.div>
+          )}
+          {wrongLetter && (
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="flex items-center justify-center gap-2 font-black text-xs py-1.5 px-4 rounded-xl"
+              style={{ 
+                background: 'rgba(255,68,68,0.3)', 
+                color: '#FF6B6B', 
+                border: '1.5px solid #FF444488' 
+              }}>
+              <X size={14} /> جرب تاني
             </motion.div>
           )}
         </AnimatePresence>
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={onCheck} disabled={!input}
-          className="w-full max-w-[280px] py-3 rounded-2xl font-black text-base text-white disabled:opacity-30 transition-all flex items-center justify-center gap-2"
-          style={{ background: 'linear-gradient(135deg, #58CC02, #4AA802)', boxShadow: '0 6px 20px rgba(88,204,2,0.5)', borderBottom: '4px solid #3A8602' }}>
-          تحقق <Check size={18} />
-        </motion.button>
+      </div>
+    </GlassCard>
+  );
+}
+
+// ═══════════════════════════════════════
+// 🆕 WordBuilderMobile - ترتيب حروف الكلمة
+// ═══════════════════════════════════════
+function WordBuilderMobile({ letterData, onComplete, onWrong }: {
+  letterData: Letter;
+  onComplete: (clientX: number, clientY: number) => void;
+  onWrong: () => void;
+}) {
+  const word = letterData.word;
+  const [shuffledLetters, setShuffledLetters] = useState<string[]>([]);
+  const [placedIndices, setPlacedIndices] = useState<number[]>([]); // indexes في الـ shuffled اللي اتحطت
+  const [wrongShake, setWrongShake] = useState<number | null>(null);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    setShuffledLetters(shuffleWordLetters(word));
+    setPlacedIndices([]);
+    setWrongShake(null);
+    setIsComplete(false);
+  }, [word]);
+
+  const handleLetterClick = (letter: string, idx: number, e: React.MouseEvent) => {
+    if (isComplete || placedIndices.includes(idx)) return;
+
+    const nextExpectedLetter = word[placedIndices.length];
+    
+    if (letter === nextExpectedLetter) {
+      // صح!
+      const newPlaced = [...placedIndices, idx];
+      setPlacedIndices(newPlaced);
+      playCoinSound();
+
+      // لو خلصنا الكلمة
+      if (newPlaced.length === word.length) {
+        setIsComplete(true);
+        speakWord(word);
+        setTimeout(() => {
+          onComplete(e.clientX, e.clientY);
+        }, 800);
+      }
+    } else {
+      // غلط!
+      setWrongShake(idx);
+      playBuzzSound();
+      onWrong();
+      setTimeout(() => setWrongShake(null), 600);
+    }
+  };
+
+  const currentTyped = placedIndices.map(i => shuffledLetters[i]).join('');
+
+  return (
+    <GlassCard className="w-full max-w-md mx-auto p-4" accentColor={letterData.color} isMobile={true} useBgImage={true}>
+      <div className="flex flex-col items-center gap-2.5">
+        
+        {/* العنوان */}
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+          className="px-4 py-2 rounded-2xl"
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', 
+            border: `2px solid ${letterData.color}66`, 
+            boxShadow: `0 4px 15px ${letterData.color}44` 
+          }}>
+          <span className="font-black text-xs text-gray-800">استمع للكلمة ورتبها</span>
+        </motion.div>
+
+        {/* الإيموجي */}
+        <motion.div 
+          animate={{ y: [0, -4, 0] }} 
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          className="rounded-2xl flex items-center justify-center border-2 flex-shrink-0 relative overflow-hidden"
+          style={{ 
+            width: 80, height: 80,
+            background: `linear-gradient(145deg, ${letterData.gradient[0]}44, ${letterData.gradient[1]}33)`, 
+            borderColor: `${letterData.color}77`, 
+            boxShadow: `0 8px 20px ${letterData.color}66` 
+          }}>
+          <span className="relative z-10" style={{ 
+            fontSize: '3rem', 
+            filter: `drop-shadow(0 4px 8px ${letterData.color}cc)` 
+          }}>
+            {letterData.emoji}
+          </span>
+        </motion.div>
+
+        {/* الكلمة الكاملة (للقراءة) + الترجمة */}
+        <div className="text-center">
+          <div className="font-black text-lg text-white" 
+            style={{ textShadow: `0 0 20px ${letterData.color}aa, 0 2px 6px rgba(0,0,0,0.6)` }}>
+            {word}
+          </div>
+          <div className="font-bold text-xs mt-0.5" 
+            style={{ color: letterData.color, textShadow: '0 2px 6px rgba(0,0,0,0.7)' }}>
+            {letterData.wordAr}
+          </div>
+        </div>
+
+        {/* زر الصوت */}
+        <CircularSoundButton onClick={() => speakWord(word)} color={letterData.color} size={40} />
+
+        {/* الخانات الفارغة (مكان الحروف اللي اتحطت) */}
+        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+          {word.split('').map((letter, idx) => {
+            const isFilled = idx < placedIndices.length;
+            return (
+              <motion.div
+                key={`slot-${idx}`}
+                initial={{ scale: 0.8 }}
+                animate={{ 
+                  scale: isFilled ? [0.8, 1.2, 1] : 1,
+                  borderColor: isFilled ? letterData.color : 'rgba(255,255,255,0.3)',
+                }}
+                transition={{ duration: 0.3 }}
+                className="rounded-lg flex items-center justify-center flex-shrink-0 border-2"
+                style={{
+                  width: 36, height: 42,
+                  background: isFilled 
+                    ? `linear-gradient(145deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})` 
+                    : 'rgba(255,255,255,0.08)',
+                  borderStyle: isFilled ? 'solid' : 'dashed',
+                  boxShadow: isFilled ? `0 4px 12px ${letterData.color}aa` : 'none',
+                }}
+              >
+                {isFilled && (
+                  <motion.span
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    className="font-black text-white"
+                    style={{
+                      fontSize: '1.5rem',
+                      lineHeight: 1,
+                      textShadow: '0 2px 6px rgba(0,0,0,0.5)',
+                    }}
+                  >
+                    {letter}
+                  </motion.span>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* الحروف المبعثرة */}
+        <div className="flex items-center justify-center gap-2 flex-wrap mt-1">
+          {shuffledLetters.map((letter, idx) => {
+            const isPlaced = placedIndices.includes(idx);
+            const isShaking = wrongShake === idx;
+
+            return (
+              <AnimatePresence key={`shuffled-${idx}`} mode="wait">
+                {!isPlaced && (
+                  <motion.button
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={isShaking ? {
+                      x: [-8, 8, -8, 8, 0],
+                      scale: 1,
+                      opacity: 1,
+                    } : { 
+                      scale: 1, 
+                      opacity: 1,
+                    }}
+                    exit={{ 
+                      scale: [1, 1.3, 0], 
+                      opacity: [1, 1, 0],
+                      y: [0, -30, -80],
+                    }}
+                    transition={isShaking 
+                      ? { duration: 0.4 }
+                      : { delay: idx * 0.05, type: 'spring', stiffness: 300 }
+                    }
+                    whileHover={{ scale: 1.1, y: -3 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => handleLetterClick(letter, idx, e)}
+                    disabled={isComplete}
+                    className="rounded-xl flex items-center justify-center flex-shrink-0 border-2"
+                    style={{
+                      width: 44, height: 44,
+                      background: isShaking 
+                        ? 'linear-gradient(145deg, #FF4444, #CC0000)' 
+                        : 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))',
+                      borderColor: isShaking ? '#FF4444' : `${letterData.color}aa`,
+                      boxShadow: isShaking 
+                        ? '0 4px 15px rgba(255,68,68,0.6)' 
+                        : `0 4px 14px ${letterData.color}55`,
+                    }}
+                  >
+                    <span className="font-black"
+                      style={{
+                        fontSize: '1.6rem',
+                        lineHeight: 1,
+                        color: isShaking ? 'white' : letterData.color,
+                        textShadow: isShaking ? '0 2px 6px rgba(0,0,0,0.4)' : `0 1px 3px ${letterData.color}44`,
+                      }}
+                    >
+                      {letter}
+                    </span>
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            );
+          })}
+        </div>
+
+        {/* رسالة النجاح */}
+        <AnimatePresence>
+          {isComplete && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.5 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              exit={{ opacity: 0 }}
+              className="flex items-center justify-center gap-2 font-black text-sm py-2 px-5 rounded-xl"
+              style={{ 
+                background: 'rgba(88,204,2,0.3)', 
+                color: '#58CC02', 
+                border: '2px solid #58CC0288' 
+              }}>
+              <Check size={16} /> ممتاز! 🎉
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </GlassCard>
   );
@@ -944,6 +1335,24 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect,
     return () => clearTimeout(t);
   }, [letterData.letter]);
 
+  // 📱 موبايل: handler للاختيار الصح
+  const handleMobileCorrect = (cx: number, cy: number) => {
+    speakLetter(letterData.letter);
+    playCoinSound();
+    onCombo();
+    onKarlReact('happy');
+    setConfettiPos({ x: cx, y: cy });
+    setConfettiTrigger(t => t + 1);
+    onCorrect(cx, cy);
+    setTimeout(onDone, 1300);
+  };
+
+  // 📱 موبايل: handler للاختيار الغلط
+  const handleMobileWrong = () => {
+    onKarlReact('sad');
+  };
+
+  // 🖥️ ديسكتوب: handler الكيبورد
   const handleCheck = (e?: React.MouseEvent) => {
     if (input.trim().toUpperCase() === letterData.letter.toUpperCase()) {
       setStatus('correct'); speakLetter(letterData.letter); playCoinSound();
@@ -973,7 +1382,11 @@ function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect,
         initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
         transition={{ type: 'spring', stiffness: 300, damping: 28 }} className="w-full">
         {isMobile ? (
-          <LearnLetterMobile letterData={letterData} input={input} status={status} onChange={handleChange} onCheck={handleCheck} inputRef={inputRef} />
+          <LetterChoiceMobile 
+            letterData={letterData} 
+            onCorrect={handleMobileCorrect}
+            onWrong={handleMobileWrong}
+          />
         ) : (
           <LearnLetterDesktop letterData={letterData} input={input} status={status} onChange={handleChange} onCheck={handleCheck} inputRef={inputRef} />
         )}
@@ -998,6 +1411,23 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect, i
     return () => clearTimeout(t);
   }, [letterData.word]);
 
+  // 📱 موبايل: handler لما الكلمة تكتمل
+  const handleMobileComplete = (cx: number, cy: number) => {
+    playCoinSound();
+    onCombo();
+    onKarlReact('happy');
+    setConfettiPos({ x: cx, y: cy });
+    setConfettiTrigger(t => t + 1);
+    onCorrect(cx, cy);
+    setTimeout(onDone, 1300);
+  };
+
+  // 📱 موبايل: handler للحرف الغلط
+  const handleMobileWrong = () => {
+    onKarlReact('sad');
+  };
+
+  // 🖥️ ديسكتوب: handler الكيبورد
   const handleCheck = (e?: React.MouseEvent) => {
     if (compareWords(input, letterData.word)) {
       setStatus('correct'); speakWord(letterData.word); playCoinSound();
@@ -1032,56 +1462,11 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect, i
         transition={{ type: 'spring', stiffness: 300, damping: 28 }} className="w-full">
         
         {isMobile ? (
-          <GlassCard className="w-full max-w-md mx-auto p-4" accentColor={letterData.color} isMobile={true} useBgImage={true}>
-            <div className="flex flex-col items-center gap-2.5">
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                className="px-4 py-2 rounded-2xl"
-                style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', border: `2px solid ${letterData.color}66`, boxShadow: `0 4px 15px ${letterData.color}44` }}>
-                <span className="font-black text-xs text-gray-800">استمع للكلمة واكتبها</span>
-              </motion.div>
-              <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                className="rounded-2xl flex items-center justify-center border-2 flex-shrink-0 relative overflow-hidden"
-                style={{ 
-                  width: 90, height: 90,
-                  background: `linear-gradient(145deg, ${letterData.gradient[0]}44, ${letterData.gradient[1]}33)`, 
-                  borderColor: `${letterData.color}77`, 
-                  boxShadow: `0 8px 20px ${letterData.color}66` 
-                }}>
-                <div className="absolute inset-0 pointer-events-none"
-                  style={{
-                    backgroundImage: `url('/card-image/card-mob.png')`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    opacity: 0.3,
-                  }} />
-                <span className="relative z-10" style={{ fontSize: '3.5rem', filter: `drop-shadow(0 4px 8px ${letterData.color}cc)` }}>{letterData.emoji}</span>
-              </motion.div>
-              <div className="text-center">
-                <div className="font-black text-xl text-white" style={{ textShadow: `0 0 20px ${letterData.color}aa, 0 2px 6px rgba(0,0,0,0.6)` }}>{letterData.word}</div>
-                <div className="font-bold text-xs mt-0.5" style={{ color: letterData.color, textShadow: '0 2px 6px rgba(0,0,0,0.7)' }}>{letterData.wordAr}</div>
-              </div>
-              <CircularSoundButton onClick={() => speakWord(letterData.word)} color={letterData.color} size={44} />
-              <div className="w-full max-w-[280px] space-y-2">
-                <GhostInput ref={inputRef} value={input} onChange={handleChange} onEnter={handleCheck}
-                  ghostText={letterData.word} color={letterData.color} status={status} fontSize="1.1rem" />
-                {requiredChars.length > 0 && (<SpecialCharsKeyboard chars={requiredChars} onChar={handleSpecialChar} color={letterData.color} />)}
-              </div>
-              <AnimatePresence>
-                {status !== 'idle' && (
-                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                    className="flex items-center justify-center gap-2 font-black text-xs py-1.5 px-4 rounded-xl"
-                    style={{ background: status === 'correct' ? 'rgba(88,204,2,0.3)' : 'rgba(255,68,68,0.3)', color: status === 'correct' ? '#58CC02' : '#FF6B6B', border: `1.5px solid ${status === 'correct' ? '#58CC0288' : '#FF444488'}` }}>
-                    {status === 'correct' ? <><Check size={14} /> ممتاز!</> : <><X size={14} /> جرب تاني</>}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleCheck} disabled={!input}
-                className="w-full max-w-[280px] py-3 rounded-2xl font-black text-base text-white disabled:opacity-30 transition-all flex items-center justify-center gap-2"
-                style={{ background: 'linear-gradient(135deg, #58CC02, #4AA802)', boxShadow: '0 6px 20px rgba(88,204,2,0.5)', borderBottom: '4px solid #3A8602' }}>
-                تحقق <Check size={18} />
-              </motion.button>
-            </div>
-          </GlassCard>
+          <WordBuilderMobile 
+            letterData={letterData}
+            onComplete={handleMobileComplete}
+            onWrong={handleMobileWrong}
+          />
         ) : (
           <div className="flex items-stretch justify-center gap-5 w-full max-w-4xl mx-auto">
             <GlassCard className="flex-1 max-w-sm p-5" accentColor={letterData.color} isMobile={false}>
@@ -1405,9 +1790,6 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
 
   if (!currentLetter) return null;
 
-  // ═══════════════════════════════════════
-  // 📱 InfoCard للموبايل - أصغر + مرفوع 3px
-  // ═══════════════════════════════════════
   const InfoCardMobile = () => (
     <div className="w-full rounded-lg overflow-hidden relative flex-shrink-0"
       style={{
@@ -1416,14 +1798,13 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
         border: `1px solid ${currentLetter.color}66`,
         boxShadow: `0 3px 12px rgba(0,0,0,0.5), 0 0 15px ${currentLetter.color}44`,
-        marginTop: '-3px', // 🔼 رفع 3px لفوق
+        marginTop: '-3px',
       }}>
       
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: `radial-gradient(ellipse at top, ${currentLetter.color}33, transparent 70%)` }} />
 
       <div className="relative z-10 px-1.5 py-0.5">
-        {/* العنوان */}
         <div className="flex items-center justify-center gap-1 mb-0.5">
           <Search size={7} style={{ color: currentLetter.color, filter: `drop-shadow(0 0 2px ${currentLetter.color})` }} />
           <span className="font-black text-[8px] text-white" 
@@ -1432,10 +1813,8 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
           </span>
         </div>
 
-        {/* صف العناصر */}
         <div className="flex items-center justify-between gap-1">
           
-          {/* زر الصوت */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.92 }}
@@ -1450,7 +1829,6 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
             <Volume2 size={10} className="text-white" />
           </motion.button>
 
-          {/* الكلمة */}
           <div className="flex-1 text-center min-w-0">
             <div className="font-black text-[11px] text-white leading-tight truncate"
               style={{ textShadow: `0 0 6px ${currentLetter.color}cc, 0 1px 2px rgba(0,0,0,0.8)` }}>
@@ -1462,7 +1840,6 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
             </div>
           </div>
 
-          {/* الإيموجي */}
           <motion.div
             animate={{ y: [0, -2, 0] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -1482,7 +1859,6 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
             </span>
           </motion.div>
 
-          {/* الحرف */}
           <motion.div
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -1503,7 +1879,6 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
           </motion.div>
         </div>
 
-        {/* المحاولات */}
         {wrong > 0 && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
@@ -1520,9 +1895,6 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
     </div>
   );
 
-  // ═══════════════════════════════════════
-  // 🖥️ InfoCard للديسكتوب (زي ما هو)
-  // ═══════════════════════════════════════
   const InfoCardDesktop = () => (
     <GlassCard className="p-3 w-full h-full flex flex-col" accentColor={currentLetter.color} isMobile={false}>
       <div className="flex flex-col items-center justify-around h-full gap-2">
@@ -1643,9 +2015,6 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
     </GlassCard>
   );
 
-  // ═══════════════════════════════════════
-  // 🖼️ ImageCard - الصورة تكبر تاخد كل المساحة
-  // ═══════════════════════════════════════
   const ImageCard = () => (
     <div 
       ref={containerRef}
@@ -1738,7 +2107,6 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
       style={{ height: '100%', minHeight: 0 }}
     >
       {isMobile ? (
-        // 📱 موبايل: InfoCard فوق (مرفوع 3px) + 2px مسافة + الصورة الكبيرة
         <div 
           className="flex flex-col w-full mx-auto"
           style={{ 
@@ -1748,14 +2116,12 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
           }}
         >
           <InfoCardMobile />
-          {/* مسافة 2px بين الكارت والصورة */}
           <div style={{ height: '2px', flexShrink: 0 }} />
           <div className="flex-1 min-h-0 w-full">
             <ImageCard />
           </div>
         </div>
       ) : (
-        // 🖥️ ديسكتوب
         <div className="flex items-stretch justify-center gap-3 w-full max-w-[1500px] mx-auto px-3"
           style={{ height: 'calc(100vh - 175px)' }}>
           
@@ -2009,9 +2375,6 @@ function GermanLetterLessonPageInner() {
   const totalStepsInGroup = group.letters.length;
   const activeColor = letterData?.color ?? '#4CC9F0';
   
-  // 🎯 paddings للموبايل
-  // في مرحلة البحث: TopHUD(~50px) + 8px gap + Stepper(~22px) = ~80px
-  // BottomHUD ~80px + 2px = ~82px
   const mobilePaddingTop = phase === 'test' ? '82px' : '110px';
   const mobilePaddingBottom = phase === 'test' ? '82px' : '95px';
 
