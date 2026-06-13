@@ -226,13 +226,13 @@ function ScreenBackground({ isMobile, activeColor, phase }: { isMobile: boolean;
 
   if (isMobile) {
     const bgImage = phase === 'test' ? '/images/Hamburg-mob.jpeg' : '/card-image/card-mob.png';
-    const overlayOpacity = phase === 'test' 
+    const overlayBg = phase === 'test' 
       ? 'linear-gradient(180deg, rgba(10,5,30,0.35) 0%, rgba(10,5,30,0.55) 100%)'
       : 'linear-gradient(180deg, rgba(10,5,30,0.15) 0%, rgba(10,5,30,0.25) 100%)';
     return (
       <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
         <img src={bgImage} alt="bg" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0" style={{ background: overlayOpacity }} />
+        <div className="absolute inset-0" style={{ background: overlayBg }} />
       </div>
     );
   }
