@@ -79,32 +79,64 @@ const LANDMARKS_BASE = [
 ];
 
 // ═══════════════════════════════════════
-// 🖥️ إحداثيات الديسكتوب
-// ✅ centerY لهامبورغ: 9 → 18 (بعيد عن اللافتة لتحت)
-// ✅ centerX لهامبورغ: 41 → 36 (شوية على الشمال)
+// 🎯 نوع الـ Polygon
 // ═══════════════════════════════════════
-const COORDS_DESKTOP: Record<string, { centerX: number; centerY: number; clickArea: { x: number; y: number; w: number; h: number } }> = {
-  hamburg:        { centerX: 36, centerY: 18, clickArea: { x: 35, y: 3,  w: 13, h: 14 } },
-  cologne:        { centerX: 23, centerY: 41, clickArea: { x: 16, y: 25, w: 15, h: 33 } },
-  center:         { centerX: 49, centerY: 46, clickArea: { x: 43, y: 36, w: 13, h: 20 } },
-  berlin:         { centerX: 71, centerY: 21, clickArea: { x: 62, y: 8,  w: 18, h: 28 } },
-  lake:           { centerX: 84, centerY: 51, clickArea: { x: 79, y: 44, w: 10, h: 14 } },
-  neuschwanstein: { centerX: 56, centerY: 74, clickArea: { x: 47, y: 58, w: 18, h: 30 } },
+type MapPolygon = number[];
+
+type LandmarkCoords = {
+  centerX: number;
+  centerY: number;
+  clickArea: { x: number; y: number; w: number; h: number };
+  polygon?: MapPolygon;
+};
+
+// ═══════════════════════════════════════
+// 🖥️ إحداثيات الديسكتوب
+// ═══════════════════════════════════════
+const COORDS_DESKTOP: Record<string, LandmarkCoords> = {
+  hamburg        : { centerX: 40.5, centerY: 12.5, clickArea: { x: 39.4, y: 6,    w: 9.2,  h: 13.7 } },
+  cologne        : { centerX: 25.5, centerY: 30.9, clickArea: { x: 18.7, y: 24.4, w: 13.1, h: 27.8 } },
+  center         : { centerX: 47.7, centerY: 34,   clickArea: { x: 45.3, y: 33.6, w: 12,   h: 20.5 } },
+  berlin         : { centerX: 77.2, centerY: 18,   clickArea: { x: 61.2, y: 9.2,  w: 17.2, h: 22.5 } },
+  lake           : { centerX: 85.6, centerY: 49.2, clickArea: { x: 77,   y: 51.2, w: 6.6,  h: 6.2  } },
+  neuschwanstein : { centerX: 52.6, centerY: 65.4, clickArea: { x: 48.3, y: 59.1, w: 14.5, h: 28.1 } },
 };
 
 // ═══════════════════════════════════════
 // 📱 إحداثيات الموبايل
-// ✅ centerY لهامبورغ: 12 → 20 (بعيد عن اللافتة لتحت)
-// ✅ centerX لهامبورغ: 60 → 50 (شوية على الشمال)
 // ═══════════════════════════════════════
-const COORDS_MOBILE: Record<string, { centerX: number; centerY: number; clickArea: { x: number; y: number; w: number; h: number } }> = {
-  hamburg:        { centerX: 50, centerY: 20, clickArea: { x: 40, y: 5,  w: 45, h: 16 } },
-  cologne:        { centerX: 22, centerY: 30, clickArea: { x: 8,  y: 18, w: 30, h: 22 } },
-  berlin:         { centerX: 78, centerY: 30, clickArea: { x: 62, y: 22, w: 30, h: 16 } },
-  center:         { centerX: 50, centerY: 55, clickArea: { x: 32, y: 45, w: 36, h: 20 } },
-  neuschwanstein: { centerX: 60, centerY: 75, clickArea: { x: 40, y: 62, w: 42, h: 22 } },
-  lake:           { centerX: 75, centerY: 93, clickArea: { x: 60, y: 87, w: 35, h: 10 } },
+const COORDS_MOBILE: Record<string, LandmarkCoords> = {
+  hamburg        : { centerX: 36.6, centerY: 13.7, clickArea: { x: 40.6, y: 4.7,  w: 40,   h: 13.4 } },
+  cologne        : { centerX: 18.5, centerY: 24.9, clickArea: { x: 6.8,  y: 20.4, w: 25.8, h: 18.9 } },
+  center         : { centerX: 42.9, centerY: 40.4, clickArea: { x: 25.7, y: 38.6, w: 42.3, h: 17.6 } },
+  berlin         : { centerX: 78.7, centerY: 17.6, clickArea: { x: 60.3, y: 20,   w: 34.5, h: 14.5 } },
+  lake           : { centerX: 73.2, centerY: 88.7, clickArea: { x: 50.5, y: 84.6, w: 38.4, h: 9.2  } },
+  neuschwanstein : { centerX: 59.4, centerY: 55.5, clickArea: { x: 46.5, y: 56.9, w: 32.5, h: 19.6 } },
 };
+
+// ═══════════════════════════════════════
+// 🎯 Helper Functions
+// ═══════════════════════════════════════
+function isPointInMapPolygon(px: number, py: number, polygon: MapPolygon): boolean {
+  let inside = false;
+  const len = polygon.length;
+  for (let i = 0, j = len - 2; i < len; j = i, i += 2) {
+    const xi = polygon[i], yi = polygon[i + 1];
+    const xj = polygon[j], yj = polygon[j + 1];
+    const intersect = ((yi > py) !== (yj > py)) &&
+      (px < ((xj - xi) * (py - yi)) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function polygonToSvgPoints(polygon: MapPolygon): string {
+  const points: string[] = [];
+  for (let i = 0; i < polygon.length; i += 2) {
+    points.push(`${polygon[i]},${polygon[i + 1]}`);
+  }
+  return points.join(' ');
+}
 
 // ═══════════════════════════════════════
 // 🔊 أصوات
@@ -146,6 +178,289 @@ function playLockedSound() {
 }
 
 // ═══════════════════════════════════════
+// 🎨 أداة الفرشاة (Map Brush Tool)
+// ═══════════════════════════════════════
+type BrushPoint = { x: number; y: number };
+type LandmarkData = {
+  centerX: number;
+  centerY: number;
+  brushPoints: BrushPoint[];
+  clickArea: { x: number; y: number; w: number; h: number };
+};
+type BrushMode = 'brush' | 'center' | 'erase';
+
+function MapBrushTool({ 
+  isMobileView: initialMobile, 
+  landmarks 
+}: { 
+  isMobileView: boolean; 
+  landmarks: typeof LANDMARKS_BASE;
+}) {
+  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>(initialMobile ? 'mobile' : 'desktop');
+  const [selectedLandmark, setSelectedLandmark] = useState<string>(landmarks[0].id);
+  const [mode, setMode] = useState<BrushMode>('brush');
+  const [brushSize, setBrushSize] = useState(3);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [showAll, setShowAll] = useState(true);
+  const [copiedMsg, setCopiedMsg] = useState('');
+  const [dataDesktop, setDataDesktop] = useState<Record<string, LandmarkData>>({});
+  const [dataMobile, setDataMobile] = useState<Record<string, LandmarkData>>({});
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  const currentData = viewMode === 'desktop' ? dataDesktop : dataMobile;
+  const setCurrentData = viewMode === 'desktop' ? setDataDesktop : setDataMobile;
+  const mapImage = viewMode === 'desktop' ? '/maps/german-map.png' : '/maps/map-mobile.jpeg';
+
+  useEffect(() => {
+    try {
+      const d = localStorage.getItem('brushTool_desktop_v1');
+      const m = localStorage.getItem('brushTool_mobile_v1');
+      if (d) setDataDesktop(JSON.parse(d));
+      if (m) setDataMobile(JSON.parse(m));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('brushTool_desktop_v1', JSON.stringify(dataDesktop));
+  }, [dataDesktop]);
+  useEffect(() => {
+    localStorage.setItem('brushTool_mobile_v1', JSON.stringify(dataMobile));
+  }, [dataMobile]);
+
+  const getMapCoords = (e: React.MouseEvent): { x: number; y: number } | null => {
+    if (!mapRef.current) return null;
+    const rect = mapRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
+  };
+
+  const updateLandmarkData = (updater: (prev: LandmarkData) => LandmarkData) => {
+    setCurrentData(prev => {
+      const existing: LandmarkData = prev[selectedLandmark] || {
+        centerX: 50, centerY: 50, brushPoints: [],
+        clickArea: { x: 45, y: 45, w: 10, h: 10 },
+      };
+      const updated = updater(existing);
+      if (updated.brushPoints.length > 0) {
+        const xs = updated.brushPoints.map(p => p.x);
+        const ys = updated.brushPoints.map(p => p.y);
+        const minX = Math.min(...xs) - brushSize / 2;
+        const maxX = Math.max(...xs) + brushSize / 2;
+        const minY = Math.min(...ys) - brushSize / 2;
+        const maxY = Math.max(...ys) + brushSize / 2;
+        updated.clickArea = {
+          x: parseFloat(Math.max(0, minX).toFixed(1)),
+          y: parseFloat(Math.max(0, minY).toFixed(1)),
+          w: parseFloat(Math.min(100 - minX, maxX - minX).toFixed(1)),
+          h: parseFloat(Math.min(100 - minY, maxY - minY).toFixed(1)),
+        };
+      }
+      return { ...prev, [selectedLandmark]: updated };
+    });
+  };
+
+  const handlePointerDown = (e: React.MouseEvent) => {
+    const coords = getMapCoords(e);
+    if (!coords) return;
+    if (mode === 'center') {
+      updateLandmarkData(prev => ({
+        ...prev,
+        centerX: parseFloat(coords.x.toFixed(1)),
+        centerY: parseFloat(coords.y.toFixed(1)),
+      }));
+      return;
+    }
+    setIsDrawing(true);
+    if (mode === 'brush') {
+      updateLandmarkData(prev => ({ ...prev, brushPoints: [...prev.brushPoints, coords] }));
+    } else if (mode === 'erase') {
+      updateLandmarkData(prev => ({
+        ...prev,
+        brushPoints: prev.brushPoints.filter(p => {
+          const dx = p.x - coords.x, dy = p.y - coords.y;
+          return Math.sqrt(dx * dx + dy * dy) > brushSize;
+        }),
+      }));
+    }
+  };
+
+  const handlePointerMove = (e: React.MouseEvent) => {
+    if (!isDrawing) return;
+    const coords = getMapCoords(e);
+    if (!coords) return;
+    if (mode === 'brush') {
+      updateLandmarkData(prev => {
+        const last = prev.brushPoints[prev.brushPoints.length - 1];
+        if (last) {
+          const dx = last.x - coords.x, dy = last.y - coords.y;
+          if (Math.sqrt(dx * dx + dy * dy) < brushSize * 0.3) return prev;
+        }
+        return { ...prev, brushPoints: [...prev.brushPoints, coords] };
+      });
+    } else if (mode === 'erase') {
+      updateLandmarkData(prev => ({
+        ...prev,
+        brushPoints: prev.brushPoints.filter(p => {
+          const dx = p.x - coords.x, dy = p.y - coords.y;
+          return Math.sqrt(dx * dx + dy * dy) > brushSize;
+        }),
+      }));
+    }
+  };
+
+  const handlePointerUp = () => setIsDrawing(false);
+
+  const clearCurrent = () => {
+    if (!confirm(`مسح بيانات ${landmarks.find(l => l.id === selectedLandmark)?.nameAr}؟`)) return;
+    setCurrentData(prev => {
+      const next = { ...prev };
+      delete next[selectedLandmark];
+      return next;
+    });
+  };
+
+  const generateCode = (data: Record<string, LandmarkData>, label: string) => {
+    let code = `const COORDS_${label}: Record<string, LandmarkCoords> = {\n`;
+    landmarks.forEach(l => {
+      const d = data[l.id];
+      if (d) {
+        code += `  ${l.id.padEnd(15)}: { centerX: ${d.centerX}, centerY: ${d.centerY}, clickArea: { x: ${d.clickArea.x}, y: ${d.clickArea.y}, w: ${d.clickArea.w}, h: ${d.clickArea.h} } },\n`;
+      } else {
+        code += `  // ${l.id} - لم يحدد\n`;
+      }
+    });
+    return code + `};`;
+  };
+
+  const copyCode = (label: 'DESKTOP' | 'MOBILE') => {
+    const data = label === 'DESKTOP' ? dataDesktop : dataMobile;
+    navigator.clipboard.writeText(generateCode(data, label));
+    setCopiedMsg(`تم نسخ كود ${label} ✅`);
+    setTimeout(() => setCopiedMsg(''), 2000);
+  };
+
+  const selectedData = currentData[selectedLandmark];
+  const selectedInfo = landmarks.find(l => l.id === selectedLandmark)!;
+
+  return (
+    <div className="min-h-screen bg-[#0a0e17] text-white flex flex-col" style={{ fontFamily: "'Tajawal', sans-serif" }}>
+      <div className="bg-gradient-to-r from-purple-900 to-pink-900 px-4 py-3 flex items-center justify-between flex-wrap gap-2">
+        <h1 className="font-black text-lg">🎨 أداة فرشة الإحداثيات</h1>
+        <div className="flex gap-2">
+          <button onClick={() => setViewMode('desktop')} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${viewMode === 'desktop' ? 'bg-yellow-400 text-black' : 'bg-white/10'}`}>🖥️ Desktop</button>
+          <button onClick={() => setViewMode('mobile')} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${viewMode === 'mobile' ? 'bg-yellow-400 text-black' : 'bg-white/10'}`}>📱 Mobile</button>
+          <button onClick={() => window.location.href = '/character-and-map'} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500/30 hover:bg-red-500/50">✕ خروج</button>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-72 bg-[#131722] border-l border-white/10 p-4 overflow-y-auto flex flex-col gap-3">
+          <div>
+            <h3 className="text-xs font-black text-white/60 mb-2">🎯 المعلم</h3>
+            <div className="space-y-1">
+              {landmarks.map(l => {
+                const hasData = !!currentData[l.id];
+                return (
+                  <button key={l.id} onClick={() => setSelectedLandmark(l.id)}
+                    className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs font-bold ${selectedLandmark === l.id ? 'bg-white text-black' : 'bg-white/5 hover:bg-white/10'}`}
+                    style={selectedLandmark === l.id ? { borderRight: `4px solid ${l.color}` } : {}}>
+                    <span>{l.emoji} {l.nameAr}</span>
+                    {hasData && <span className="text-green-500">✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-black text-white/60 mb-2">🛠️ الأداة</h3>
+            <div className="grid grid-cols-3 gap-1">
+              <button onClick={() => setMode('brush')} className={`py-2 rounded-lg text-[10px] font-bold ${mode === 'brush' ? 'bg-yellow-400 text-black' : 'bg-white/5'}`}>🖌️ فرشاة</button>
+              <button onClick={() => setMode('erase')} className={`py-2 rounded-lg text-[10px] font-bold ${mode === 'erase' ? 'bg-red-500' : 'bg-white/5'}`}>🧹 ممحاة</button>
+              <button onClick={() => setMode('center')} className={`py-2 rounded-lg text-[10px] font-bold ${mode === 'center' ? 'bg-blue-500' : 'bg-white/5'}`}>📍 مركز</button>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-black text-white/60 mb-2">📏 حجم الفرشاة: {brushSize}%</h3>
+            <input type="range" min="1" max="10" step="0.5" value={brushSize} onChange={(e) => setBrushSize(parseFloat(e.target.value))} className="w-full" />
+          </div>
+
+          <button onClick={() => setShowAll(!showAll)} className="w-full py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold">
+            {showAll ? '👁️ إخفاء الباقي' : '👁️ إظهار الكل'}
+          </button>
+
+          {selectedData && (
+            <div className="bg-black/40 rounded-lg p-3 text-xs space-y-1">
+              <div className="font-black text-yellow-400">📊 {selectedInfo.nameAr}</div>
+              <div>المركز: <span className="text-green-400">({selectedData.centerX}, {selectedData.centerY})</span></div>
+              <div className="text-[10px]">المنطقة: <span className="text-blue-400">x:{selectedData.clickArea.x} y:{selectedData.clickArea.y} w:{selectedData.clickArea.w} h:{selectedData.clickArea.h}</span></div>
+              <div>النقاط: <span className="text-purple-400">{selectedData.brushPoints.length}</span></div>
+            </div>
+          )}
+
+          <button onClick={clearCurrent} className="w-full py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold text-xs">🗑️ مسح المعلم الحالي</button>
+
+          <div className="border-t border-white/10 pt-3 space-y-2">
+            <button onClick={() => copyCode('DESKTOP')} className="w-full py-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold text-xs">📋 نسخ كود DESKTOP</button>
+            <button onClick={() => copyCode('MOBILE')} className="w-full py-2 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 text-pink-400 font-bold text-xs">📋 نسخ كود MOBILE</button>
+            {copiedMsg && <div className="text-center text-xs font-bold text-green-400">{copiedMsg}</div>}
+          </div>
+
+          <div className="text-[10px] text-white/40 bg-white/5 rounded-lg p-2 leading-relaxed">
+            💡 1) اختر معلم  2) ارسم بالفرشاة  3) حدد المركز  4) انسخ الكود
+          </div>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center p-4 overflow-auto bg-[#07090D]">
+          <div ref={mapRef}
+            onMouseDown={handlePointerDown}
+            onMouseMove={handlePointerMove}
+            onMouseUp={handlePointerUp}
+            onMouseLeave={handlePointerUp}
+            className="relative select-none"
+            style={{
+              width: viewMode === 'desktop' ? 'min(100%, calc((100vh - 140px) * 16/9))' : 'min(100%, calc((100vh - 140px) * 9/16))',
+              aspectRatio: viewMode === 'desktop' ? '16 / 9' : '9 / 16',
+              cursor: mode === 'brush' ? 'crosshair' : mode === 'erase' ? 'not-allowed' : 'pointer',
+              boxShadow: '0 0 40px rgba(0,0,0,0.5)',
+            }}>
+            <img src={mapImage} alt="map" className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ objectFit: viewMode === 'mobile' ? 'cover' : 'contain' }} draggable={false} />
+
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+              {landmarks.map(l => {
+                const data = currentData[l.id];
+                if (!data) return null;
+                const isSelected = l.id === selectedLandmark;
+                if (!showAll && !isSelected) return null;
+                return (
+                  <g key={l.id} opacity={isSelected ? 1 : 0.35}>
+                    {data.brushPoints.map((p, i) => (
+                      <circle key={i} cx={p.x} cy={p.y} r={brushSize / 2} fill={l.color} opacity={0.5} />
+                    ))}
+                    <rect x={data.clickArea.x} y={data.clickArea.y} width={data.clickArea.w} height={data.clickArea.h}
+                      fill="none" stroke={l.color} strokeWidth="0.3" strokeDasharray="1,0.5" />
+                    <circle cx={data.centerX} cy={data.centerY} r="0.8" fill="white" stroke={l.color} strokeWidth="0.3" />
+                    <text x={data.clickArea.x + data.clickArea.w / 2} y={data.clickArea.y - 0.5}
+                      fill={l.color} fontSize="1.5" fontWeight="bold" textAnchor="middle"
+                      style={{ paintOrder: 'stroke', stroke: 'black', strokeWidth: '0.3' }}>{l.emoji}</text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-black/60 px-4 py-2 text-xs text-white/60 flex justify-between">
+        <span>الوضع: <strong className="text-yellow-400">{viewMode === 'desktop' ? '🖥️' : '📱'}</strong> • المعلم: <strong style={{ color: selectedInfo.color }}>{selectedInfo.emoji} {selectedInfo.nameAr}</strong> • الأداة: <strong className="text-green-400">{mode}</strong></span>
+        <span className="text-white/40">💾 حفظ تلقائي</span>
+      </div>
+    </div>
+  );
+}// ═══════════════════════════════════════
 // 🎯 المكون الرئيسي
 // ═══════════════════════════════════════
 export default function CharacterAndMapPage() {
@@ -155,6 +470,7 @@ export default function CharacterAndMapPage() {
   const [heroName, setHeroName] = useState('');
   const [selectedHero, setSelectedHero] = useState<string | null>(null);
   const [debugMode, setDebugMode] = useState(false);
+  const [brushMode, setBrushMode] = useState(false);
   const [clickedCoords, setClickedCoords] = useState<{ x: number; y: number } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -219,6 +535,9 @@ export default function CharacterAndMapPage() {
     }
     if (params.get('debug') === '1') {
       setDebugMode(true);
+    }
+    if (params.get('brush') === '1') {
+      setBrushMode(true);
     }
   }, []);
 
@@ -312,7 +631,7 @@ export default function CharacterAndMapPage() {
   };
 
   const handleLandmarkClick = (landmark: typeof LANDMARKS[0]) => {
-    if (debugMode) return;
+    if (debugMode || brushMode) return;
     if (hasDragged.current) {
       hasDragged.current = false;
       return;
@@ -325,7 +644,6 @@ export default function CharacterAndMapPage() {
     setEaglePos({ x: landmark.centerX, y: landmark.centerY });
     setTimeout(() => setSelectedLandmark(landmark), 300);
   };
-
   const handleLandmarkStart = () => {
     if (!selectedLandmark) return;
     router.push(selectedLandmark.route);
@@ -386,6 +704,11 @@ export default function CharacterAndMapPage() {
         <div className="text-white">جاري التحميل...</div>
       </div>
     );
+  }
+
+  // ═════ شاشة أداة الفرشاة (Brush Tool) ═════
+  if (brushMode) {
+    return <MapBrushTool isMobileView={isMobileView} landmarks={LANDMARKS_BASE} />;
   }
 
   // ═════ شاشة Setup ═════
@@ -473,9 +796,7 @@ export default function CharacterAndMapPage() {
         </AnimatePresence>
       </motion.div>
     );
-  }
-
-  // ═════ شاشة الخريطة ═════
+  }  // ═════ شاشة الخريطة ═════
   return (
     <div className="relative w-full min-h-screen overflow-hidden" style={{ background: '#07090D', fontFamily: "'Tajawal', sans-serif" }}>
 
