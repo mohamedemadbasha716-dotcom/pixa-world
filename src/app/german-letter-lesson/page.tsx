@@ -212,7 +212,7 @@ function shuffleWordLetters(word: string): string[] {
   return shuffled;
 }
 
-function ScreenBackground({ isMobile, activeColor }: { isMobile: boolean; activeColor: string }) {
+function ScreenBackground({ isMobile, activeColor, phase }: { isMobile: boolean; activeColor: string; phase?: string }) {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number }>>([]);
 
   useEffect(() => {
@@ -225,10 +225,14 @@ function ScreenBackground({ isMobile, activeColor }: { isMobile: boolean; active
   }, [isMobile]);
 
   if (isMobile) {
+    const bgImage = phase === 'test' ? '/images/Hamburg-mob.jpeg' : '/card-image/card-mob.png';
+    const overlayOpacity = phase === 'test' 
+      ? 'linear-gradient(180deg, rgba(10,5,30,0.35) 0%, rgba(10,5,30,0.55) 100%)'
+      : 'linear-gradient(180deg, rgba(10,5,30,0.15) 0%, rgba(10,5,30,0.25) 100%)';
     return (
       <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-        <img src="/card-image/card-mob.png" alt="bg" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(10,5,30,0.15) 0%, rgba(10,5,30,0.25) 100%)' }} />
+        <img src={bgImage} alt="bg" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0" style={{ background: overlayOpacity }} />
       </div>
     );
   }
@@ -273,8 +277,8 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
 }) {
   if (isMobile) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-30 px-2 pt-2" 
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}>
+      <div className="fixed top-0 left-0 right-0 z-30 px-2" 
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 2px)' }}>
         
         <div className="flex items-center justify-between gap-1.5">
           
@@ -378,7 +382,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
           </motion.button>
         </div>
 
-        <div className="flex justify-center" style={{ marginTop: '8px' }}>
+                <div className="flex justify-center" style={{ marginTop: '2.5px' }}>
           <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg"
             style={{
               background: 'rgba(15,10,45,0.7)',
@@ -2387,12 +2391,15 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
   const ImageCard = () => (
     <div 
       ref={containerRef}
-      className="relative overflow-hidden flex items-center justify-center"
+      className="relative overflow-hidden"
       style={{
         cursor: 'pointer',
         borderRadius: '12px',
         boxShadow: `0 4px 18px rgba(0,0,0,0.6)`,
-        width: '100%',
+        aspectRatio: `${harborImage.width} / ${harborImage.height}`,
+        maxWidth: '100%',
+        maxHeight: '100%',
+        width: 'auto',
         height: '100%',
       }}
       onClick={handleImageClick}>
@@ -2402,7 +2409,7 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
         style={{ 
           width: '100%', 
           height: '100%', 
-          objectFit: 'cover', 
+          objectFit: 'fill', 
           pointerEvents: 'none',
         }}
         draggable={false} />
@@ -2477,16 +2484,15 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
     >
       {isMobile ? (
         <div 
-          className="flex flex-col w-full mx-auto"
+          className="flex flex-col w-full"
           style={{ 
             height: '100%',
-            maxWidth: '500px',
-            padding: '0 6px',
+            padding: '0 5px',
           }}
         >
           <InfoCardMobile />
           <div style={{ height: '2px', flexShrink: 0 }} />
-          <div className="flex-1 min-h-0 w-full">
+          <div className="flex-1 min-h-0 w-full flex items-center justify-center">
             <ImageCard />
           </div>
         </div>
@@ -2744,14 +2750,14 @@ function GermanLetterLessonPageInner() {
   const totalStepsInGroup = group.letters.length;
   const activeColor = letterData?.color ?? '#4CC9F0';
   
-  const mobilePaddingTop = phase === 'test' ? '82px' : '110px';
-  const mobilePaddingBottom = phase === 'test' ? '82px' : '95px';
+  const mobilePaddingTop = phase === 'test' ? '62px' : '110px';
+  const mobilePaddingBottom = phase === 'test' ? '70px' : '95px';
 
   return (
     <div className="text-white relative overflow-hidden" 
       style={{ fontFamily: "'Tajawal', sans-serif", height: '100vh', maxHeight: '100vh' }} dir="rtl">
       
-      <ScreenBackground isMobile={isMobile} activeColor={activeColor} />
+      <ScreenBackground isMobile={isMobile} activeColor={activeColor} phase={phase} />
 
       <div style={{ 
         transform: isMobile ? 'scale(0.4)' : 'scale(0.55)', 
