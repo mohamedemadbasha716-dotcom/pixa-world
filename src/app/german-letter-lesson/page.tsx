@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo, useCallback, RefObject } from 're
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, X, Volume2, Star, RotateCcw, Trophy, Sparkles, Search, Copy, Trash2, Eraser, Plus, Home, Flame, Gem, Map, Zap, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Check, X, Volume2, Star, RotateCcw, Trophy, Sparkles, Search, Copy, Trash2, Eraser, Plus, Home, Flame, Gem } from 'lucide-react';
 
 import { LETTERS, LETTER_GROUPS, type Letter } from '@/data/german/letters';
 import { 
@@ -36,6 +36,100 @@ type InputRefType = RefObject<HTMLInputElement | null>;
 
 const TOTAL_LETTERS = LETTERS.length;
 const TOTAL_ANSWERS_PER_LESSON = TOTAL_LETTERS * 3;
+
+// 🎨 ألوان غامقة وواضحة للحروف
+const DARK_LETTER_COLORS: Record<string, string> = {
+  '#FF6B6B': '#8B0000',
+  '#4ECDC4': '#0D5C5A',
+  '#45B7D1': '#0F4C5C',
+  '#FFA07A': '#8B3A1A',
+  '#98D8C8': '#1F5F4D',
+  '#F7DC6F': '#7D6608',
+  '#BB8FCE': '#4A148C',
+  '#85C1E2': '#1A5276',
+  '#F8B739': '#7E5109',
+  '#52BE80': '#0E4C2B',
+  '#EC7063': '#641E16',
+  '#5DADE2': '#1B4F72',
+  '#48C9B0': '#0E5147',
+  '#F4D03F': '#7D6608',
+  '#A569BD': '#4A148C',
+  '#5499C7': '#1A5276',
+  '#E59866': '#6E2C00',
+  '#58D68D': '#0E4C2B',
+  '#AF7AC5': '#4A148C',
+  '#76D7C4': '#0E5147',
+  '#F1948A': '#641E16',
+  '#85929E': '#1B2631',
+  '#82E0AA': '#0E4C2B',
+  '#F0B27A': '#7E5109',
+  '#7FB3D5': '#1B4F72',
+};
+
+function getDarkColor(originalColor: string): string {
+  if (DARK_LETTER_COLORS[originalColor]) {
+    return DARK_LETTER_COLORS[originalColor];
+  }
+  return darkenColor(originalColor, 0.5);
+}
+
+function darkenColor(hex: string, amount: number): string {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.max(0, Math.floor((num >> 16) * (1 - amount)));
+  const g = Math.max(0, Math.floor(((num >> 8) & 0x00FF) * (1 - amount)));
+  const b = Math.max(0, Math.floor((num & 0x0000FF) * (1 - amount)));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+}
+
+// 🆕 نظام fallback ذكي للأيقونات المخصصة
+function getLessonIconPath(word: string, ext: string = 'svg'): string {
+  return `/lesson-icon/${word.toLowerCase()}.${ext}`;
+}
+
+// 🆕 Component للإيموجي مع fallback لصورة مخصصة
+function EmojiOrIcon({ word, emoji, size, color }: {
+  word: string;
+  emoji: string;
+  size: number;
+  color: string;
+}) {
+  const [useIcon, setUseIcon] = useState(true);
+  const [iconExt, setIconExt] = useState<'svg' | 'png'>('svg');
+
+  if (!useIcon) {
+    return (
+      <span style={{ 
+        fontSize: `${size * 0.75}px`,
+        filter: `drop-shadow(0 4px 8px ${color}cc)`,
+        lineHeight: 1,
+      }}>
+        {emoji}
+      </span>
+    );
+  }
+
+  return (
+    <img 
+      src={getLessonIconPath(word, iconExt)}
+      alt={word}
+      style={{
+        width: size,
+        height: size,
+        objectFit: 'contain',
+        filter: `drop-shadow(0 4px 8px ${color}aa)`,
+      }}
+      onError={() => {
+        // لو SVG فشل، جرب PNG
+        if (iconExt === 'svg') {
+          setIconExt('png');
+        } else {
+          // لو الـ PNG كمان فشل، استخدم الإيموجي
+          setUseIcon(false);
+        }
+      }}
+    />
+  );
+}
 
 type GameStats = {
   points: number;
@@ -556,7 +650,7 @@ function FlyingItems({ items }: { items: FlyingItem[] }) {
                       style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />
                   )}
                   {item.type === 'energy' && (
-                    <Zap size={40} className="text-blue-200" fill="#4CC9F0"
+                    <img src="/treasuer/energy.png" alt="energy" className="w-10 h-10"
                       style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />
                   )}
                   {item.type === 'gem' && (
@@ -612,6 +706,7 @@ function FlyingItems({ items }: { items: FlyingItem[] }) {
   );
 }
 
+// 🆕 BottomHUD - أيقونات بدون إطار، زي صندوق الكنز
 function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
   stats: GameStats;
   treasureState: 'closed' | 'half' | 'opend';
@@ -643,16 +738,27 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
           </div>
 
           <div className="flex items-end justify-around gap-2 md:gap-3">
-            <RewardButton onClick={onMap} label="خريطة" color="#4CC9F0" isMobile={isMobile}>
-              <Map size={isMobile ? 14 : 16} className="text-cyan-300" 
-                style={{ filter: 'drop-shadow(0 0 4px rgba(76,201,240,0.8))' }} />
-            </RewardButton>
+            {/* 🗺️ الخريطة */}
+            <FloatingIconButton 
+              onClick={onMap} 
+              label="خريطة" 
+              color="#4CC9F0" 
+              isMobile={isMobile}
+              iconSrc="/treasuer/map-icon.png"
+              iconAlt="map"
+            />
 
-            <RewardButton label="نجوم" color="#FFD700" isMobile={isMobile} disabled>
-              <img src="/treasuer/star.png" alt="star" className="w-5 h-5 md:w-6 md:h-6" 
-                style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
-            </RewardButton>
+            {/* ⭐ النجوم */}
+            <FloatingIconButton 
+              label="نجوم" 
+              color="#FFD700" 
+              isMobile={isMobile} 
+              disabled
+              iconSrc="/treasuer/star.png"
+              iconAlt="star"
+            />
 
+            {/* 📦 الصندوق */}
             <motion.div
               id="treasure-box"
               whileHover={{ scale: 1.08, y: -2 }}
@@ -660,14 +766,14 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
               transition={{ duration: 1.5, repeat: treasureState === 'opend' ? Infinity : 0 }}
               className="flex flex-col items-center gap-0.5 cursor-pointer"
             >
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center relative">
+              <div className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center relative">
                 <img src={treasureImg} alt="treasure" className="w-full h-full object-contain"
                   style={{ filter: treasureState === 'opend' ? 'drop-shadow(0 0 10px rgba(255,215,0,0.9))' : 'drop-shadow(0 2px 6px rgba(0,0,0,0.6))' }} />
                 {treasureState === 'opend' && (
                   <motion.div
                     animate={{ scale: [1, 1.6, 1], opacity: [0.6, 0, 0.6] }}
                     transition={{ duration: 2, repeat: Infinity }}
-                    className="absolute inset-0 rounded-lg"
+                    className="absolute inset-0 rounded-full"
                     style={{ background: 'radial-gradient(circle, rgba(255,215,0,0.5), transparent 70%)' }}
                   />
                 )}
@@ -676,15 +782,27 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
                 style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>صندوق</span>
             </motion.div>
 
-            <RewardButton label="طاقة" color="#4CC9F0" isMobile={isMobile} disabled>
-              <Zap size={isMobile ? 14 : 16} className="text-blue-300" fill="#4CC9F0"
-                style={{ filter: 'drop-shadow(0 0 4px rgba(76,201,240,0.8))' }} />
-            </RewardButton>
+            {/* ⚡ الطاقة */}
+            <FloatingIconButton 
+              label="طاقة" 
+              color="#4CC9F0" 
+              isMobile={isMobile} 
+              disabled
+              iconSrc="/treasuer/energy.png"
+              iconAlt="energy"
+            />
 
-            <RewardButton onClick={onHint} label="تلميح" color="#FFD700" isMobile={isMobile} badge={stats.hints} disabled={stats.hints === 0}>
-              <Lightbulb size={isMobile ? 14 : 16} className="text-yellow-300" fill="#FFD700"
-                style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
-            </RewardButton>
+            {/* 💡 التلميح */}
+            <FloatingIconButton 
+              onClick={onHint} 
+              label="تلميح" 
+              color="#FFD700" 
+              isMobile={isMobile} 
+              badge={stats.hints} 
+              disabled={stats.hints === 0}
+              iconSrc="/treasuer/HINT.svg"
+              iconAlt="hint"
+            />
           </div>
         </div>
       </div>
@@ -692,14 +810,16 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
   );
 }
 
-function RewardButton({ children, label, color, isMobile, onClick, badge, disabled }: {
-  children: React.ReactNode;
+// 🆕 FloatingIconButton - زي صندوق الكنز (بدون إطار)
+function FloatingIconButton({ label, color, isMobile, onClick, badge, disabled, iconSrc, iconAlt }: {
   label: string;
   color: string;
   isMobile: boolean;
   onClick?: () => void;
   badge?: number;
   disabled?: boolean;
+  iconSrc: string;
+  iconAlt: string;
 }) {
   return (
     <motion.button
@@ -709,21 +829,30 @@ function RewardButton({ children, label, color, isMobile, onClick, badge, disabl
       disabled={disabled}
       className="flex flex-col items-center gap-0.5 disabled:opacity-70"
     >
-      <div className="relative w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center"
-        style={{
-          background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-          border: `1.5px solid ${color}66`,
-          boxShadow: `0 3px 10px ${color}33, inset 0 1px 0 ${color}44`,
-        }}>
-        {children}
+      <div className="relative w-9 h-9 md:w-11 md:h-11 flex items-center justify-center">
+        <img src={iconSrc} alt={iconAlt} 
+          className="w-full h-full object-contain"
+          style={{ 
+            filter: `drop-shadow(0 2px 8px ${color}aa) drop-shadow(0 0 4px ${color}66)`,
+          }} />
         {badge !== undefined && badge > 0 && (
-          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 rounded-full flex items-center justify-center text-[8px] md:text-[9px] font-black text-white border"
-            style={{ background: '#FF4D6D', borderColor: 'rgba(15,10,45,0.95)', boxShadow: '0 2px 6px rgba(255,77,109,0.5)' }}>
+          <div className="absolute -top-1 -right-1 w-4 h-4 md:w-4.5 md:h-4.5 rounded-full flex items-center justify-center text-[8px] md:text-[9px] font-black text-white border"
+            style={{ 
+              background: '#FF4D6D', 
+              borderColor: 'rgba(15,10,45,0.95)', 
+              boxShadow: '0 2px 6px rgba(255,77,109,0.6)' 
+            }}>
             {badge}
           </div>
         )}
       </div>
-      <span className="text-[7px] md:text-[9px] font-black leading-none" style={{ color: color }}>{label}</span>
+      <span className="text-[7px] md:text-[9px] font-black leading-none" 
+        style={{ 
+          color: color,
+          textShadow: `0 1px 3px rgba(0,0,0,0.8)`,
+        }}>
+        {label}
+      </span>
     </motion.button>
   );
 }
@@ -850,9 +979,6 @@ function CircularSoundButton({ onClick, color, size = 48 }: { onClick: () => voi
   );
 }
 
-// ═══════════════════════════════════════
-// 🆕 LetterChoiceMobile - الحرف الصح يطير ويتطابق على الحرف الكبير
-// ═══════════════════════════════════════
 function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
   letterData: Letter;
   onCorrect: (clientX: number, clientY: number) => void;
@@ -871,6 +997,8 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
   const targetBoxRef = useRef<HTMLDivElement>(null);
   const choiceRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
+  const darkColor = useMemo(() => getDarkColor(letterData.color), [letterData.color]);
+
   useEffect(() => {
     setChoices(generateLetterChoices(letterData.letter, 3));
     setHiddenLetters(new Set());
@@ -883,7 +1011,6 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
     if (status === 'correct' || hiddenLetters.has(choice)) return;
 
     if (choice === letterData.letter) {
-      // ✅ الحرف الصح - يطير للحرف الكبير
       const buttonEl = choiceRefs.current[choice];
       const targetEl = targetBoxRef.current;
       
@@ -894,14 +1021,12 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
         setFlyingLetter({ letter: choice, fromRect, toRect });
         setHiddenLetters(prev => new Set(prev).add(choice));
         
-        // بعد ما يخلص الطيران
         setTimeout(() => {
           setStatus('correct');
           onCorrect(e.clientX, e.clientY);
         }, 700);
       }
     } else {
-      // ❌ الحرف الغلط - يهتز
       setWrongLetter(choice);
       playBuzzSound();
       onWrong();
@@ -911,7 +1036,6 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
 
   return (
     <>
-      {/* الحرف الطائر */}
       <AnimatePresence>
         {flyingLetter && (
           <motion.div
@@ -959,7 +1083,6 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
       <GlassCard className="w-full max-w-md mx-auto p-3" accentColor={letterData.color} isMobile={true} useBgImage={true}>
         <div className="flex flex-col items-center gap-2.5">
           
-          {/* العنوان */}
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
             className="px-4 py-1.5 rounded-2xl"
             style={{ 
@@ -970,7 +1093,6 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
             <span className="font-black text-xs text-gray-800">استمع جيداً واختر الحرف</span>
           </motion.div>
 
-          {/* الحرف الكبير (مع تأثير تطابق) */}
           <motion.div
             ref={targetBoxRef}
             animate={status === 'correct' ? {
@@ -1011,7 +1133,6 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
               {letterData.letter}
             </span>
 
-            {/* Sparkles لما يكون النجاح */}
             {status === 'correct' && (
               <motion.div className="absolute inset-0 pointer-events-none" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 {[0, 60, 120, 180, 240, 300].map(angle => (
@@ -1040,17 +1161,14 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
             )}
           </motion.div>
 
-          {/* زر الصوت */}
           <CircularSoundButton onClick={() => speakLetter(letterData.letter)} color={letterData.color} size={40} />
 
-          {/* عنوان "اختر الحرف الصحيح" */}
           <div className="flex items-center gap-1.5">
             <span className="font-black text-white text-xs">اختر الحرف الصحيح</span>
             <span className="text-sm">👇</span>
           </div>
 
-          {/* أزرار الاختيارات (أصغر) */}
-          <div className="flex items-center justify-center gap-2.5 w-full">
+          <div className="flex items-center justify-center gap-2.5 w-full" dir="ltr">
             {choices.map((choice, idx) => {
               const isHidden = hiddenLetters.has(choice);
               const isWrong = wrongLetter === choice;
@@ -1083,7 +1201,7 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
                         width: 55, height: 55,
                         background: isWrong 
                           ? 'linear-gradient(145deg, #FF4444, #CC0000)' 
-                          : 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))',
+                          : 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(245,245,255,0.95))',
                         borderColor: isWrong ? '#FF4444' : `${letterData.color}aa`,
                         boxShadow: isWrong 
                           ? '0 5px 18px rgba(255,68,68,0.6)' 
@@ -1094,8 +1212,8 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
                         style={{
                           fontSize: '2rem',
                           lineHeight: 1,
-                          color: isWrong ? 'white' : letterData.color,
-                          textShadow: isWrong ? '0 2px 6px rgba(0,0,0,0.4)' : `0 1px 3px ${letterData.color}44`,
+                          color: isWrong ? 'white' : darkColor,
+                          textShadow: isWrong ? '0 2px 6px rgba(0,0,0,0.4)' : 'none',
                         }}
                       >
                         {choice}
@@ -1107,7 +1225,6 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
             })}
           </div>
 
-          {/* رسالة النتيجة */}
           <AnimatePresence>
             {status === 'correct' && (
               <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -1138,9 +1255,6 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
   );
 }
 
-// ═══════════════════════════════════════
-// 🆕 WordBuilderMobile - الحروف تطير وتلتصق على المربعات
-// ═══════════════════════════════════════
 function WordBuilderMobile({ letterData, onComplete, onWrong }: {
   letterData: Letter;
   onComplete: (clientX: number, clientY: number) => void;
@@ -1161,6 +1275,8 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
   const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const letterRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
+  const darkColor = useMemo(() => getDarkColor(letterData.color), [letterData.color]);
+
   useEffect(() => {
     setShuffledLetters(shuffleWordLetters(word));
     setPlacedIndices([]);
@@ -1175,7 +1291,6 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
     const nextExpectedLetter = word[placedIndices.length];
     
     if (letter === nextExpectedLetter) {
-      // ✅ صح - الحرف يطير للمربع
       const targetIdx = placedIndices.length;
       const buttonEl = letterRefs.current[idx];
       const slotEl = slotRefs.current[targetIdx];
@@ -1191,7 +1306,6 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
           setFlyingLetter(null);
           playCoinSound();
 
-          // لو خلصت الكلمة
           if (placedIndices.length + 1 === word.length) {
             setIsComplete(true);
             speakWord(word);
@@ -1202,7 +1316,6 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
         }, 600);
       }
     } else {
-      // ❌ غلط
       setWrongShake(idx);
       playBuzzSound();
       onWrong();
@@ -1212,7 +1325,6 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
 
   return (
     <>
-      {/* الحرف الطائر */}
       <AnimatePresence>
         {flyingLetter && (
           <motion.div
@@ -1257,7 +1369,6 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
       <GlassCard className="w-full max-w-md mx-auto p-3" accentColor={letterData.color} isMobile={true} useBgImage={true}>
         <div className="flex flex-col items-center gap-2">
           
-          {/* العنوان */}
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
             className="px-3 py-1.5 rounded-2xl"
             style={{ 
@@ -1268,7 +1379,7 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
             <span className="font-black text-xs text-gray-800">استمع للكلمة ورتب الحروف</span>
           </motion.div>
 
-          {/* الإيموجي */}
+          {/* 🆕 الإيموجي مع fallback لصورة مخصصة */}
           <motion.div 
             animate={{ y: [0, -3, 0] }} 
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -1279,15 +1390,14 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
               borderColor: `${letterData.color}77`, 
               boxShadow: `0 6px 18px ${letterData.color}66` 
             }}>
-            <span className="relative z-10" style={{ 
-              fontSize: '2.5rem', 
-              filter: `drop-shadow(0 4px 8px ${letterData.color}cc)` 
-            }}>
-              {letterData.emoji}
-            </span>
+            <EmojiOrIcon 
+              word={letterData.word}
+              emoji={letterData.emoji}
+              size={56}
+              color={letterData.color}
+            />
           </motion.div>
 
-          {/* الترجمة */}
           <div className="text-center">
             <div className="font-bold text-xs" 
               style={{ color: letterData.color, textShadow: '0 2px 6px rgba(0,0,0,0.7)' }}>
@@ -1295,11 +1405,9 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
             </div>
           </div>
 
-          {/* زر الصوت */}
           <CircularSoundButton onClick={() => speakWord(word)} color={letterData.color} size={38} />
 
-          {/* المربعات الفاضية بالحروف الشفافة (Ghost) */}
-<div className="flex items-center justify-center gap-1.5 flex-wrap mt-1" dir="ltr">
+          <div className="flex items-center justify-center gap-1.5 flex-wrap mt-1" dir="ltr">
             {word.split('').map((letter, idx) => {
               const isFilled = idx < placedIndices.length;
               return (
@@ -1322,7 +1430,6 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
                     boxShadow: isFilled ? `0 4px 12px ${letterData.color}aa` : 'none',
                   }}
                 >
-                  {/* الحرف الشبح (ghost) - يظهر فقط لو المربع فاضي */}
                   {!isFilled && (
                     <span className="font-black absolute inset-0 flex items-center justify-center pointer-events-none"
                       style={{
@@ -1337,7 +1444,6 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
                     </span>
                   )}
                   
-                  {/* الحرف الفعلي بعد ما يتحط */}
                   {isFilled && (
                     <motion.span
                       initial={{ scale: 0, rotate: -180 }}
@@ -1357,8 +1463,7 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
             })}
           </div>
 
-          {/* الحروف المبعثرة */}
-<div className="flex items-center justify-center gap-2 flex-wrap mt-1" dir="ltr">
+          <div className="flex items-center justify-center gap-2 flex-wrap mt-1" dir="ltr">
             {shuffledLetters.map((letter, idx) => {
               const isPlaced = placedIndices.includes(idx);
               const isShaking = wrongShake === idx;
@@ -1393,7 +1498,7 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
                         width: 42, height: 42,
                         background: isShaking 
                           ? 'linear-gradient(145deg, #FF4444, #CC0000)' 
-                          : 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))',
+                          : 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(245,245,255,0.95))',
                         borderColor: isShaking ? '#FF4444' : `${letterData.color}aa`,
                         boxShadow: isShaking 
                           ? '0 4px 15px rgba(255,68,68,0.6)' 
@@ -1404,8 +1509,8 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
                         style={{
                           fontSize: '1.5rem',
                           lineHeight: 1,
-                          color: isShaking ? 'white' : letterData.color,
-                          textShadow: isShaking ? '0 2px 6px rgba(0,0,0,0.4)' : `0 1px 3px ${letterData.color}44`,
+                          color: isShaking ? 'white' : darkColor,
+                          textShadow: isShaking ? '0 2px 6px rgba(0,0,0,0.4)' : 'none',
                         }}
                       >
                         {letter}
@@ -1417,7 +1522,6 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
             })}
           </div>
 
-          {/* رسالة النجاح */}
           <AnimatePresence>
             {isComplete && (
               <motion.div 
@@ -1642,11 +1746,19 @@ function LearnWordPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect, i
                   style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', border: `2px solid ${letterData.color}66`, boxShadow: `0 4px 15px ${letterData.color}44` }}>
                   <span className="font-black text-sm text-gray-800">استمع للكلمة واكتبها</span>
                 </motion.div>
+                
+                {/* 🆕 الإيموجي مع fallback للديسكتوب */}
                 <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                   className="rounded-2xl flex items-center justify-center border-2 flex-shrink-0"
                   style={{ width: 110, height: 110, background: `linear-gradient(145deg, ${letterData.gradient[0]}44, ${letterData.gradient[1]}33)`, borderColor: `${letterData.color}77`, boxShadow: `0 8px 20px ${letterData.color}66` }}>
-                  <span style={{ fontSize: '4rem', filter: `drop-shadow(0 4px 8px ${letterData.color}cc)` }}>{letterData.emoji}</span>
+                  <EmojiOrIcon 
+                    word={letterData.word}
+                    emoji={letterData.emoji}
+                    size={85}
+                    color={letterData.color}
+                  />
                 </motion.div>
+                
                 <div className="text-center">
                   <div className="font-black text-2xl text-white" style={{ textShadow: `0 0 20px ${letterData.color}aa, 0 2px 6px rgba(0,0,0,0.6)` }}>{letterData.word}</div>
                   <div className="font-bold text-sm mt-0.5" style={{ color: letterData.color, textShadow: '0 2px 6px rgba(0,0,0,0.7)' }}>{letterData.wordAr}</div>
@@ -1697,8 +1809,8 @@ function DebugBrushTool({ isMobile }: { isMobile: boolean }) {
   const [shapes, setShapes] = useState<DebugLetterShapes>({});
   const [currentStroke, setCurrentStroke] = useState<number[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [brushSize, setBrushSize] = useState(4);
-  const [showAll, setShowAll] = useState(true);
+  const [brushSize, setBrushSize] = useState(3);
+  const [showAll, setShowAll] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -1724,10 +1836,11 @@ function DebugBrushTool({ isMobile }: { isMobile: boolean }) {
   const addBrushPoint = (x: number, y: number) => {
     const points: number[] = [];
     const segments = 8;
+    const aspectRatio = harborImage.width / harborImage.height;
     for (let i = 0; i < segments; i++) {
       const angle = (i / segments) * Math.PI * 2;
       const px = x + Math.cos(angle) * brushSize;
-      const py = y + Math.sin(angle) * brushSize * (harborImage.width / harborImage.height);
+      const py = y + Math.sin(angle) * brushSize * aspectRatio;
       points.push(px, py);
     }
     return points;
@@ -1750,7 +1863,7 @@ function DebugBrushTool({ isMobile }: { isMobile: boolean }) {
     const dx = pos.x - last.x;
     const dy = pos.y - last.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const steps = Math.max(1, Math.ceil(dist / (brushSize * 0.5)));
+    const steps = Math.max(1, Math.ceil(dist / (brushSize * 0.4)));
     const newPoints: number[] = [...currentStroke];
     for (let i = 1; i <= steps; i++) {
       const t = i / steps;
@@ -1768,7 +1881,7 @@ function DebugBrushTool({ isMobile }: { isMobile: boolean }) {
     lastPointRef.current = null;
     if (currentStroke.length < 6) { setCurrentStroke([]); return; }
     const hull = computeConvexHull(currentStroke);
-    const rounded = hull.map(n => parseFloat(n.toFixed(1)));
+    const rounded = hull.map(n => parseFloat(n.toFixed(2)));
     setShapes(prev => ({ ...prev, [selectedLetter]: [...(prev[selectedLetter] || []), rounded] }));
     setCurrentStroke([]);
   };
@@ -1811,7 +1924,8 @@ function DebugBrushTool({ isMobile }: { isMobile: boolean }) {
   };
 
   const exportCode = () => {
-    let code = 'export const HARBOR_OBJECTS_MOBILE: Record<string, Polygon[]> = {\n';
+    const varName = isMobile ? 'HARBOR_OBJECTS_MOBILE' : 'HARBOR_OBJECTS_DESKTOP';
+    let code = `export const ${varName}: Record<string, Polygon[]> = {\n`;
     LETTERS.forEach(({ letter }) => {
       const arr = shapes[letter] || [];
       if (arr.length === 0) code += `  ${letter}: [],\n`;
@@ -1825,7 +1939,7 @@ function DebugBrushTool({ isMobile }: { isMobile: boolean }) {
     navigator.clipboard.writeText(code).then(() => alert('✅ الكود اتنسخ!')).catch(() => {
       const ta = document.createElement('textarea');
       ta.value = code; document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); alert('✅ اتنسخ!'); } catch { alert('⚠️ شوف الـ Console'); }
+      try { document.execCommand('copy'); alert('✅ اتنسخ!'); } catch { alert('⚠️ شوف الـ Console'); console.log(code); }
       document.body.removeChild(ta);
     });
   };
@@ -1834,49 +1948,148 @@ function DebugBrushTool({ isMobile }: { isMobile: boolean }) {
   const currentLetterData = LETTERS.find(l => l.letter === selectedLetter);
   const totalShapes = Object.values(shapes).reduce((sum, arr) => sum + arr.length, 0);
 
-  return (
-    <div className="fixed inset-0 z-[100] bg-black text-white overflow-y-auto" style={{ touchAction: 'pan-y' }}>
-      <div className="sticky top-0 z-10 bg-gradient-to-b from-black via-black/95 to-black/80 p-2 space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-xs font-black text-yellow-400">🎨 Brush Tool</h1>
-          <button onClick={() => window.location.href = window.location.pathname} className="text-xs bg-red-500/30 border border-red-500 px-3 py-1 rounded-lg font-bold">خروج ✕</button>
-        </div>
-        <div className="grid grid-cols-9 gap-1">
-          {LETTERS.map(l => {
-            const count = (shapes[l.letter] || []).length;
-            const isActive = l.letter === selectedLetter;
-            return (
-              <button key={l.letter} onClick={() => setSelectedLetter(l.letter)}
-                className="relative aspect-square rounded font-black text-xs border transition-all"
-                style={{ background: isActive ? l.color : count > 0 ? `${l.color}55` : 'rgba(255,255,255,0.05)', borderColor: isActive ? 'white' : count > 0 ? l.color : 'rgba(255,255,255,0.1)', color: isActive || count > 0 ? 'white' : 'rgba(255,255,255,0.4)' }}>
-                {l.letter}
-                {count > 0 && <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">{count}</span>}
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-2 bg-white/10 rounded-lg p-2">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-lg flex-shrink-0" style={{ background: currentLetterData?.color }}>{selectedLetter}</div>
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-bold truncate">{currentLetterData?.word}</div>
-            <div className="text-[10px] text-white/60 truncate">{currentLetterData?.wordAr} • {currentShapes.length} شكل</div>
+  if (isMobile) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-black text-white overflow-y-auto" style={{ touchAction: 'pan-y' }}>
+        <div className="sticky top-0 z-10 bg-gradient-to-b from-black via-black/95 to-black/80 p-2 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <h1 className="text-xs font-black text-yellow-400">🎨 Brush - Mobile</h1>
+            <button onClick={() => window.location.href = window.location.pathname} className="text-xs bg-red-500/30 border border-red-500 px-3 py-1 rounded-lg font-bold">خروج ✕</button>
           </div>
-          <div className="flex gap-1 flex-shrink-0">
-            <button onClick={undoLastShape} disabled={currentShapes.length === 0} className="bg-yellow-500/30 border border-yellow-500 px-2 py-1 rounded text-[10px] font-bold disabled:opacity-30">↶</button>
-            <button onClick={clearLetter} disabled={currentShapes.length === 0} className="bg-red-500/30 border border-red-500 px-2 py-1 rounded text-[10px] font-bold disabled:opacity-30"><Trash2 size={10} /></button>
+          <div className="grid grid-cols-9 gap-1">
+            {LETTERS.map(l => {
+              const count = (shapes[l.letter] || []).length;
+              const isActive = l.letter === selectedLetter;
+              return (
+                <button key={l.letter} onClick={() => setSelectedLetter(l.letter)}
+                  className="relative aspect-square rounded font-black text-xs border transition-all"
+                  style={{ background: isActive ? l.color : count > 0 ? `${l.color}55` : 'rgba(255,255,255,0.05)', borderColor: isActive ? 'white' : count > 0 ? l.color : 'rgba(255,255,255,0.1)', color: isActive || count > 0 ? 'white' : 'rgba(255,255,255,0.4)' }}>
+                  {l.letter}
+                  {count > 0 && <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">{count}</span>}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex items-center gap-2 bg-white/10 rounded-lg p-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-lg flex-shrink-0" style={{ background: currentLetterData?.color }}>{selectedLetter}</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-bold truncate">{currentLetterData?.word}</div>
+              <div className="text-[10px] text-white/60 truncate">{currentLetterData?.wordAr} • {currentShapes.length} شكل</div>
+            </div>
+            <div className="flex gap-1 flex-shrink-0">
+              <button onClick={undoLastShape} disabled={currentShapes.length === 0} className="bg-yellow-500/30 border border-yellow-500 px-2 py-1 rounded text-[10px] font-bold disabled:opacity-30">↶</button>
+              <button onClick={clearLetter} disabled={currentShapes.length === 0} className="bg-red-500/30 border border-red-500 px-2 py-1 rounded text-[10px] font-bold disabled:opacity-30"><Trash2 size={10} /></button>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 bg-white/5 rounded-lg p-2">
+            <span className="text-[10px] font-bold text-white/70">حجم:</span>
+            <input type="range" min="1" max="8" step="0.5" value={brushSize} onChange={e => setBrushSize(parseFloat(e.target.value))} className="flex-1" />
+            <span className="text-[10px] font-black text-yellow-400 w-8 text-center">{brushSize}</span>
+            <button onClick={() => setShowAll(s => !s)} className="bg-blue-500/30 border border-blue-500 px-2 py-1 rounded text-[10px] font-bold">{showAll ? '👁 الكل' : '👁 الحالي'}</button>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-white/5 rounded-lg p-2">
-          <span className="text-[10px] font-bold text-white/70">حجم الفرشاة:</span>
-          <input type="range" min="1.5" max="8" step="0.5" value={brushSize} onChange={e => setBrushSize(parseFloat(e.target.value))} className="flex-1" />
-          <span className="text-[10px] font-black text-yellow-400 w-8 text-center">{brushSize}</span>
-          <button onClick={() => setShowAll(s => !s)} className="bg-blue-500/30 border border-blue-500 px-2 py-1 rounded text-[10px] font-bold">{showAll ? '👁 الكل' : '👁 الحالي'}</button>
+        <div className="w-full" style={{ aspectRatio: `${harborImage.width} / ${harborImage.height}` }}>
+          <div ref={containerRef} className="relative w-full h-full select-none"
+            style={{ touchAction: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
+            onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
+            <img src={harborImage.src} alt="harbor" className="w-full h-full block pointer-events-none" style={{ objectFit: 'fill' }} draggable={false} />
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+              {Object.entries(shapes).flatMap(([letter, polys]) => {
+                if (!showAll && letter !== selectedLetter) return [];
+                const color = LETTERS.find(l => l.letter === letter)?.color || '#fff';
+                const isCurrent = letter === selectedLetter;
+                return polys.map((poly, idx) => (
+                  <g key={`${letter}-${idx}`}>
+                    <polygon points={polygonToSvgPoints(poly)} fill={color} fillOpacity={isCurrent ? 0.45 : 0.2} stroke={color} strokeWidth={isCurrent ? 0.4 : 0.2} style={{ pointerEvents: 'none' }} />
+                    <text x={poly[0]} y={poly[1] - 1} fontSize="2" fill="#fff" fontWeight="900" style={{ paintOrder: 'stroke', stroke: 'black', strokeWidth: 0.3 }}>{letter}</text>
+                  </g>
+                ));
+              })}
+              {currentStroke.length >= 6 && (
+                <polygon points={polygonToSvgPoints(currentStroke)} fill={currentLetterData?.color || '#FFD700'} fillOpacity={0.5} stroke="#FFD700" strokeWidth="0.3" />
+              )}
+            </svg>
+          </div>
         </div>
-        <div className="text-[10px] text-center bg-yellow-500/20 border border-yellow-500/40 rounded p-1.5 text-white/80">ⓘ ظلل العنصر بإصبعك على الصورة</div>
+        <div className="sticky bottom-0 bg-gradient-to-t from-black via-black/95 to-transparent p-3 space-y-1">
+          <button onClick={exportCode} className="w-full py-3 rounded-xl font-black text-sm bg-green-500 text-white flex items-center justify-center gap-2">
+            <Copy size={16} /> نسخ الكود ({totalShapes} شكل)
+          </button>
+        </div>
       </div>
-      <div className="w-full" style={{ aspectRatio: `${harborImage.width} / ${harborImage.height}` }}>
-        <div ref={containerRef} className="relative w-full h-full select-none"
-          style={{ touchAction: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-black text-white flex" style={{ touchAction: 'none' }}>
+      <div className="flex flex-col bg-zinc-900 border-r border-white/10" style={{ width: '280px', height: '100vh' }}>
+        <div className="p-3 border-b border-white/10 flex items-center justify-between">
+          <h1 className="text-sm font-black text-yellow-400">🎨 Brush - Desktop</h1>
+          <button onClick={() => window.location.href = window.location.pathname} className="text-xs bg-red-500/30 border border-red-500 px-2 py-1 rounded font-bold">✕</button>
+        </div>
+        <div className="p-3 border-b border-white/10">
+          <div className="flex items-center gap-2 bg-white/5 rounded-lg p-2">
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center font-black text-2xl flex-shrink-0" style={{ background: currentLetterData?.color }}>
+              {selectedLetter}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-bold truncate">{currentLetterData?.word}</div>
+              <div className="text-xs text-white/60 truncate">{currentLetterData?.wordAr}</div>
+              <div className="text-[10px] text-green-400 font-bold mt-0.5">{currentShapes.length} شكل</div>
+            </div>
+          </div>
+        </div>
+        <div className="p-3 border-b border-white/10 space-y-2">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold text-white/70">حجم الفرشاة</span>
+              <span className="text-xs font-black text-yellow-400">{brushSize}</span>
+            </div>
+            <input type="range" min="1" max="10" step="0.5" value={brushSize} onChange={e => setBrushSize(parseFloat(e.target.value))} className="w-full" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={undoLastShape} disabled={currentShapes.length === 0} className="bg-yellow-500/20 border border-yellow-500 px-2 py-1.5 rounded text-xs font-bold disabled:opacity-30 hover:bg-yellow-500/30">
+              ↶ تراجع
+            </button>
+            <button onClick={clearLetter} disabled={currentShapes.length === 0} className="bg-red-500/20 border border-red-500 px-2 py-1.5 rounded text-xs font-bold disabled:opacity-30 hover:bg-red-500/30 flex items-center justify-center gap-1">
+              <Trash2 size={11} /> مسح
+            </button>
+          </div>
+          <button onClick={() => setShowAll(s => !s)} className="w-full bg-blue-500/20 border border-blue-500 px-2 py-1.5 rounded text-xs font-bold hover:bg-blue-500/30">
+            {showAll ? '👁 إخفاء الباقي' : '👁 إظهار الكل'}
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-3">
+          <div className="text-[10px] font-bold text-white/50 mb-2">اختر الحرف:</div>
+          <div className="grid grid-cols-5 gap-1">
+            {LETTERS.map(l => {
+              const count = (shapes[l.letter] || []).length;
+              const isActive = l.letter === selectedLetter;
+              return (
+                <button key={l.letter} onClick={() => setSelectedLetter(l.letter)}
+                  className="relative aspect-square rounded font-black text-xs border transition-all hover:scale-105"
+                  style={{ background: isActive ? l.color : count > 0 ? `${l.color}55` : 'rgba(255,255,255,0.05)', borderColor: isActive ? 'white' : count > 0 ? l.color : 'rgba(255,255,255,0.1)', color: isActive || count > 0 ? 'white' : 'rgba(255,255,255,0.4)' }}>
+                  {l.letter}
+                  {count > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">{count}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="p-3 border-t border-white/10 space-y-1">
+          <button onClick={exportCode} className="w-full py-2.5 rounded-lg font-black text-sm bg-green-500 hover:bg-green-600 text-white flex items-center justify-center gap-2 transition-all">
+            <Copy size={14} /> نسخ الكود
+          </button>
+          <div className="text-[10px] text-white/50 text-center">
+            {selectedLetter}: {currentShapes.length} • المجموع: {totalShapes}
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 flex items-center justify-center p-4 overflow-hidden" style={{ height: '100vh' }}>
+        <div ref={containerRef} className="relative select-none"
+          style={{ touchAction: 'none', WebkitUserSelect: 'none', userSelect: 'none', maxWidth: '100%', maxHeight: '100%', aspectRatio: `${harborImage.width} / ${harborImage.height}`, width: 'auto', height: '100%', cursor: 'crosshair', boxShadow: '0 10px 40px rgba(0,0,0,0.6)', borderRadius: '8px', overflow: 'hidden' }}
           onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
           <img src={harborImage.src} alt="harbor" className="w-full h-full block pointer-events-none" style={{ objectFit: 'fill' }} draggable={false} />
           <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -1896,12 +2109,6 @@ function DebugBrushTool({ isMobile }: { isMobile: boolean }) {
             )}
           </svg>
         </div>
-      </div>
-      <div className="sticky bottom-0 bg-gradient-to-t from-black via-black/95 to-transparent p-3 space-y-1">
-        <button onClick={exportCode} className="w-full py-3 rounded-xl font-black text-sm bg-green-500 text-white flex items-center justify-center gap-2">
-          <Copy size={16} /> نسخ الكود ({totalShapes} شكل)
-        </button>
-        <div className="text-[10px] text-white/50 text-center">{selectedLetter}: {currentShapes.length} • المجموع: {totalShapes}</div>
       </div>
     </div>
   );
@@ -2006,6 +2213,7 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
             </div>
           </div>
 
+          {/* 🆕 الإيموجي مع fallback في الـ InfoCard */}
           <motion.div
             animate={{ y: [0, -2, 0] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -2016,13 +2224,12 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
               border: `1px solid ${currentLetter.color}77`,
               boxShadow: `0 2px 5px ${currentLetter.color}44`,
             }}>
-            <span style={{ 
-              fontSize: '0.95rem',
-              filter: `drop-shadow(0 1px 2px ${currentLetter.color}aa)`,
-              lineHeight: 1,
-            }}>
-              {currentLetter.emoji}
-            </span>
+            <EmojiOrIcon 
+              word={currentLetter.word}
+              emoji={currentLetter.emoji}
+              size={18}
+              color={currentLetter.color}
+            />
           </motion.div>
 
           <motion.div
@@ -2111,6 +2318,7 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
           </motion.div>
         </motion.div>
 
+        {/* 🆕 الإيموجي مع fallback */}
         <motion.div
           animate={{ y: [0, -3, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -2121,17 +2329,12 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
             border: `2px solid ${currentLetter.color}77`,
             boxShadow: `0 6px 20px ${currentLetter.color}66, inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)`,
           }}>
-          <div className="absolute inset-0 rounded-xl pointer-events-none"
-            style={{
-              background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), transparent 60%)`,
-            }} />
-          <span className="relative" style={{ 
-            fontSize: '2.5rem',
-            filter: `drop-shadow(0 4px 8px ${currentLetter.color}bb)`,
-            lineHeight: 1,
-          }}>
-            {currentLetter.emoji}
-          </span>
+          <EmojiOrIcon 
+            word={currentLetter.word}
+            emoji={currentLetter.emoji}
+            size={48}
+            color={currentLetter.color}
+          />
         </motion.div>
 
         <div className="text-center px-1">
