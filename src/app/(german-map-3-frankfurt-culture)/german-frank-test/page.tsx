@@ -1174,7 +1174,7 @@ function GermanFrankTestInner() {
       </div>
 
       <div className="fixed bottom-6 right-6 pointer-events-none scale-50 origin-bottom-right">
-        <KarlEagle mood={karlMood} idleGlowColor="#FFD700" />
+        <KarlEagle mood={karlMood} message={null} idleGlowColor="#FFD700" />
       </div>
     </div>
   );
