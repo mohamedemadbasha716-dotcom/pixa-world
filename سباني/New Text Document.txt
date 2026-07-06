@@ -1,0 +1,424 @@
+📋 ملخص مشروع PIXA WORLD - المنهج الأكاديمي المحدث
+(النسخة النهائية - بعد المراجعة الأكاديمية الشاملة)
+🌍 فكرة المشروع
+تطبيق تعليم لغات للأطفال العرب (6-11 سنة) بأسلوب gamification. كل خريطة = منطقة جغرافية حقيقية في إسبانيا فيها 8 معالم، كل معلم = درس. الطفل يمشي في مسار ذهبي متوهج بين المعالم ويفتح الدروس بالترتيب.
+
+المميز: المنهج مبني على Communicative Approach المعتمد من Instituto Cervantes - نفس الطريقة اللي بيتعلم بيها طفل في مدارس أوروبا.
+
+🇪🇸 المنهج الكامل: 5 خرائط = 40 درس = 600+ كلمة = شهادة DELE A2
+🟢 الخريطة 1: Los Bosques del Norte (غابات الشمال)
+المنطقة: Galicia, Asturias, Cantabria, País Vasco
+المستوى: Pre-A1 | السن: 6-7 | الحالة: 6/8 ✅
+
+🎯 التركيز الأكاديمي:
+كلمات مفردة فقط (بدون جمل)
+ربط الصوت بالصورة بالكلمة
+3 مراحل: Listen (اختيار) → Write (كتابة الكلمة) → Speak (نطق الكلمة)
+مفيش جرامر - بس تأسيس المفردات
+📊 الدروس:
+#	المعلم	الموضوع	Lesson ID	الحالة
+1	🌳 Bosque de Muniellos	الأبجدية	es-muniellos-alphabet	✅
+2	🏞️ Lagos de Covadonga	الأرقام 1-15	es-covadonga-numbers	✅
+3	🌈 Playa de las Catedrales	الألوان	es-catedrales-colors	✅
+4	🏡 Hórreo Gallego	العائلة	es-horreo-family	✅
+5	🛒 Mercado de la Ribera	الفواكه والخضروات	es-ribera-fruits	✅
+6	🐻 Parque de Somiedo	الحيوانات	es-somiedo-animals	✅
+7	🏛️ Museo Guggenheim	التحيات	es-guggenheim-greetings	⏳
+8	🚨 Faro Isla Pancha	اختبار الشمال	es-faro-test	⏳
+🟡 الخريطة 2: Castillos de Castilla (قلاع قشتالة) 🆕 معاد تصميمها
+المنطقة: Castilla y León, Castilla-La Mancha
+المستوى: A1.1 | السن: 7-8 | الحالة: يتم إعادة بنائها
+
+🎯 التركيز الأكاديمي:
+أول جمل حقيقية (2-4 كلمات)
+تعليم الجرامر في السياق (Communicative Approach)
+3 مراحل: Listen (اختيار) → Build (تكوين جملة Tap to Select) → Speak (نطق الجملة)
+تدرج الجرامر من درس لدرس
+📚 الخطة الأكاديمية التفصيلية:
+الدرس 1: 🏰 Castillo de Segovia - أجزاء الجسم
+القواعد الجديدة: أدوات الإشارة (Este/Esta/Esto) + الضمير المتصل (mi/mis)
+لماذا؟ أول حاجة الطفل يتعلمها هي يشاور على حاجة ويقول "ده إيه" - ده أساس أي لغة.
+
+المجموعة	الجرامر	أمثلة الجمل
+1 - الوجه	Este/Esta es mi + جزء	Este es mi ojo (ده عيني) / Esta es mi boca (دي بقي)
+2 - الجسم العلوي	Estos/Estas son mis + أجزاء	Estos son mis brazos (دول ذراعاتي)
+3 - الجسم السفلي	¿Qué es esto? Es mi + جزء	¿Qué es esto? Es mi pie (ايه ده؟ ده رجلي)
+15 كلمة:
+
+text
+
+الوجه:    ojo, boca, nariz, oreja, cabeza
+العلوي:   brazo, mano, dedo, hombro, cuello
+السفلي:   pierna, pie, rodilla, espalda, cuerpo
+تدرج الجرامر:
+
+text
+
+1. Este es mi ojo          (ده عيني)        ← مفرد مذكر
+2. Esta es mi boca         (دي بقي)         ← مفرد مؤنث  
+3. Estos son mis ojos      (دول عينيا)      ← جمع مذكر
+4. Estas son mis orejas    (دول ودانيا)     ← جمع مؤنث
+5. ¿Qué es esto? Es mi pie (ايه ده؟ ده رجلي) ← السؤال
+الدرس 2: 👗 Museo del Traje - الملابس
+القواعد الجديدة: أدوات التعريف (el/la/los/las) + فعل Ser (es) مع الصفات
+لماذا؟ بعد ما الطفل اتعلم يشاور (este/esta)، يتعلم يوصف (el/la + es + صفة)
+
+المجموعة	الجرامر	أمثلة الجمل
+1 - علوية	La/El + ملابس	La camisa (القميص) / El vestido (الفستان)
+2 - سفلية	El/La + ملابس + es + لون	La falda es roja (التنورة حمرا)
+3 - إكسسوارات	El/La + ملابس + es + صفة	El sombrero es grande (القبعة كبيرة)
+15 كلمة:
+
+text
+
+علوية:      camisa, camiseta, suéter, chaqueta, vestido
+سفلية:      pantalón, falda, zapatos, calcetines, botas
+إكسسوارات:  sombrero, bufanda, guantes, gafas, mochila
+تدرج الجرامر:
+
+text
+
+1. La camisa               (القميص)         ← أداة تعريف مؤنث
+2. El vestido              (الفستان)        ← أداة تعريف مذكر
+3. La falda es roja        (التنورة حمرا)    ← Ser + صفة لون
+4. El sombrero es grande   (القبعة كبيرة)    ← Ser + صفة وصفية
+5. Los zapatos son negros  (الجزم سودا)      ← جمع + Ser
+الدرس 3: 🍖 Mesón de Cándido - الطعام
+القواعد الجديدة: أدوات التنكير (un/una) + فعل Ser مع الطعام + Me gusta (يعجبني)
+لماذا؟ بعد التعريف (el/la)، يتعلم التنكير (un/una) والتعبير عن الرأي (يحب/مش بيحب)
+
+المجموعة	الجرامر	أمثلة الجمل
+1 - أكل	Esto es + un/una + طعام	Esto es un pan (ده عيش)
+2 - شرب	Esto es + un/una + شراب	Esto es una leche (ده لبن)
+3 - رأي	Me gusta + el/la + طعام	Me gusta el pan (بحب العيش)
+15 كلمة:
+
+text
+
+أكل:    pan, arroz, pollo, pescado, huevo
+شرب:    agua, leche, zumo, sopa, té
+رأي:    manzana, plátano, queso, galleta, helado
+تدرج الجرامر:
+
+text
+
+1. Esto es un pan          (ده عيش)         ← تنكير مذكر
+2. Esto es una manzana     (دي تفاحة)       ← تنكير مؤنث
+3. El pan es bueno         (العيش حلو)       ← تعريف + صفة
+4. Me gusta el pan         (بحب العيش)       ← Me gusta 🆕
+5. No me gusta el pescado  (مش بحب السمك)    ← النفي 🆕
+الدرس 4: 🎓 Universidad de Salamanca - المدرسة
+القواعد الجديدة: الضمائر (Yo, Tú, Él, Ella) + فعل Ser الكامل + Hay (فيه)
+لماذا؟ بعد الأساسيات، يتعلم الضمائر وأول تصريف حقيقي
+
+المجموعة	الجرامر	أمثلة الجمل
+1 - أشخاص	Yo soy + اسم/صفة	Yo soy Ahmed (أنا أحمد)
+2 - أدوات	Hay + un/una + أداة	Hay un libro (فيه كتاب)
+3 - أماكن	El/La + مكان + es + صفة	La clase es grande (الفصل كبير)
+15 كلمة:
+
+text
+
+أشخاص:   alumno, profesor, amigo, niño, niña
+أدوات:   libro, lápiz, bolígrafo, cuaderno, mochila
+أماكن:   clase, escuela, mesa, silla, pizarra
+تدرج الجرامر:
+
+text
+
+1. Yo soy alumno           (أنا تلميذ)      ← الضمير Yo + Ser
+2. Tú eres mi amigo        (انت صاحبي)      ← الضمير Tú + Ser
+3. Él es el profesor       (هو الأستاذ)      ← الضمير Él + Ser
+4. Hay un libro            (فيه كتاب)        ← Hay 🆕
+5. ¿Hay un lápiz?          (فيه قلم؟)        ← سؤال بـ Hay 🆕
+الدرس 5: 🏚️ Casas Colgadas - المنزل
+القواعد الجديدة: فعل Estar (Yo estoy, Tú estás) + حروف الجر (en, sobre, debajo)
+لماذا؟ الفرق بين Ser و Estar أساسي في الإسبانية، وحروف الجر مع الموقع
+
+المجموعة	الجرامر	أمثلة الجمل
+1 - الغرف	Esto es + el/la + غرفة	Esto es la cocina (دي المطبخ)
+2 - الأثاث	El/La + أثاث + está en + مكان	La cama está en mi cuarto (السرير في أودتي)
+3 - الموقع	¿Dónde está? Está + حرف جر	¿Dónde está? Está en la mesa (فين؟ على الطربيزة)
+15 كلمة:
+
+text
+
+غرف:     cocina, baño, salón, dormitorio, jardín
+أثاث:    cama, mesa, silla, sofá, lámpara
+مواقع:   puerta, ventana, escalera, techo, suelo
+تدرج الجرامر:
+
+text
+
+1. Esto es la cocina       (دي المطبخ)       ← مراجعة Esto es
+2. Yo estoy en la cocina   (أنا في المطبخ)    ← Estar + en 🆕
+3. El gato está en la cama (القط على السرير)   ← Estar للموقع 🆕
+4. ¿Dónde está el gato?    (القط فين؟)        ← سؤال Dónde 🆕
+5. Está debajo de la mesa  (تحت الطربيزة)     ← حروف الجر 🆕
+الدرس 6: 🎨 Museo del Greco - المشاعر
+القواعد الجديدة: Estar + صفة مشاعر + ¿Cómo estás? (حالك ازاي؟)
+لماذا؟ بعد ما تعلم Estar للموقع، يتعلمها للمشاعر - التطبيق الثاني لـ Estar
+
+المجموعة	الجرامر	أمثلة الجمل
+1 - مشاعر إيجابية	Yo estoy + صفة	Yo estoy feliz (أنا مبسوط)
+2 - مشاعر سلبية	Él/Ella está + صفة	Ella está triste (هي زعلانة)
+3 - سؤال وجواب	¿Cómo estás? Estoy + صفة	¿Cómo estás? Estoy bien (حالك ازاي؟ كويس)
+15 كلمة:
+
+text
+
+إيجابية:   feliz, contento, bien, alegre, tranquilo
+سلبية:     triste, enfadado, cansado, enfermo, asustado
+حالات:     hambriento, sediento, aburrido, nervioso, sorprendido
+تدرج الجرامر:
+
+text
+
+1. Yo estoy feliz          (أنا مبسوط)      ← مراجعة Estar
+2. Tú estás triste         (انت زعلان)       ← Estar مع مشاعر
+3. Él está cansado         (هو تعبان)        ← Estar مع ضمائر
+4. ¿Cómo estás?            (حالك ازاي؟)      ← السؤال 🆕
+5. Estoy bien, gracias     (كويس، شكراً)     ← الرد الكامل 🆕
+الدرس 7: ⛲ Plaza Mayor - الألعاب والهوايات
+القواعد الجديدة: فعل Tener (Yo tengo) + فعل Querer (Yo quiero) + Me gusta مراجعة
+لماذا؟ بعد Ser و Estar، يتعلم Tener (عندي) و Querer (عايز) - الأفعال الأساسية الأربعة
+
+المجموعة	الجرامر	أمثلة الجمل
+1 - ألعاب	Yo tengo + un/una + لعبة	Yo tengo una pelota (عندي كورة)
+2 - هوايات	Me gusta + فعل مصدر	Me gusta jugar (بحب ألعب)
+3 - طلبات	Yo quiero + فعل/اسم	Yo quiero jugar (عايز ألعب)
+15 كلمة:
+
+text
+
+ألعاب:    pelota, muñeca, coche, puzzle, bicicleta
+هوايات:   jugar, pintar, cantar, bailar, leer
+طلبات:    correr, nadar, saltar, dibujar, cocinar
+تدرج الجرامر:
+
+text
+
+1. Yo tengo una pelota     (عندي كورة)       ← Tener 🆕
+2. Tú tienes un coche      (عندك عربية)      ← Tener تصريف 🆕
+3. Me gusta jugar           (بحب ألعب)       ← Me gusta + مصدر
+4. Yo quiero jugar          (عايز ألعب)      ← Querer 🆕
+5. ¿Quieres jugar?          (عايز تلعب؟)     ← سؤال Querer 🆕
+الدرس 8: 🌬️ Molinos de Don Quijote - اختبار قشتالة الشامل
+مراجعة شاملة: كل الجرامر اللي اتعلم في الخريطة 2
+
+القاعدة	المراجعة
+Este/Esta/Esto	أدوات الإشارة
+El/La/Los/Las	أدوات التعريف
+Un/Una	أدوات التنكير
+Ser (soy, eres, es)	فعل يكون
+Estar (estoy, estás, está)	فعل يكون (موقع/مشاعر)
+Tener (tengo, tienes)	فعل يملك
+Querer (quiero, quieres)	فعل يريد
+Hay	يوجد
+Me gusta	يعجبني
+¿Qué? ¿Dónde? ¿Cómo?	أدوات السؤال
+📊 ملخص التدرج الأكاديمي للخريطة 2:
+text
+
+درس 1: Este/Esta es mi...          ← أدوات الإشارة + mi
+درس 2: El/La... es + صفة           ← أدوات التعريف + Ser + صفات
+درس 3: Un/Una... + Me gusta        ← أدوات التنكير + Me gusta
+درس 4: Yo soy... + Hay             ← الضمائر + Ser الكامل + Hay
+درس 5: Estar + en + حروف جر       ← Estar للموقع + Dónde
+درس 6: Estar + مشاعر + Cómo       ← Estar للمشاعر + السؤال
+درس 7: Tener + Querer              ← فعلين جداد + المصادر
+درس 8: اختبار شامل                 ← مراجعة كل القواعد
+🟠 الخريطة 3: Costas del Mediterráneo (سواحل المتوسط)
+المستوى: A1.2 | السن: 8-9
+
+📊 تدرج الجرامر:
+text
+
+درس 1: ¿Qué hora es? Son las...    ← الوقت والساعة
+درس 2: Me duele + el/la...         ← الصحة والألم
+درس 3: Jugar + al/a la...          ← الرياضة + حروف جر
+درس 4: ¿Cuánto cuesta? Cuesta...   ← التسوق والأسعار + أرقام 16-100
+درس 5: Ir + en/a + وسيلة/مكان     ← فعل Ir (يروح) + المواصلات
+درس 6: Soy de + دولة / Soy + جنسية ← الدول والجنسيات
+درس 7: Poder + مصدر                ← فعل Poder (يقدر) + الفن
+درس 8: اختبار شامل                  ← مراجعة
+🆕 القواعد الجديدة:
+الأرقام 16-100
+أفعال جديدة: Ir (يروح), Poder (يقدر), Jugar (يلعب)
+¿Cuánto? ¿A dónde? ¿De dónde?
+حروف جر: a, de, en, con, por
+🔴 الخريطة 4: Tierras del Sur (أراضي الجنوب)
+المستوى: A2.1 | السن: 9-10
+
+📊 تدرج الجرامر:
+text
+
+درس 1: تصريف الأفعال المنتظمة -AR (hablar → hablo, hablas, habla...)
+درس 2: تصريف الأفعال المنتظمة -ER/-IR (comer, vivir)
+درس 3: الطبيعة + صفات المقارنة (más grande que...)
+درس 4: الأفعال الشاذة الأساسية (ir, ser, estar, tener, hacer)
+درس 5: الأمر البسيط (¡Come! ¡Habla! ¡Escucha!)
+درس 6: التواصل الحديث + Gustar الكامل (me/te/le gusta)
+درس 7: وصف الأماكن + Hay/Está/Es
+درس 8: اختبار شامل
+🆕 القواعد الجديدة:
+تصريف كامل (6 ضمائر) للأفعال المنتظمة
+الأفعال الشاذة الأساسية (6 أفعال)
+المقارنة (más/menos... que)
+الأمر البسيط (Imperativo afirmativo)
+🟣 الخريطة 5: Islas y Capital (الجزر والعاصمة)
+المستوى: A2.2 | السن: 10-11
+
+📊 تدرج الجرامر:
+text
+
+درس 1: الماضي البسيط -AR (Ayer hablé, hablaste, habló...)
+درس 2: الماضي البسيط -ER/-IR + الشاذة (fui, tuve, hice...)
+درس 3: الفن والثقافة + صفات التفضيل (el más grande, el mejor)
+درس 4: المستقبل البسيط (Voy a + مصدر)
+درس 5: البيئة + Hay que + مصدر (لازم + فعل)
+درس 6: 20 دولة لاتينية + Ser de/Estar en
+درس 7: القراءة والكتابة + الروابط (y, o, pero, porque)
+درس 8: الاختبار النهائي A2 (20 سؤال)
+🆕 القواعد الجديدة:
+الزمن الماضي (Pretérito Indefinido)
+المستقبل القريب (Ir a + infinitivo)
+التفضيل (el/la más... / el/la mejor)
+الروابط (y, o, pero, porque, cuando)
+Hay que + مصدر (الوجوب)
+🎓 التدرج الأكاديمي الكامل عبر الـ 5 خرايط:
+الخريطة	المستوى	العمر	المحور الأكاديمي	القواعد الأساسية
+1	Pre-A1	6-7	كلمات مفردة فقط	❌ لا يوجد جرامر
+2	A1.1	7-8	أول جمل (2-4 كلمات)	Este/El/Un + Ser/Estar/Tener/Hay
+3	A1.2	8-9	سؤال وجواب	Ir/Poder + ¿Cuánto/Dónde/Cómo?
+4	A2.1	9-10	تصريف الأفعال	Conjugación completa + Imperativo
+5	A2.2	10-11	الأزمنة	Pasado + Futuro + Conectores
+🧱 ترتيب القواعد من الأسهل للأصعب:
+text
+
+Map 1: لا شيء (كلمات فقط)
+│
+Map 2: ├─ Este/Esta/Esto (أدوات الإشارة)
+       ├─ El/La/Los/Las (أدوات التعريف)
+       ├─ Un/Una (أدوات التنكير)
+       ├─ Mi/Mis (ضمائر الملكية)
+       ├─ Yo/Tú/Él/Ella (الضمائر المنفصلة)
+       ├─ Ser (soy/eres/es)
+       ├─ Estar (estoy/estás/está)
+       ├─ Tener (tengo/tienes/tiene)
+       ├─ Hay (يوجد)
+       ├─ Me gusta (يعجبني)
+       ├─ Querer (quiero/quieres)
+       └─ ¿Qué? ¿Dónde? ¿Cómo?
+│
+Map 3: ├─ ¿Qué hora es? (الساعة)
+       ├─ ¿Cuánto cuesta? (السعر)
+       ├─ Ir (voy/vas/va) + a/en
+       ├─ Poder (puedo/puedes)
+       ├─ Jugar (juego/juegas)
+       ├─ Me duele (يؤلمني)
+       ├─ Soy de... (أنا من...)
+       └─ أرقام 16-100
+│
+Map 4: ├─ تصريف كامل -AR (6 ضمائر)
+       ├─ تصريف كامل -ER/-IR
+       ├─ الأفعال الشاذة (ser, ir, tener, hacer, querer, poder)
+       ├─ Más/Menos... que (المقارنة)
+       ├─ ¡Come! ¡Habla! (الأمر)
+       └─ Gustar الكامل (me/te/le)
+│
+Map 5: ├─ الماضي -AR (hablé, hablaste, habló)
+       ├─ الماضي -ER/-IR + الشاذة (fui, tuve, hice)
+       ├─ El/La más + صفة (التفضيل)
+       ├─ Voy a + مصدر (المستقبل القريب)
+       ├─ Hay que + مصدر (الوجوب)
+       ├─ y, o, pero, porque (الروابط)
+       └─ 🎓 شهادة A2 النهائية
+🏗️ هيكل الملفات:
+text
+
+src/
+├── app/
+│   ├── (spanish-map-1-bosques-del-norte)/   ← الخريطة 1 (موجودة)
+│   ├── (spanish-map-2-castillos-de-castilla)/ ← الخريطة 2 (يتم إعادة بنائها)
+│   │   ├── spanish-body-lesson/page.tsx       ← يتم إعادة بنائه
+│   │   ├── spanish-clothes-lesson/page.tsx    ← يتم إعادة بنائه
+│   │   ├── spanish-food-lesson/page.tsx
+│   │   ├── spanish-school-lesson/page.tsx
+│   │   ├── spanish-house-lesson/page.tsx
+│   │   ├── spanish-feelings-lesson/page.tsx
+│   │   ├── spanish-games-lesson/page.tsx
+│   │   └── spanish-consuegra-test/page.tsx
+│   │
+│   ├── spanish-character-and-map/page.tsx
+│   └── components/lesson/
+│       ├── ToroBull.tsx
+│       ├── ConfettiBurst.tsx
+│       ├── GhostInput.tsx
+│       └── SpanishCharsKeyboard.tsx
+│
+├── data/
+│   ├── spanish/                  ← بيانات الخريطة 1
+│   └── spanish-2/                ← بيانات الخريطة 2 (يتم إعادة بنائها)
+│       ├── body.ts               ← يتم إعادة بنائه
+│       ├── clothes.ts            ← يتم إعادة بنائه
+│       ├── food.ts
+│       ├── school.ts
+│       ├── house.ts
+│       ├── feelings.ts
+│       ├── games.ts
+│       └── consuegra-test.ts
+│
+└── lib/
+    ├── audio/spanishSpeech.ts
+    ├── spanishPlayerData.ts
+    └── types/
+        ├── spanish-lesson.ts
+        └── grammar-hub.ts        ← ممكن نحتاجه لاحقاً
+🎮 هيكل كل درس (المحدث):
+الخريطة 1 (Pre-A1): كلمات فقط
+text
+
+لكل كلمة: Listen (اختيار) → Write (كتابة الكلمة) → Speak (نطق الكلمة)
+الخريطة 2 (A1.1): جمل في السياق
+text
+
+لكل كلمة:
+  1. Listen (اختيار الكلمة من 3 خيارات)
+  2. Build (تكوين الجملة بـ Tap to Select)
+  3. Speak (نطق الجملة كاملة)
+الخريطة 3-5: نفس الهيكل مع تطور المحتوى
+📊 ملف البيانات الموحد (Data Structure):
+TypeScript
+
+interface SpanishLessonItem {
+  // الكلمة الأساسية
+  word: string;                    // ojo
+  wordAr: string;                  // عين
+  emoji: string;                   // 👁️
+  
+  // الجملة الكاملة
+  sentenceEs: string;              // "Este es mi ojo"
+  sentenceAr: string;              // "ده عيني"
+  sentenceWords: string[];         // ["Este", "es", "mi", "ojo"]
+  sentenceDistractors: string[];   // ["una", "la", "tu"]
+  
+  // شرح الجرامر
+  grammarHint: {
+    pattern: string;               // "Este + es + mi + اسم"
+    patternAr: string;             // "ده + هو + بتاعي + اسم"
+  };
+  
+  // التصميم
+  category: string;
+  categoryAr: string;
+  color: string;
+  gradient: [string, string];
+}
+⚠️ الحالة الحالية + المطلوب:
+✅ موجود ومش محتاج تغيير:
+الخريطة 1 (6/8 دروس) - كلمات فقط ✅
+نظام التقدم (spanishPlayerData.ts) ✅
+نظام النطق (spanishSpeech.ts) ✅
+الماسكوت (ToroBull.tsx) ✅
+المكونات المشتركة ✅

@@ -37,8 +37,12 @@ export interface LessonProgress {
   current_phase?: string;
 }
 
-// 🗺️ ترتيب المعالم (للقفل التلقائي)
-export const LESSON_ORDER = [
+// ═══════════════════════════════════════
+// 🗺️ نظام الخرايط المتعددة
+// ═══════════════════════════════════════
+
+// 🗺️ الخريطة 1: ألمانيا — الأساسيات
+export const MAP_1_LESSONS = [
   'hamburg',        // 1️⃣ الحروف
   'cologne',        // 2️⃣ الأرقام
   'center',         // 3️⃣ الغابة
@@ -46,6 +50,42 @@ export const LESSON_ORDER = [
   'lake',           // 5️⃣ البحيرة
   'neuschwanstein', // 6️⃣ القلعة
 ];
+
+// 🗺️ الخريطة 2: ألمانيا — الحياة اليومية
+export const MAP_2_LESSONS = [
+  'heidelberg-school',  // 1️⃣ مدرسة هايدلبرغ
+  'karl-house',         // 2️⃣ منزل كارل
+  'toys-island',        // 3️⃣ جزيرة الألعاب
+  'munich-market',      // 4️⃣ سوق ميونخ
+  'clock-tower',        // 5️⃣ برج الساعة
+  'adventurer-castle',  // 6️⃣ قلعة المغامر الصغير
+];
+
+// 🗺️ الخريطة 3: فرانكفورت — مدن الثقافة
+export const MAP_3_LESSONS = [
+  'frankfurt-clothes',  // 1️⃣ شارع زيل
+  'frankfurt-body',     // 2️⃣ متحف زنكنبرغ
+  'frankfurt-health',   // 3️⃣ شاريتيه
+  'frankfurt-sports',   // 4️⃣ أليانز أرينا
+  'frankfurt-feelings', // 5️⃣ بالمنغارتن
+  'frankfurt-final',    // 6️⃣ Main Tower
+];
+
+// 🗺️ كل الدروس مرتبة (للقفل التلقائي عبر الخرايط)
+export const LESSON_ORDER = [...MAP_1_LESSONS, ...MAP_2_LESSONS, ...MAP_3_LESSONS];
+
+// 🗺️ عدد الخرايط الكلي
+export const TOTAL_MAPS = 3;
+
+// 🗺️ Helper: جلب دروس خريطة معينة
+export function getMapLessons(mapNumber: number): string[] {
+  switch (mapNumber) {
+    case 1: return MAP_1_LESSONS;
+    case 2: return MAP_2_LESSONS;
+    case 3: return MAP_3_LESSONS;
+    default: return [];
+  }
+}
 
 // ═══════════════════════════════════════
 // 💾 حفظ أو تحديث بيانات اللاعب
@@ -161,7 +201,6 @@ export async function saveLessonProgress(
 ): Promise<LessonProgress | null> {
   const deviceId = getDeviceId();
 
-  // نشوف لو الدرس متحفظ قبل كده
   const { data: existing } = await supabase
     .from('lesson_progress')
     .select('*')
@@ -169,11 +208,9 @@ export async function saveLessonProgress(
     .eq('lesson_id', lessonId)
     .single();
 
-  // لو موجود، نحدث (بس لو النجوم أعلى من اللي قبل)
   if (existing) {
     const newStars = Math.max(existing.stars, stars);
     
-    // 🆕 بيانات التحديث الأساسية
     const updateData: any = {
       stars: newStars,
       completed: completed || existing.completed,
@@ -181,7 +218,6 @@ export async function saveLessonProgress(
       updated_at: new Date().toISOString(),
     };
 
-    // 🆕 إضافة بيانات المكان لو متوفرة
     if (position) {
       if (position.current_group !== undefined) updateData.current_group = position.current_group;
       if (position.current_letter !== undefined) updateData.current_letter = position.current_letter;
@@ -204,7 +240,6 @@ export async function saveLessonProgress(
     return data;
   }
 
-  // لو مش موجود، نضيفه
   const insertData: any = {
     device_id: deviceId,
     lesson_id: lessonId,
@@ -213,7 +248,6 @@ export async function saveLessonProgress(
     completed_at: completed ? new Date().toISOString() : null,
   };
 
-  // 🆕 إضافة بيانات المكان لو متوفرة
   if (position) {
     if (position.current_group !== undefined) insertData.current_group = position.current_group;
     if (position.current_letter !== undefined) insertData.current_letter = position.current_letter;
@@ -233,6 +267,7 @@ export async function saveLessonProgress(
   console.log(`✅ تم حفظ تقدم ${lessonId}:`, data);
   return data;
 }
+
 // ═══════════════════════════════════════
 // 📥 جلب تقدم درس واحد
 // ═══════════════════════════════════════
@@ -276,12 +311,10 @@ export async function getAllProgress(): Promise<LessonProgress[]> {
 // 🔒 التحقق إذا كان الدرس مفتوح
 // ═══════════════════════════════════════
 export async function isLessonUnlocked(lessonId: string): Promise<boolean> {
-  // أول درس دايماً مفتوح
   const lessonIndex = LESSON_ORDER.indexOf(lessonId);
   if (lessonIndex === 0) return true;
   if (lessonIndex === -1) return false;
 
-  // باقي الدروس: لازم اللي قبلها يكون متكمل
   const previousLesson = LESSON_ORDER[lessonIndex - 1];
   const previousProgress = await getLessonProgress(previousLesson);
   
@@ -297,14 +330,12 @@ export async function getCurrentLessonId(): Promise<string> {
     allProgress.filter(p => p.completed).map(p => p.lesson_id)
   );
 
-  // ندور على أول درس مش متكمل
   for (const lessonId of LESSON_ORDER) {
     if (!completedLessons.has(lessonId)) {
       return lessonId;
     }
   }
 
-  // لو كل الدروس متكملة، نرجع آخر واحد
   return LESSON_ORDER[LESSON_ORDER.length - 1];
 }
 
@@ -314,4 +345,74 @@ export async function getCurrentLessonId(): Promise<string> {
 export async function getTotalStarsFromLessons(): Promise<number> {
   const allProgress = await getAllProgress();
   return allProgress.reduce((sum, p) => sum + p.stars, 0);
+}
+
+// ═══════════════════════════════════════
+// 🗺️ 🆕 التحقق إذا كانت خريطة معينة مكتملة (كل دروسها)
+// ═══════════════════════════════════════
+export async function isMapCompleted(mapNumber: number): Promise<boolean> {
+  const mapLessons = getMapLessons(mapNumber);
+  if (mapLessons.length === 0) return false;
+
+  const allProgress = await getAllProgress();
+  const completedSet = new Set(
+    allProgress.filter(p => p.completed).map(p => p.lesson_id)
+  );
+
+  return mapLessons.every(lessonId => completedSet.has(lessonId));
+}
+
+// ═══════════════════════════════════════
+// 🗺️ 🆕 معرفة الخريطة الحالية اللي اللاعب فيها
+// (أول خريطة فيها درس مش مكتمل)
+// ═══════════════════════════════════════
+export async function getCurrentMap(): Promise<number> {
+  const allProgress = await getAllProgress();
+  const completedSet = new Set(
+    allProgress.filter(p => p.completed).map(p => p.lesson_id)
+  );
+
+  // نشيك على كل خريطة بالترتيب
+  for (let mapNum = 1; mapNum <= TOTAL_MAPS; mapNum++) {
+    const mapLessons = getMapLessons(mapNum);
+    const allMapCompleted = mapLessons.every(id => completedSet.has(id));
+    
+    if (!allMapCompleted) {
+      return mapNum; // أول خريطة مش مكتملة
+    }
+  }
+
+  // لو كل الخرايط مكتملة، يرجع آخر خريطة
+  return TOTAL_MAPS;
+}
+
+// ═══════════════════════════════════════
+// 🗺️ 🆕 حساب نجوم خريطة معينة (مجموع نجوم كل دروسها)
+// ═══════════════════════════════════════
+export async function getMapStars(mapNumber: number): Promise<{ earned: number; total: number }> {
+  const mapLessons = getMapLessons(mapNumber);
+  const allProgress = await getAllProgress();
+  
+  let earned = 0;
+  const total = mapLessons.length * 3; // كل درس 3 نجوم max
+
+  for (const lessonId of mapLessons) {
+    const progress = allProgress.find(p => p.lesson_id === lessonId);
+    if (progress) earned += progress.stars;
+  }
+
+  return { earned, total };
+}
+
+// ═══════════════════════════════════════
+// 🗺️ 🆕 معرفة هل خريطة معينة مفتوحة للّعب
+export async function isMapUnlocked(mapNumber: number): Promise<boolean> {
+  // تفعيل مؤقت: الخريطة 3 مفتوحة دائماً عشان الاختبار
+  if (mapNumber === 3) return true; 
+  
+  // الخريطة 1 دايماً مفتوحة
+  if (mapNumber === 1) return true;
+  
+  // باقي الخرايط: لازم الخريطة اللي قبلها تكون مكتملة
+  return await isMapCompleted(mapNumber - 1);
 }

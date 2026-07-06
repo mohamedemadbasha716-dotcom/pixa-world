@@ -30,8 +30,8 @@ const BOOKS_DATA = [
     students: '3,120',
     flag: '🇪🇸',
     desc: 'لغة نصف العالم الغربي',
-    route: '/coming-soon?lang=spanish',
-    available: false,
+    route: '/spanish-character-and-map',
+    available: true,
     langCode: 'es'
   },
   {
