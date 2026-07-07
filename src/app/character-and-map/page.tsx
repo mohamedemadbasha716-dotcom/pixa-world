@@ -488,8 +488,8 @@ const MAPS_DATA = {
     landmarks: LANDMARKS_MAP_1,
     coordsDesktop: COORDS_DESKTOP_MAP_1,
     coordsMobile: COORDS_MOBILE_MAP_1,
-    imageDesktop: '/maps/german-map.png',
-    imageMobile: '/maps/map-mobile.jpeg',
+    imageDesktop: '/maps/german-map.webp',
+    imageMobile: '/maps/map-mobile.webp',
     titleAr: 'ألمانيا — الأساسيات',
     titleDe: 'Deutschland — Grundlagen',
     description: 'المرحلة الأولى: الحروف، الأرقام، الألوان والأساسيات',
@@ -1118,8 +1118,8 @@ export default function CharacterAndMapPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const heroes = [
-    { id: 'boy', name: 'البطل الشجاع', color: '#4CC9F0', img: '/characters/boy-3d.png' },
-    { id: 'girl', name: 'البطلة العبقرية', color: '#F72585', img: '/characters/girl-3d.png' },
+    { id: 'boy', name: 'البطل الشجاع', color: '#4CC9F0', img: '/characters/boy-3d.webp' },
+    { id: 'girl', name: 'البطلة العبقرية', color: '#F72585', img: '/characters/girl-3d.webp' },
   ];
 
   useEffect(() => {
@@ -1341,7 +1341,7 @@ export default function CharacterAndMapPage() {
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
               className="absolute inset-0 flex flex-col items-center justify-center gap-6"
               style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
-              <motion.img src="/characters/karl-3d.png" alt="كارل النسر" className="w-40 h-40 object-contain drop-shadow-2xl"
+              <motion.img src="/characters/karl-3d.webp" alt="كارل النسر" className="w-40 h-40 object-contain drop-shadow-2xl"
                 animate={{ y: [-8, 8, -8] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }} />
               <motion.div className="flex flex-col items-center gap-3" animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
                 <div className="w-16 h-16 rounded-full border-4 border-white/80 flex items-center justify-center bg-white/10 backdrop-blur-sm">
@@ -1762,7 +1762,7 @@ export default function CharacterAndMapPage() {
               transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
             >
               <img
-                src="/characters/karl-3d.png"
+                src="/characters/karl-3d.webp"
                 alt="كارل النسر"
                 style={{
                   width: 'clamp(35px, 3.5vw, 55px)',
@@ -1799,7 +1799,7 @@ export default function CharacterAndMapPage() {
               </div>
               <div className="p-6">
                 <div className="flex gap-3 bg-white/5 rounded-2xl p-4 mb-5">
-                  <img src="/characters/karl-3d.png" alt="كارل" className="w-10 h-10 object-contain flex-shrink-0" />
+                  <img src="/characters/karl-3d.webp" alt="كارل" className="w-10 h-10 object-contain flex-shrink-0" />
                   <div>
                     <div className="text-xs font-bold text-white/50 mb-1">كارل النسر يقول:</div>
                     <p className="text-sm text-white/80 leading-relaxed font-medium">&quot;{selectedLandmark.description}&quot;</p>
@@ -1949,7 +1949,7 @@ export default function CharacterAndMapPage() {
                   className="flex gap-3 bg-white/5 rounded-2xl p-4 mb-5 border border-white/10"
                 >
                   <motion.img 
-                    src="/characters/karl-3d.png" 
+                    src="/characters/karl-3d.webp" 
                     alt="كارل" 
                     className="w-14 h-14 object-contain flex-shrink-0"
                     animate={{ rotate: [-5, 5, -5] }}
@@ -2067,7 +2067,7 @@ export default function CharacterAndMapPage() {
                 <X size={12} />
               </button>
               <div className="flex gap-2 items-center pr-5">
-                <motion.img src="/characters/karl-3d.png" alt="كارل" className="w-9 h-9 object-contain flex-shrink-0"
+                <motion.img src="/characters/karl-3d.webp" alt="كارل" className="w-9 h-9 object-contain flex-shrink-0"
                   animate={{ rotate: [-8, 8, -8] }} transition={{ duration: 1, repeat: 2 }} />
                 <div className="flex-1 text-right">
                   <div className="text-[10px] font-bold text-[#4CC9F0]">كارل النسر</div>

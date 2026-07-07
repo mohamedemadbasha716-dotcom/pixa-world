@@ -346,7 +346,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
                 boxShadow: '0 0 10px rgba(255,215,0,0.5)',
                 background: 'linear-gradient(135deg, #06D6A0, #0984E3)',
               }}>
-              <img src="/characters/karl-3d.png" alt="character" className="w-full h-full object-cover" />
+              <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
             </motion.div>
             <div className="flex flex-col items-start leading-none gap-0.5">
               <span className="text-[7px] font-bold text-white/80">المستوى</span>
@@ -369,7 +369,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
                 background: 'rgba(15,10,45,0.7)', backdropFilter: 'blur(10px)',
                 WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,215,0,0.35)',
               }}>
-              <img id="star-target" src="/treasuer/star.png" alt="star" className="w-3 h-3 flex-shrink-0" 
+              <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-3 h-3 flex-shrink-0" 
                 style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
               <span className="font-black text-[10px] text-white truncate">{stats.points}</span>
             </motion.div>
@@ -432,7 +432,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
               boxShadow: '0 0 15px rgba(255,215,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
               background: 'linear-gradient(135deg, #06D6A0, #0984E3)',
             }}>
-            <img src="/characters/karl-3d.png" alt="character" className="w-full h-full object-cover" />
+            <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
           </motion.div>
           <div className="flex flex-col items-start">
             <span className="text-[9px] md:text-[10px] font-bold text-white/80 mb-0.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>المستوى</span>
@@ -503,7 +503,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
               boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
             }}>
             <span className="font-black text-xs md:text-sm text-white" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{stats.points}</span>
-            <img id="star-target" src="/treasuer/star.png" alt="star" className="w-5 h-5 md:w-6 md:h-6" 
+            <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-5 h-5 md:w-6 md:h-6" 
               style={{ filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.8))' }} />
           </motion.div>
 
@@ -588,11 +588,11 @@ function FlyingItems({ items }: { items: FlyingItem[] }) {
                   style={{ background: color, opacity: 0.8, transform: 'scale(2.5)' }} />
                 <div className="relative flex items-center justify-center w-full h-full">
                   {item.type === 'star' && (
-                    <img src="/treasuer/star.png" alt="star" className="w-10 h-10"
+                    <img src="/treasuer/star.webp" alt="star" className="w-10 h-10"
                       style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />
                   )}
                   {item.type === 'energy' && (
-                    <img src="/treasuer/energy.png" alt="energy" className="w-10 h-10"
+                    <img src="/treasuer/energy.webp" alt="energy" className="w-10 h-10"
                       style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />
                   )}
                   {item.type === 'gem' && (
@@ -646,7 +646,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
   stats: GameStats; treasureState: 'closed' | 'half' | 'opend';
   onHint: () => void; onMap: () => void; isMobile: boolean;
 }) {
-  const treasureImg = `/treasuer/${treasureState}.png`;
+  const treasureImg = `/treasuer/${treasureState}.webp`;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 px-2 md:px-4 pb-1 md:pb-1.5 pointer-events-none"
@@ -671,9 +671,9 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
 
           <div className="flex items-end justify-around gap-2 md:gap-3">
             <FloatingIconButton onClick={onMap} label="خريطة" color="#4CC9F0" isMobile={isMobile}
-              iconSrc="/treasuer/map-icon.png" iconAlt="map" />
+              iconSrc="/treasuer/map-icon.webp" iconAlt="map" />
             <FloatingIconButton label="نجوم" color="#FFD700" isMobile={isMobile} disabled
-              iconSrc="/treasuer/star.png" iconAlt="star" />
+              iconSrc="/treasuer/star.webp" iconAlt="star" />
 
             <motion.div id="treasure-box" whileHover={{ scale: 1.08, y: -2 }}
               animate={treasureState === 'opend' ? { y: [0, -3, 0] } : {}}
@@ -694,7 +694,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
             </motion.div>
 
             <FloatingIconButton label="طاقة" color="#4CC9F0" isMobile={isMobile} disabled
-              iconSrc="/treasuer/energy.png" iconAlt="energy" />
+              iconSrc="/treasuer/energy.webp" iconAlt="energy" />
             <FloatingIconButton onClick={onHint} label="تلميح" color="#FFD700" isMobile={isMobile}
               badge={stats.hints} disabled={stats.hints === 0}
               iconSrc="/treasuer/HINT.svg" iconAlt="hint" />
@@ -2148,7 +2148,7 @@ function OrderTest({ items, onPass, onFail, onCorrect, onKarlReact, onCombo }: {
             <div className="flex gap-1">
               {items.map((d, i) => (
                 <motion.div key={i} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 }}>
-                  <img src="/treasuer/star.png" alt="star" className="w-7 h-7" 
+                  <img src="/treasuer/star.webp" alt="star" className="w-7 h-7" 
                     style={{ filter: 'drop-shadow(0 0 10px #FFD700)' }} />
                 </motion.div>
               ))}
@@ -2372,7 +2372,7 @@ function SuccessScreen({ group, onNext, isLast }: { group: LakeGroup; onNext: ()
       <div className="flex gap-2">
         {[1, 2, 3].map(s => (
           <motion.div key={s} initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={{ delay: 0.3 + s * 0.15, type: 'spring', stiffness: 400 }}>
-            <img src="/treasuer/star.png" alt="star" className="w-10 h-10 md:w-12 md:h-12" style={{ filter: 'drop-shadow(0 0 12px rgba(255,215,0,0.8))' }} />
+            <img src="/treasuer/star.webp" alt="star" className="w-10 h-10 md:w-12 md:h-12" style={{ filter: 'drop-shadow(0 0 12px rgba(255,215,0,0.8))' }} />
           </motion.div>
         ))}
       </div>
@@ -2424,14 +2424,14 @@ function AllDoneScreen({ totalStars, onMap }: { totalStars: number; onMap: () =>
       </div>
       <div className="flex items-center gap-2 px-6 py-3 rounded-2xl backdrop-blur-md border border-yellow-400/40"
         style={{ background: 'rgba(255,215,0,0.15)', boxShadow: '0 8px 30px rgba(255,215,0,0.3)' }}>
-        <img src="/treasuer/star.png" alt="star" className="w-7 h-7 md:w-8 md:h-8" style={{ filter: 'drop-shadow(0 0 8px #FFD700)' }} />
+        <img src="/treasuer/star.webp" alt="star" className="w-7 h-7 md:w-8 md:h-8" style={{ filter: 'drop-shadow(0 0 8px #FFD700)' }} />
         <span className="font-black text-3xl md:text-4xl text-yellow-400">{totalStars}</span>
         <span className="font-bold text-white/80 text-base md:text-lg">نجمة!</span>
       </div>
       <div className="flex gap-2">
         {[1, 2, 3].map(s => (
           <motion.div key={s} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5 + s * 0.15, type: 'spring' }}>
-            <img src="/treasuer/star.png" alt="star" className="w-12 h-12 md:w-14 md:h-14" style={{ filter: 'drop-shadow(0 0 15px rgba(255,215,0,0.8))' }} />
+            <img src="/treasuer/star.webp" alt="star" className="w-12 h-12 md:w-14 md:h-14" style={{ filter: 'drop-shadow(0 0 15px rgba(255,215,0,0.8))' }} />
           </motion.div>
         ))}
       </div>

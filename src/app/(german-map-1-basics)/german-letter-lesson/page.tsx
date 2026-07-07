@@ -109,7 +109,7 @@ function EmojiOrIcon({ word, emoji, size, color }: {
   color: string;
 }) {
   const [useIcon, setUseIcon] = useState(true);
-  const [iconExt, setIconExt] = useState<'svg' | 'png'>('svg');
+  const [iconExt, setIconExt] = useState<'svg' | 'webp'>('svg');
 
   if (!useIcon) {
     return (
@@ -135,7 +135,7 @@ function EmojiOrIcon({ word, emoji, size, color }: {
       }}
       onError={() => {
         if (iconExt === 'svg') {
-          setIconExt('png');
+          setIconExt('webp');
         } else {
           setUseIcon(false);
         }
@@ -288,7 +288,7 @@ function ScreenBackground({ isMobile, activeColor, phase }: { isMobile: boolean;
   }, [isMobile]);
 
   if (isMobile) {
-    const bgImage = phase === 'test' ? '/images/Hamburg-mob.jpeg' : '/card-image/card-mob.png';
+    const bgImage = phase === 'test' ? '/images/Hamburg-mob.jpeg' : '/card-image/card-mob.webp';
     const overlayBg = phase === 'test' 
       ? 'linear-gradient(180deg, rgba(10,5,30,0.35) 0%, rgba(10,5,30,0.55) 100%)'
       : 'linear-gradient(180deg, rgba(10,5,30,0.15) 0%, rgba(10,5,30,0.25) 100%)';
@@ -302,7 +302,7 @@ function ScreenBackground({ isMobile, activeColor, phase }: { isMobile: boolean;
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      <img src="/card-image/card-pc.png" alt="bg" className="absolute inset-0 w-full h-full object-cover" />
+      <img src="/card-image/card-pc.webp" alt="bg" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0" style={{
         background: 'radial-gradient(ellipse at 20% 20%, rgba(26,21,71,0.85) 0%, rgba(15,10,46,0.92) 50%, rgba(7,5,26,0.95) 100%)',
       }} />
@@ -353,7 +353,7 @@ function ScreenBackground({ isMobile, activeColor, phase }: { isMobile: boolean;
                 background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
               }}
             >
-              <img src="/characters/karl-3d.png" alt="character" className="w-full h-full object-cover" />
+              <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
             </motion.div>
             <div className="flex flex-col items-start leading-none gap-0.5">
               <span className="text-[7px] font-bold text-white/80">المستوى</span>
@@ -385,7 +385,7 @@ function ScreenBackground({ isMobile, activeColor, phase }: { isMobile: boolean;
                 minWidth: 0,
               }}
             >
-              <img id="star-target" src="/treasuer/star.png" alt="star" className="w-3 h-3 flex-shrink-0" 
+              <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-3 h-3 flex-shrink-0" 
                 style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
               <span className="font-black text-[10px] text-white truncate">{stats.points}</span>
             </motion.div>
@@ -473,7 +473,7 @@ function ScreenBackground({ isMobile, activeColor, phase }: { isMobile: boolean;
               background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
             }}
           >
-            <img src="/characters/karl-3d.png" alt="character" className="w-full h-full object-cover" />
+            <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
           </motion.div>
           <div className="flex flex-col items-start">
             <span className="text-[9px] md:text-[10px] font-bold text-white/80 mb-0.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>المستوى</span>
@@ -566,7 +566,7 @@ function ScreenBackground({ isMobile, activeColor, phase }: { isMobile: boolean;
             <span className="font-black text-xs md:text-sm text-white" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
               {stats.points}
             </span>
-            <img id="star-target" src="/treasuer/star.png" alt="star" className="w-5 h-5 md:w-6 md:h-6" 
+            <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-5 h-5 md:w-6 md:h-6" 
               style={{ filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.8))' }} />
           </motion.div>
 
@@ -711,11 +711,11 @@ function FlyingItems({ items }: { items: FlyingItem[] }) {
                 />
                 <div className="relative flex items-center justify-center w-full h-full">
                   {item.type === 'star' && (
-                    <img src="/treasuer/star.png" alt="star" className="w-10 h-10"
+                    <img src="/treasuer/star.webp" alt="star" className="w-10 h-10"
                       style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />
                   )}
                   {item.type === 'energy' && (
-                    <img src="/treasuer/energy.png" alt="energy" className="w-10 h-10"
+                    <img src="/treasuer/energy.webp" alt="energy" className="w-10 h-10"
                       style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />
                   )}
                   {item.type === 'gem' && (
@@ -778,7 +778,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
   onMap: () => void;
   isMobile: boolean;
 }) {
-  const treasureImg = `/treasuer/${treasureState}.png`;
+  const treasureImg = `/treasuer/${treasureState}.webp`;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 px-2 md:px-4 pb-1 md:pb-1.5 pointer-events-none"
@@ -807,7 +807,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
               label="خريطة" 
               color="#4CC9F0" 
               isMobile={isMobile}
-              iconSrc="/treasuer/map-icon.png"
+              iconSrc="/treasuer/map-icon.webp"
               iconAlt="map"
             />
 
@@ -816,7 +816,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
               color="#FFD700" 
               isMobile={isMobile} 
               disabled
-              iconSrc="/treasuer/star.png"
+              iconSrc="/treasuer/star.webp"
               iconAlt="star"
             />
 
@@ -848,7 +848,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
               color="#4CC9F0" 
               isMobile={isMobile} 
               disabled
-              iconSrc="/treasuer/energy.png"
+              iconSrc="/treasuer/energy.webp"
               iconAlt="energy"
             />
 
@@ -936,7 +936,7 @@ function FloatingIconButton({ label, color, isMobile, onClick, badge, disabled, 
           <>
             <div className="absolute inset-0 pointer-events-none rounded-[1.5rem]"
               style={{
-                backgroundImage: `url('/card-image/card-mob.png')`,
+                backgroundImage: `url('/card-image/card-mob.webp')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 opacity: 0.5,
@@ -985,7 +985,7 @@ function LetterBox({ letterData, size, useBgImage = false }: { letterData: Lette
         <>
           <div className="absolute inset-0 pointer-events-none rounded-[1.5rem]"
             style={{
-              backgroundImage: `url('/card-image/card-mob.png')`,
+              backgroundImage: `url('/card-image/card-mob.webp')`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               opacity: 0.4,
@@ -1169,7 +1169,7 @@ function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
             }}>
             <div className="absolute inset-0 pointer-events-none rounded-[1.2rem]"
               style={{
-                backgroundImage: `url('/card-image/card-mob.png')`,
+                backgroundImage: `url('/card-image/card-mob.webp')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 opacity: 0.4,
@@ -2590,7 +2590,7 @@ function SuccessScreen({ groupTitle, onNext }: { groupTitle: string; onNext: () 
       <div className="flex gap-2">
         {[1, 2, 3].map(s => (
           <motion.div key={s} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3 + s * 0.15, type: 'spring' }}>
-            <img src="/treasuer/star.png" alt="star" className="w-10 h-10 md:w-12 md:h-12" style={{ filter: 'drop-shadow(0 0 12px rgba(255,215,0,0.8))' }} />
+            <img src="/treasuer/star.webp" alt="star" className="w-10 h-10 md:w-12 md:h-12" style={{ filter: 'drop-shadow(0 0 12px rgba(255,215,0,0.8))' }} />
           </motion.div>
         ))}
       </div>
@@ -2927,7 +2927,7 @@ function GermanLetterLessonPageInner() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-yellow-400/30" style={{ background: 'rgba(255,215,0,0.1)' }}>
-                  <img src="/treasuer/star.png" alt="star" className="w-7 h-7 md:w-8 md:h-8" />
+                  <img src="/treasuer/star.webp" alt="star" className="w-7 h-7 md:w-8 md:h-8" />
                   <span className="font-black text-2xl md:text-3xl text-yellow-400">{totalStars}</span>
                   <span className="font-bold text-white/80">نجمة!</span>
                 </div>

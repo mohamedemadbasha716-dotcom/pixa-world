@@ -112,7 +112,7 @@ export default function KarlEagle({
           />
 
           <img
-            src="/characters/karl-3d.png"
+            src="/characters/karl-3d.webp"
             alt="كارل النسر"
             style={{
               width: `${eagleSize}px`,
