@@ -1210,8 +1210,8 @@ export default function SpanishCharacterAndMapPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const heroes = [
-    { id: 'boy', name: 'البطل الشجاع', color: '#4CC9F0', img: '/characters/boy-3d.png' },
-    { id: 'girl', name: 'البطلة العبقرية', color: '#F72585', img: '/characters/girl-3d.png' },
+    { id: 'boy', name: 'البطل الشجاع', color: '#4CC9F0', img: '/characters/boy-3d.webp' },
+    { id: 'girl', name: 'البطلة العبقرية', color: '#F72585', img: '/characters/girl-3d.webp' },
   ];
 
   useEffect(() => {
