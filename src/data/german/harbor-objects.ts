@@ -220,13 +220,13 @@ export const HARBOR_OBJECTS_MOBILE: Record<string, Polygon[]> = {
 export const HARBOR_IMAGE_DESKTOP = {
   width: 1537,
   height: 1023,
-  src: '/images/harbor-hamburg.png',
+  src: '/images/harbor-hamburg.webp',
 };
 
 export const HARBOR_IMAGE_MOBILE = {
   width: 768,
   height: 1376,
-  src: '/images/Hamburg-mob.jpeg',
+  src: '/images/Hamburg-mob.webp',
 };
 
 // ═══════════════════════════════════════

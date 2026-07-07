@@ -288,7 +288,7 @@ function ScreenBackground({ isMobile, activeColor, phase }: { isMobile: boolean;
   }, [isMobile]);
 
   if (isMobile) {
-    const bgImage = phase === 'test' ? '/images/Hamburg-mob.jpeg' : '/card-image/card-mob.webp';
+    const bgImage = phase === 'test' ? '/images/Hamburg-mob.webp' : '/images/letter-g-mob.webp';
     const overlayBg = phase === 'test' 
       ? 'linear-gradient(180deg, rgba(10,5,30,0.35) 0%, rgba(10,5,30,0.55) 100%)'
       : 'linear-gradient(180deg, rgba(10,5,30,0.15) 0%, rgba(10,5,30,0.25) 100%)';
@@ -300,9 +300,11 @@ function ScreenBackground({ isMobile, activeColor, phase }: { isMobile: boolean;
     );
   }
 
+  const pcBgImage = phase === 'test' ? '/card-image/card-pc.webp' : '/images/letter-g-pc.webp';
+
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      <img src="/card-image/card-pc.webp" alt="bg" className="absolute inset-0 w-full h-full object-cover" />
+      <img src={pcBgImage} alt="bg" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0" style={{
         background: 'radial-gradient(ellipse at 20% 20%, rgba(26,21,71,0.85) 0%, rgba(15,10,46,0.92) 50%, rgba(7,5,26,0.95) 100%)',
       }} />
@@ -1733,28 +1735,28 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
       className="w-full max-w-2xl mx-auto"
     >
-      <GlassCard className={`mx-auto ${isMobile ? 'p-3 max-w-md' : 'p-6 max-w-xl'}`} 
+      <GlassCard className={`mx-auto ${isMobile ? 'p-3 max-w-md' : 'p-4 max-w-md'}`} 
         accentColor={letterData.color} isMobile={isMobile} useBgImage={isMobile}>
-        <div className={`flex flex-col items-center ${isMobile ? 'gap-2.5' : 'gap-4'}`}>
+        <div className={`flex flex-col items-center ${isMobile ? 'gap-2.5' : 'gap-2.5'}`}>
           
           <motion.div 
             initial={{ scale: 0 }} 
             animate={{ scale: [0, 1.2, 1] }} 
             transition={{ duration: 0.5 }}
-            className={isMobile ? 'text-4xl' : 'text-5xl'}>
+            className={isMobile ? 'text-4xl' : 'text-3xl'}>
             🎤
           </motion.div>
 
           <div className="text-center">
-            <h3 className={`font-black text-white ${isMobile ? 'text-base' : 'text-2xl'}`}>
+            <h3 className={`font-black text-white ${isMobile ? 'text-base' : 'text-lg'}`}>
               {mode === 'letter' ? 'انطق الحرف' : 'انطق الكلمة'}
             </h3>
-            <p className={`text-white/60 font-bold ${isMobile ? 'text-[10px] mt-1' : 'text-sm mt-2'}`}>
+            <p className={`text-white/60 font-bold ${isMobile ? 'text-[10px] mt-1' : 'text-xs mt-1'}`}>
               اضغط على المايك واتكلم بوضوح
             </p>
           </div>
 
-          <div className={`w-full rounded-2xl border-2 text-center backdrop-blur-md ${isMobile ? 'p-2.5' : 'p-4'}`}
+          <div className={`w-full rounded-2xl border-2 text-center backdrop-blur-md ${isMobile ? 'p-2.5' : 'p-2.5'}`}
             style={{
               background: `linear-gradient(135deg, ${letterData.color}22, ${letterData.color}08)`,
               borderColor: `${letterData.color}55`,
@@ -1762,7 +1764,7 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
             
             {mode === 'letter' ? (
               <div className="flex items-center justify-center mb-1">
-                <p className={`font-black text-white ${isMobile ? 'text-5xl' : 'text-7xl'}`}
+                <p className={`font-black text-white ${isMobile ? 'text-5xl' : 'text-5xl'}`}
                   style={{ 
                     textShadow: `0 0 30px ${letterData.color}88`,
                     background: `linear-gradient(180deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
@@ -1776,23 +1778,23 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
               </div>
             ) : (
               <div className="flex items-center justify-center gap-2 mb-1">
-                <span className={isMobile ? 'text-2xl' : 'text-3xl'}>
+                <span className={isMobile ? 'text-2xl' : 'text-2xl'}>
                   {letterData.emoji}
                 </span>
-                <p className={`font-black text-white ${isMobile ? 'text-xl' : 'text-3xl'}`}
+                <p className={`font-black text-white ${isMobile ? 'text-xl' : 'text-2xl'}`}
                   style={{ textShadow: `0 0 20px ${letterData.color}88`, direction: 'ltr' }}>
                   {target}
                 </p>
               </div>
             )}
-            <p className={`font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}
+            <p className={`font-bold ${isMobile ? 'text-xs' : 'text-xs'}`}
               style={{ color: letterData.color }}>
               {targetAr}
             </p>
             
             <button onClick={() => speakFunc(target)}
-              className={`inline-flex items-center gap-1.5 mt-2 rounded-xl border border-white/20 bg-white/5 text-white/70 hover:bg-white/10 transition-all font-bold ${isMobile ? 'px-3 py-1 text-[10px]' : 'px-4 py-2 text-xs'}`}>
-              <Volume2 size={isMobile ? 11 : 13} /> اسمع النطق الصح
+              className={`inline-flex items-center gap-1.5 mt-1.5 rounded-xl border border-white/20 bg-white/5 text-white/70 hover:bg-white/10 transition-all font-bold ${isMobile ? 'px-3 py-1 text-[10px]' : 'px-3 py-1 text-[10px]'}`}>
+              <Volume2 size={isMobile ? 11 : 11} /> اسمع النطق الصح
             </button>
           </div>
 
@@ -1802,7 +1804,7 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
             whileTap={!isListening ? { scale: 0.95 } : {}}
             onClick={handleStart}
             disabled={isListening || status === 'success'}
-            className={`relative rounded-full flex items-center justify-center transition-all flex-shrink-0 ${isMobile ? 'w-20 h-20' : 'w-28 h-28'}`}
+            className={`relative rounded-full flex items-center justify-center transition-all flex-shrink-0 ${isMobile ? 'w-20 h-20' : 'w-16 h-16'}`}
             style={{
               background: status === 'success'
                 ? 'linear-gradient(135deg, #58CC02, #096A02)'
@@ -1830,9 +1832,9 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
             )}
 
             {status === 'success' ? (
-              <Check size={isMobile ? 36 : 48} className="text-white" strokeWidth={3} />
+              <Check size={isMobile ? 36 : 28} className="text-white" strokeWidth={3} />
             ) : (
-              <Mic size={isMobile ? 36 : 48} className="text-white" />
+              <Mic size={isMobile ? 36 : 28} className="text-white" />
             )}
           </motion.button>
 
@@ -1844,10 +1846,10 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
                 animate={{ opacity: 1, y: 0 }} 
                 exit={{ opacity: 0 }}
                 className="text-center">
-                <p className={`text-white/40 font-bold mb-1 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                <p className={`text-white/40 font-bold mb-1 ${isMobile ? 'text-[10px]' : 'text-[10px]'}`}>
                   سمعتك بتقول:
                 </p>
-                <p className={`font-black text-white ${isMobile ? 'text-sm' : 'text-base'}`} 
+                <p className={`font-black text-white ${isMobile ? 'text-sm' : 'text-sm'}`} 
                   style={{ direction: 'ltr' }}>
                   "{transcript}"
                 </p>
@@ -1862,7 +1864,7 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }} 
                 exit={{ opacity: 0 }}
-                className={`font-black text-red-400 ${isMobile ? 'text-xs' : 'text-base'}`}>
+                className={`font-black text-red-400 ${isMobile ? 'text-xs' : 'text-xs'}`}>
                 🎙️ بسمعك دلوقتي...
               </motion.p>
             )}
@@ -1871,7 +1873,7 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
                 key="success"
                 initial={{ opacity: 0, scale: 0.8 }} 
                 animate={{ opacity: 1, scale: 1 }}
-                className={`font-black text-green-400 ${isMobile ? 'text-base' : 'text-xl'}`}>
+                className={`font-black text-green-400 ${isMobile ? 'text-base' : 'text-base'}`}>
                 ✅ نطق ممتاز! 🌟
               </motion.p>
             )}
@@ -1880,7 +1882,7 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
                 key="try-again"
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }}
-                className={`font-black text-yellow-400 ${isMobile ? 'text-xs' : 'text-base'}`}>
+                className={`font-black text-yellow-400 ${isMobile ? 'text-xs' : 'text-xs'}`}>
                 😊 قريب! حاول تاني بصوت أوضح
               </motion.p>
             )}
@@ -1889,7 +1891,7 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
                 key="error"
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }}
-                className={`font-black text-red-400 ${isMobile ? 'text-xs' : 'text-base'}`}>
+                className={`font-black text-red-400 ${isMobile ? 'text-xs' : 'text-xs'}`}>
                 ❌ لازم تسمح للموقع باستخدام المايك
               </motion.p>
             )}
@@ -1898,7 +1900,7 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
                 key="idle"
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }}
-                className={`font-bold text-white/40 ${isMobile ? 'text-[10px]' : 'text-sm'}`}>
+                className={`font-bold text-white/40 ${isMobile ? 'text-[10px]' : 'text-[10px]'}`}>
                 اضغط على المايك وابدأ تتكلم
               </motion.p>
             )}
@@ -1910,8 +1912,8 @@ function SpeakingPractice({ letterData, mode, isMobile, onSuccess, onSkip }: {
               animate={{ opacity: 1, y: 0 }} 
               className="flex justify-center">
               <button onClick={onSkip}
-                className={`flex items-center gap-2 rounded-2xl font-bold text-white/70 hover:text-white border border-white/15 hover:border-white/30 bg-white/5 hover:bg-white/10 transition-all ${isMobile ? 'px-4 py-2 text-xs' : 'px-6 py-3 text-sm'}`}>
-                <SkipForward size={isMobile ? 14 : 16} /> تخطي وكمل
+                className={`flex items-center gap-2 rounded-2xl font-bold text-white/70 hover:text-white border border-white/15 hover:border-white/30 bg-white/5 hover:bg-white/10 transition-all ${isMobile ? 'px-4 py-2 text-xs' : 'px-4 py-1.5 text-xs'}`}>
+                <SkipForward size={isMobile ? 14 : 14} /> تخطي وكمل
               </button>
             </motion.div>
           )}
@@ -2845,13 +2847,7 @@ function GermanLetterLessonPageInner() {
       
       <ScreenBackground isMobile={isMobile} activeColor={activeColor} phase={phase} />
 
-      <div style={{ 
-        transform: isMobile ? 'scale(0.4)' : 'scale(0.55)', 
-        transformOrigin: 'bottom right', 
-        position: 'fixed', bottom: isMobile ? 110 : 130, right: 0, zIndex: 25, pointerEvents: 'none' 
-      }}>
-        <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" />
-      </div>
+<KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" />
 
       <FlyingItems items={flyingItems} />
 
