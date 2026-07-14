@@ -861,13 +861,43 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) { setSupported(false); return; }
     const recognition = new SpeechRecognition();
-    recognition.lang = 'de-DE'; recognition.continuous = false; recognition.interimResults = false; recognition.maxAlternatives = 3;
+    recognition.lang = 'de-DE'; 
+    recognition.continuous = false; 
+    recognition.interimResults = true; // 🆕 نتائج مؤقتة عشان نعرف إنه بيسمع
+    recognition.maxAlternatives = 3;
+    
+    recognition.onstart = () => {
+      console.log('🎙️ Recognition started');
+    };
+    
+    recognition.onaudiostart = () => {
+      console.log('🔊 Audio capture started');
+    };
+    
+    recognition.onspeechstart = () => {
+      console.log('🗣️ Speech detected');
+    };
+    
+    recognition.onspeechend = () => {
+      console.log('🤐 Speech ended');
+      try { recognition.stop(); } catch {}
+    };
+    
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const results = event.results[0];
+      console.log('📝 Got result:', event.results);
+      const lastResult = event.results[event.results.length - 1];
+      if (!lastResult.isFinal) {
+        // نتيجة مؤقتة - نعرض إنه بيسمع
+        const interim = (lastResult as any)[0]?.transcript || '';
+        console.log('⏳ Interim:', interim);
+        return;
+      }
+      
       let bestMatch = ''; let bestScore = 0;
-      for (let i = 0; i < (results as any).length; i++) {
-        const text = (results as any)[i].transcript.toLowerCase().trim();
+      for (let i = 0; i < (lastResult as any).length; i++) {
+        const text = (lastResult as any)[i].transcript.toLowerCase().trim();
         const score = similarityScore(text, target.toLowerCase());
+        console.log(`🎯 Alternative ${i}: "${text}" - Score: ${score}`);
         if (score > bestScore) { bestScore = score; bestMatch = text; }
       }
       setTranscript(bestMatch); setIsListening(false);
@@ -884,19 +914,62 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       }
     };
     recognition.onerror = (event: any) => {
+      console.error('❌ Recognition error:', event.error, event);
       setIsListening(false);
       if (event.error === 'not-allowed') setStatus('error');
-      else if (event.error !== 'no-speech') { setStatus('try-again'); setAttempts(a => a + 1); }
+      else if (event.error === 'no-speech') { setStatus('try-again'); setAttempts(a => a + 1); }
+      else if (event.error !== 'aborted') { setStatus('try-again'); setAttempts(a => a + 1); }
       else setStatus('idle');
     };
-    recognition.onend = () => setIsListening(false);
+    recognition.onend = () => {
+      console.log('🛑 Recognition ended');
+      setIsListening(false);
+    };
     recognitionRef.current = recognition;
   }, [target, onSuccess]);
 
   const handleStart = () => {
     if (!recognitionRef.current || isListening) return;
     setTranscript(''); setStatus('listening'); setIsListening(true);
-    try { recognitionRef.current.start(); } catch (e) { setIsListening(false); setStatus('error'); }
+    
+    // 🆕 Timeout احتياطي: لو مفيش استجابة خلال 10 ثواني، نوقف
+    const safetyTimeout = setTimeout(() => {
+      console.warn('⏰ Safety timeout - stopping recognition');
+      try { 
+        recognitionRef.current?.stop(); 
+        recognitionRef.current?.abort();
+      } catch {}
+      setIsListening(false);
+      setStatus('try-again');
+      setAttempts(a => a + 1);
+    }, 10000);
+    
+    // نحفظ الـ timeout ID عشان نلغيه لما ييجي result
+    const originalOnResult = recognitionRef.current.onresult;
+    const originalOnEnd = recognitionRef.current.onend;
+    const originalOnError = recognitionRef.current.onerror;
+    
+    recognitionRef.current.onresult = (e: any) => {
+      clearTimeout(safetyTimeout);
+      originalOnResult?.(e);
+    };
+    recognitionRef.current.onend = (e: any) => {
+      clearTimeout(safetyTimeout);
+      originalOnEnd?.(e);
+    };
+    recognitionRef.current.onerror = (e: any) => {
+      clearTimeout(safetyTimeout);
+      originalOnError?.(e);
+    };
+    
+    try { 
+      recognitionRef.current.start(); 
+    } catch (e) { 
+      clearTimeout(safetyTimeout);
+      console.error('❌ Failed to start:', e);
+      setIsListening(false); 
+      setStatus('error'); 
+    }
   };
 
   if (!supported) {
