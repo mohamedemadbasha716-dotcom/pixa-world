@@ -14,32 +14,45 @@ export interface LetterGroup {
 }
 
 export const LETTERS: Letter[] = [
-  { letter: 'A', word: 'Anker',        wordAr: 'مرساة',         emoji: '⚓', color: '#FF6B6B', gradient: ['#FF6B6B', '#FF8E53'] },
-  { letter: 'B', word: 'Boot',         wordAr: 'قارب',          emoji: '⛵', color: '#4ECDC4', gradient: ['#4ECDC4', '#44A08D'] },
-  { letter: 'C', word: 'Container',    wordAr: 'حاوية شحن',     emoji: '📦', color: '#45B7D1', gradient: ['#45B7D1', '#2980B9'] },
-  { letter: 'D', word: 'Delphin',      wordAr: 'دولفين',        emoji: '🐬', color: '#96CEB4', gradient: ['#96CEB4', '#5FB385'] },
-  { letter: 'E', word: 'Eimer',        wordAr: 'جردل',          emoji: '🪣', color: '#FFEAA7', gradient: ['#FFEAA7', '#FDCB6E'] },
-  { letter: 'F', word: 'Fisch',        wordAr: 'سمكة',          emoji: '🐟', color: '#DDA0DD', gradient: ['#DDA0DD', '#B97FBA'] },
-  { letter: 'G', word: 'Gabelstapler', wordAr: 'رافعة شوكية',   emoji: '🚜', color: '#F0A500', gradient: ['#F0A500', '#D17F00'] },
-  { letter: 'H', word: 'Haken',        wordAr: 'خطاف',          emoji: '🪝', color: '#FF7675', gradient: ['#FF7675', '#E84545'] },
-  { letter: 'I', word: 'Insel',        wordAr: 'جزيرة',         emoji: '🏝️', color: '#A29BFE', gradient: ['#A29BFE', '#6C5CE7'] },
-  { letter: 'J', word: 'Jacke',        wordAr: 'جاكيت',         emoji: '🧥', color: '#FD79A8', gradient: ['#FD79A8', '#E84393'] },
-  { letter: 'K', word: 'Kran',         wordAr: 'رافعة',         emoji: '🏗️', color: '#55EFC4', gradient: ['#55EFC4', '#00B894'] },
-  { letter: 'L', word: 'Leuchtturm',   wordAr: 'منارة',         emoji: '🗼', color: '#FDCB6E', gradient: ['#FDCB6E', '#E17055'] },
-  { letter: 'M', word: 'Möwe',         wordAr: 'نورس',          emoji: '🕊️', color: '#74B9FF', gradient: ['#74B9FF', '#0984E3'] },
-  { letter: 'N', word: 'Netz',         wordAr: 'شبكة صيد',      emoji: '🕸️', color: '#FF9FF3', gradient: ['#FF9FF3', '#F368E0'] },
-  { letter: 'O', word: 'Otter',        wordAr: 'قضاعة',         emoji: '🦦', color: '#00CEC9', gradient: ['#00CEC9', '#00B0AF'] },
-  { letter: 'P', word: 'Pinguin',      wordAr: 'بطريق',         emoji: '🐧', color: '#6C5CE7', gradient: ['#6C5CE7', '#4834D4'] },
-  { letter: 'Q', word: 'Qualle',       wordAr: 'قنديل البحر',   emoji: '🪼', color: '#E17055', gradient: ['#E17055', '#D63031'] },
-  { letter: 'R', word: 'Ruder',        wordAr: 'مجداف',         emoji: '🚣', color: '#0984E3', gradient: ['#0984E3', '#0652DD'] },
-  { letter: 'S', word: 'Schiff',       wordAr: 'سفينة',         emoji: '🚢', color: '#FDCB6E', gradient: ['#FDCB6E', '#F39C12'] },
-  { letter: 'T', word: 'Tau',          wordAr: 'حبل',           emoji: '🪢', color: '#E17055', gradient: ['#E17055', '#C0392B'] },
-  { letter: 'U', word: 'Uhr',          wordAr: 'ساعة',          emoji: '⏰', color: '#A29BFE', gradient: ['#A29BFE', '#5F27CD'] },
-  { letter: 'V', word: 'Vogel',        wordAr: 'طائر',          emoji: '🐦', color: '#55EFC4', gradient: ['#55EFC4', '#10AC84'] },
-  { letter: 'W', word: 'Welle',        wordAr: 'موجة',          emoji: '🌊', color: '#74B9FF', gradient: ['#74B9FF', '#2E86DE'] },
-  { letter: 'X', word: 'Xylofon',      wordAr: 'إكسيلوفون',    emoji: '🎵', color: '#FD79A8', gradient: ['#FD79A8', '#EE5A6F'] },
-  { letter: 'Y', word: 'Yacht',        wordAr: 'يخت',           emoji: '⛵', color: '#FFEAA7', gradient: ['#FFEAA7', '#F8B500'] },
-  { letter: 'Z', word: 'Zug',          wordAr: 'قطار',          emoji: '🚂', color: '#DDA0DD', gradient: ['#DDA0DD', '#A55EEA'] },
+  // 🌊 المجموعة 1
+  { letter: 'A', word: 'Ast',     wordAr: 'فرع شجرة',    emoji: '🌿', color: '#8B4513', gradient: ['#A0522D', '#6B3410'] },
+  { letter: 'B', word: 'Boot',    wordAr: 'قارب',        emoji: '⛵', color: '#DC143C', gradient: ['#FF6B6B', '#DC143C'] },
+  { letter: 'C', word: 'Chef',    wordAr: 'كابتن',       emoji: '👨‍✈️', color: '#4169E1', gradient: ['#5B8DEE', '#3B5FCC'] },
+  { letter: 'D', word: 'Dose',    wordAr: 'علبة',        emoji: '🥫', color: '#FF6347', gradient: ['#FF7F50', '#E5533D'] },
+  { letter: 'E', word: 'Ente',    wordAr: 'بطة',         emoji: '🦆', color: '#FFD700', gradient: ['#FFE55C', '#F5C842'] },
+  { letter: 'Ä', word: 'Äpfel',   wordAr: 'تفاح',        emoji: '🍎', color: '#DC143C', gradient: ['#FF4444', '#B22222'] },
+
+  // 🐟 المجموعة 2
+  { letter: 'F', word: 'Fisch',   wordAr: 'سمكة',        emoji: '🐟', color: '#00BFFF', gradient: ['#4CC9F0', '#0F91CD'] },
+  { letter: 'G', word: 'Gans',    wordAr: 'إوزة',        emoji: '🪿', color: '#B0B0B0', gradient: ['#E0E0E0', '#909090'] },
+  { letter: 'H', word: 'Hut',     wordAr: 'قبعة',        emoji: '🎩', color: '#4682B4', gradient: ['#5B9AD8', '#2E5C8A'] },
+  { letter: 'I', word: 'Igel',    wordAr: 'قنفذ',        emoji: '🦔', color: '#8B4513', gradient: ['#A0522D', '#6B3410'] },
+  { letter: 'J', word: 'Jacke',   wordAr: 'جاكيت',       emoji: '🧥', color: '#FFD700', gradient: ['#FFE55C', '#F5C842'] },
+  { letter: 'Ö', word: 'Öl',      wordAr: 'زيت',         emoji: '🛢️', color: '#2F4F4F', gradient: ['#4A6A6A', '#1C3030'] },
+
+  // 🏖️ المجموعة 3
+  { letter: 'K', word: 'Krebs',   wordAr: 'كابوريا',     emoji: '🦀', color: '#FF4500', gradient: ['#FF6347', '#CC3700'] },
+  { letter: 'L', word: 'Lampe',   wordAr: 'لمبة',        emoji: '💡', color: '#FFA500', gradient: ['#FFC947', '#E59400'] },
+  { letter: 'M', word: 'Maus',    wordAr: 'فأر',         emoji: '🐭', color: '#808080', gradient: ['#A9A9A9', '#606060'] },
+  { letter: 'N', word: 'Nest',    wordAr: 'عش',          emoji: '🪺', color: '#8B4513', gradient: ['#A0522D', '#6B3410'] },
+  { letter: 'O', word: 'Obst',    wordAr: 'فاكهة',       emoji: '🍎', color: '#FF6347', gradient: ['#FF8367', '#E5533D'] },
+  { letter: 'Ü', word: 'Tür',     wordAr: 'باب',         emoji: '🚪', color: '#8B4513', gradient: ['#A0522D', '#6B3410'] },
+
+  // 🌴 المجموعة 4
+  { letter: 'P', word: 'Palme',   wordAr: 'نخلة',        emoji: '🌴', color: '#228B22', gradient: ['#3CB371', '#1F6B1F'] },
+  { letter: 'Q', word: 'Qualle',  wordAr: 'قنديل بحر',   emoji: '🪼', color: '#DA70D6', gradient: ['#EE82EE', '#B857B2'] },
+  { letter: 'R', word: 'Rose',    wordAr: 'وردة',        emoji: '🌹', color: '#DC143C', gradient: ['#FF4569', '#B22222'] },
+  { letter: 'S', word: 'Sonne',   wordAr: 'شمس',         emoji: '☀️', color: '#FFD700', gradient: ['#FFE55C', '#F5B800'] },
+  { letter: 'T', word: 'Tau',     wordAr: 'حبل',         emoji: '🪢', color: '#8B7355', gradient: ['#A0826D', '#6B5643'] },
+  { letter: 'ß', word: 'Fuß',     wordAr: 'قدم',         emoji: '🦶', color: '#DEB887', gradient: ['#F0C896', '#B8945F'] },
+
+  // 🌟 المجموعة 5
+  { letter: 'U', word: 'Uhr',     wordAr: 'ساعة',        emoji: '⏰', color: '#B8860B', gradient: ['#DAA520', '#8B6508'] },
+  { letter: 'V', word: 'Vogel',   wordAr: 'عصفور',       emoji: '🐦', color: '#8B4513', gradient: ['#A0522D', '#6B3410'] },
+  { letter: 'W', word: 'Wal',     wordAr: 'حوت',         emoji: '🐋', color: '#4682B4', gradient: ['#5B9AD8', '#2E5C8A'] },
+  { letter: 'X', word: 'Xylofon', wordAr: 'إكسيلوفون',  emoji: '🎵', color: '#FF1493', gradient: ['#FF69B4', '#C71585'] },
+  { letter: 'Y', word: 'Yacht',   wordAr: 'يخت',         emoji: '🛥️', color: '#F5F5F5', gradient: ['#FFFFFF', '#D3D3D3'] },
+  { letter: 'Z', word: 'Zug',     wordAr: 'قطار',        emoji: '🚂', color: '#DC143C', gradient: ['#FF4444', '#B22222'] },
 ];
 
 export const LETTER_GROUPS: LetterGroup[] = [
@@ -47,5 +60,5 @@ export const LETTER_GROUPS: LetterGroup[] = [
   { letters: LETTERS.slice(6, 12),  title: 'المجموعة الثانية',  groupId: 1 },
   { letters: LETTERS.slice(12, 18), title: 'المجموعة الثالثة',  groupId: 2 },
   { letters: LETTERS.slice(18, 24), title: 'المجموعة الرابعة',  groupId: 3 },
-  { letters: LETTERS.slice(24, 26), title: 'المجموعة الخامسة',  groupId: 4 },
+  { letters: LETTERS.slice(24, 30), title: 'المجموعة الخامسة',  groupId: 4 },
 ];
