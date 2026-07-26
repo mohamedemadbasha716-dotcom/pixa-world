@@ -1826,7 +1826,7 @@ function ForestTest({
       <motion.div 
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
-        className={`flex w-full items-center max-w-7xl mx-auto ${isMobile ? 'flex-col gap-2' : 'flex-row gap-4'}`}
+        className={`flex w-full items-center max-w-7xl mx-auto ${isMobile ? 'flex-col-reverse gap-2' : 'flex-row gap-4'}`}
       >
         <AnimatePresence mode="wait">
           {!finished && (
@@ -1910,10 +1910,12 @@ function ForestTest({
           ref={containerRef}
           className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl select-none"
           style={{
-            aspectRatio: `${NAT_W}/${NAT_H}`,
+            aspectRatio: isMobile ? '9/16' : `${NAT_W}/${NAT_H}`,
             cursor: finished ? 'default' : 'pointer',
             background: '#0a1a0a',
-            minHeight: isMobile ? '40vh' : '50vh',
+            maxHeight: isMobile ? '55vh' : 'calc(100vh - 240px)',
+            maxWidth: isMobile ? '100%' : 'calc((100vh - 240px) * 1.777)',
+            margin: '0 auto',
           }}
           onClick={handleImageClick}
         >
@@ -2501,10 +2503,11 @@ export default function GermanForestPage() {
           height: '100vh',
           paddingTop: phase === 'section-success' || phase === 'section-fail' || phase === 'all-done' 
             ? '20px' 
-            : isMobile ? mobilePaddingTop : '100px',
+            : isMobile ? mobilePaddingTop : '120px',
           paddingBottom: phase === 'section-success' || phase === 'section-fail' || phase === 'all-done' 
             ? '20px' 
-            : isMobile ? mobilePaddingBottom : '95px',
+            : isMobile ? mobilePaddingBottom : '120px',
+          overflow: 'hidden',
         }}>
         <AnimatePresence mode="wait">
           {phase === 'learn' && wordData && (
