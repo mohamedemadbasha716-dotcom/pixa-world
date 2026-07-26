@@ -1447,40 +1447,7 @@ export default function CharacterAndMapPage() {
         </div>
       </div>
 
-      <AnimatePresence>
-        {currentMap < TOTAL_MAPS_COUNT && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0, y: -20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 200, delay: 0.5 }}
-            className="fixed z-40 left-1/2 -translate-x-1/2"
-            style={{ top: debugMode ? '96px' : '70px' }}
-          >
-            <motion.button
-              onClick={handleShowMapTransition}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              animate={{ 
-                y: [0, -4, 0],
-                boxShadow: ['0 8px 30px rgba(255,215,0,0.5)', '0 12px 40px rgba(255,215,0,0.8)', '0 8px 30px rgba(255,215,0,0.5)']
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              className="relative flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-white border-2 border-yellow-300"
-              style={{ background: 'linear-gradient(135deg, #FFD700, #FF8C00)' }}
-            >
-              <span className="text-xl">🗺️</span>
-              <span className="text-sm md:text-base">
-                {currentMap === 1 ? 'الحياة اليومية جاهزة! 🚀' 
-                  : currentMap === 2 ? 'فرانكفورت جاهزة! 🚀' 
-                  : currentMap === 3 ? 'برلين جاهزة! 🚀'
-                  : currentMap === 4 ? 'مدن الثقافة جاهزة! 🎓'
-                  : 'المرحلة الجاية! 🚀'}
-              </span>
-            </motion.button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       <div 
         className="w-full min-h-screen flex items-center justify-center bg-[#07090D] overflow-hidden" 

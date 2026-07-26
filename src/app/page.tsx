@@ -339,7 +339,7 @@ export default function PixiHomePage() {
           <motion.button
             whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(255,77,109,0.5)' }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => window.location.href = '/character-and-map'}
+            onClick={() => window.location.href = '/plans'}
             className="bg-gradient-to-r from-[#FF4D6D] to-[#F72585] text-white px-3 md:px-7 py-2 md:py-3 rounded-xl md:rounded-2xl font-black text-[11px] md:text-sm shadow-lg shadow-[#FF4D6D]/30 flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
           >
             <Rocket size={14} className="md:w-4 md:h-4" />
@@ -1140,7 +1140,7 @@ export default function PixiHomePage() {
               <motion.button
                 whileHover={{ scale: 1.05, boxShadow: '0 0 40px rgba(255,255,255,0.4)' }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.location.href = '/character-and-map'}
+                onClick={() => window.location.href = '/plans'}
                 className="bg-white text-[#F72585] px-10 py-4 rounded-2xl font-black text-base shadow-2xl flex items-center gap-3"
               >
                 <GraduationCap size={20} />
