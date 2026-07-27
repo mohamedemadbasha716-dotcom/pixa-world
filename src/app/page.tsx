@@ -332,7 +332,10 @@ export default function PixiHomePage() {
         className="w-full max-w-7xl mx-auto px-3 md:px-6 py-3 md:py-4 flex justify-between items-center gap-2 border-b border-white/10 backdrop-blur-xl bg-[#1a1a3e]/50 sticky top-0 z-50"
       >
         <div className="flex items-center gap-2 md:gap-3 order-2">
-          <button className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-xl hover:bg-white/10">
+          <button 
+            onClick={() => window.location.href = '/login'}
+            className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-xl hover:bg-white/10"
+          >
             <span>تسجيل دخول الأبطال</span>
             <span className="text-lg">👋</span>
           </button>

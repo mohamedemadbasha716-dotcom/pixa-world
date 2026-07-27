@@ -12,18 +12,11 @@ export default function PlansPage() {
   const [loadingPaid, setLoadingPaid] = useState(false);
 
   const handleFreePlan = () => {
-    router.push('/character-and-map');
+    router.push('/signup?plan=free');
   };
 
-  const handlePaidPlan = async () => {
-    setLoadingPaid(true);
-    try {
-      const res = await fetch('/api/geo');
-      const data = await res.json();
-      router.push(data.redirectPath || '/pricing/eg');
-    } catch {
-      router.push('/pricing/eg');
-    }
+  const handlePaidPlan = () => {
+    router.push('/signup?plan=paid');
   };
 
   return (
