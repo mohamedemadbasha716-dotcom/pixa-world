@@ -1,6 +1,6 @@
 'use client';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Mail, Lock, ArrowRight, Sparkle,
@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { signIn } from '@/lib/auth';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const planType = searchParams.get('plan') || 'free';
@@ -229,5 +229,19 @@ export default function LoginPage() {
         </motion.div>
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#1a1a3e] flex items-center justify-center">
+          <div className="w-12 h-12 border-4 border-[#4CC9F0] border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
