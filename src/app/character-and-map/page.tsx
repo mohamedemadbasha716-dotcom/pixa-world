@@ -1385,24 +1385,67 @@ export default function CharacterAndMapPage() {
           background: 'linear-gradient(to bottom, rgba(7,9,13,0.95), transparent)', 
           top: debugMode ? '32px' : '0' 
         }}>
+        {/* 🔙 الجهة اليمين (في RTL): تعديل + اسم البطل + الكاميرا */}
         <div className="flex items-center gap-2">
           <button onClick={() => setStep('setup')}
             className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl px-3 py-2 text-xs md:text-sm font-bold text-white transition-all">
             ← تعديل
           </button>
 
-          {currentMap > 1 && (
-            <motion.button
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              onClick={handleGoToPreviousMap}
-              className="flex items-center gap-1.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 rounded-2xl px-3 py-2 text-xs md:text-sm font-bold text-purple-300 transition-all"
-              title="الخريطة السابقة">
-              <MapIcon size={14} /> سابقة
-            </motion.button>
-          )}
+          <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
+            <div className="text-xs md:text-sm font-black text-white">👋 {heroName}</div>
+          </div>
         </div>
 
+        {/* 🎯 النص: سهمين للتنقل بين الخرايط */}
+        <div className="flex items-center gap-2">
+          {/* ⬅️ سهم شمال (المرحلة السابقة) */}
+          <motion.button
+            whileHover={{ scale: currentMap > 1 ? 1.1 : 1 }}
+            whileTap={{ scale: currentMap > 1 ? 0.9 : 1 }}
+            onClick={handleGoToPreviousMap}
+            disabled={currentMap <= 1}
+            className={`flex items-center justify-center rounded-2xl w-11 h-11 md:w-12 md:h-12 border-2 transition-all ${
+              currentMap > 1
+                ? 'bg-purple-500/20 hover:bg-purple-500/40 border-purple-400/50 text-purple-200 cursor-pointer shadow-lg shadow-purple-500/20'
+                : 'bg-white/5 border-white/10 text-white/20 cursor-not-allowed'
+            }`}
+            title="المرحلة السابقة">
+            <ChevronRight size={20} strokeWidth={3} />
+          </motion.button>
+
+          {/* 🗺️ مؤشر رقم المرحلة */}
+          <motion.div 
+            key={currentMap}
+            initial={{ scale: 0.8, opacity: 0 }} 
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex items-center gap-1.5 bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-400/40 rounded-2xl px-3 py-2 h-11 md:h-12">
+            <MapIcon size={14} className="text-purple-300" />
+            <span className="text-xs md:text-sm font-black text-white">{currentMap}/{TOTAL_MAPS_COUNT}</span>
+          </motion.div>
+
+          {/* ➡️ سهم يمين (المرحلة التالية) */}
+          <motion.button
+            whileHover={{ scale: currentMap < TOTAL_MAPS_COUNT ? 1.1 : 1 }}
+            whileTap={{ scale: currentMap < TOTAL_MAPS_COUNT ? 0.9 : 1 }}
+            onClick={() => {
+              if (currentMap < TOTAL_MAPS_COUNT) {
+                playClickSound();
+                setCurrentMap(prev => (prev + 1) as MapNumber);
+              }
+            }}
+            disabled={currentMap >= TOTAL_MAPS_COUNT}
+            className={`flex items-center justify-center rounded-2xl w-11 h-11 md:w-12 md:h-12 border-2 transition-all ${
+              currentMap < TOTAL_MAPS_COUNT
+                ? 'bg-purple-500/20 hover:bg-purple-500/40 border-purple-400/50 text-purple-200 cursor-pointer shadow-lg shadow-purple-500/20'
+                : 'bg-white/5 border-white/10 text-white/20 cursor-not-allowed'
+            }`}
+            title="المرحلة التالية">
+            <ChevronRight size={20} strokeWidth={3} style={{ transform: 'rotate(180deg)' }} />
+          </motion.button>
+        </div>
+
+        {/* 📊 الجهة الشمال (في RTL): زرار الريست + التقدم */}
         <div className="flex items-center gap-2">
           {!isMobileView && (
             <AnimatePresence>
@@ -1421,29 +1464,16 @@ export default function CharacterAndMapPage() {
           )}
 
           <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
-            <div className="text-xs md:text-sm font-black text-white">👋 {heroName}</div>
-          </div>
-
-          <motion.div 
-            key={currentMap}
-            initial={{ scale: 0, opacity: 0 }} 
-            animate={{ scale: 1, opacity: 1 }}
-            className="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-400/40 rounded-2xl px-3 py-2">
-            <MapIcon size={14} className="text-purple-300" />
-            <span className="text-xs font-black text-white">المرحلة {currentMap}/{TOTAL_MAPS_COUNT}</span>
-          </motion.div>
-        </div>
-
-        <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
-          <div className="text-right">
-            <div className="text-[10px] md:text-xs text-white/50 font-bold">تقدمك</div>
-            <div className="text-xs md:text-sm font-black text-[#58CC02]">
-              {(currentMap === 4 || currentMap === 5)
-                ? `${LANDMARKS.length} / ${LANDMARKS.length}` 
-                : `${LANDMARKS.filter(l => l.lesson < unlockedLessonInMap).length} / ${LANDMARKS.length}`}
+            <div className="text-right">
+              <div className="text-[10px] md:text-xs text-white/50 font-bold">تقدمك</div>
+              <div className="text-xs md:text-sm font-black text-[#58CC02]">
+                {(currentMap === 4 || currentMap === 5)
+                  ? `${LANDMARKS.length} / ${LANDMARKS.length}` 
+                  : `${LANDMARKS.filter(l => l.lesson < unlockedLessonInMap).length} / ${LANDMARKS.length}`}
+              </div>
             </div>
+            <div className="text-lg md:text-xl">🗺️</div>
           </div>
-          <div className="text-lg md:text-xl">🗺️</div>
         </div>
       </div>
 
