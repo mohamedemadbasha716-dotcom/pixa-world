@@ -1380,38 +1380,55 @@ export default function CharacterAndMapPage() {
         </div>
       )}
 
-      <div className="fixed left-0 right-0 z-30 flex items-center justify-between px-4 py-3"
+      <div 
+        className="fixed left-0 right-0 z-30 flex items-center justify-between"
         style={{ 
           background: 'linear-gradient(to bottom, rgba(7,9,13,0.95), transparent)', 
-          top: debugMode ? '32px' : '0' 
-        }}>
-        {/* 🔙 الجهة اليمين (في RTL): تعديل + اسم البطل + الكاميرا */}
-        <div className="flex items-center gap-2">
-          <button onClick={() => setStep('setup')}
-            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl px-3 py-2 text-xs md:text-sm font-bold text-white transition-all">
-            ← تعديل
-          </button>
-
-          <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
-            <div className="text-xs md:text-sm font-black text-white">👋 {heroName}</div>
+          top: debugMode ? '32px' : '0',
+          padding: 'clamp(8px, 1.5vw, 16px) clamp(10px, 2vw, 20px)',
+          gap: 'clamp(6px, 1vw, 12px)',
+        }}
+      >
+        {/* 👋 الجهة اليمين: اسم البطل */}
+        <div className="flex items-center" style={{ gap: 'clamp(4px, 0.8vw, 8px)' }}>
+          <div 
+            className="flex items-center bg-black/40 border border-white/10 rounded-2xl"
+            style={{
+              gap: 'clamp(4px, 0.6vw, 8px)',
+              padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.4vw, 14px)',
+            }}
+          >
+            <div 
+              className="font-black text-white whitespace-nowrap"
+              style={{ fontSize: 'clamp(11px, 1.3vw, 14px)' }}
+            >
+              👋 {heroName}
+            </div>
           </div>
         </div>
 
-        {/* 🎯 النص: سهمين للتنقل بين الخرايط */}
-        <div className="flex items-center gap-2">
+        {/* 🎯 النص: سهمين للتنقل بين الخرايط + مؤشر المرحلة */}
+        <div className="flex items-center" style={{ gap: 'clamp(4px, 0.8vw, 8px)' }}>
           {/* ⬅️ سهم شمال (المرحلة السابقة) */}
           <motion.button
             whileHover={{ scale: currentMap > 1 ? 1.1 : 1 }}
             whileTap={{ scale: currentMap > 1 ? 0.9 : 1 }}
             onClick={handleGoToPreviousMap}
             disabled={currentMap <= 1}
-            className={`flex items-center justify-center rounded-2xl w-11 h-11 md:w-12 md:h-12 border-2 transition-all ${
+            className={`flex items-center justify-center rounded-2xl border-2 transition-all ${
               currentMap > 1
                 ? 'bg-purple-500/20 hover:bg-purple-500/40 border-purple-400/50 text-purple-200 cursor-pointer shadow-lg shadow-purple-500/20'
                 : 'bg-white/5 border-white/10 text-white/20 cursor-not-allowed'
             }`}
+            style={{
+              width: 'clamp(32px, 4.5vw, 48px)',
+              height: 'clamp(32px, 4.5vw, 48px)',
+            }}
             title="المرحلة السابقة">
-            <ChevronRight size={20} strokeWidth={3} />
+            <ChevronRight 
+              strokeWidth={3} 
+              style={{ width: 'clamp(14px, 1.8vw, 20px)', height: 'clamp(14px, 1.8vw, 20px)' }} 
+            />
           </motion.button>
 
           {/* 🗺️ مؤشر رقم المرحلة */}
@@ -1419,9 +1436,23 @@ export default function CharacterAndMapPage() {
             key={currentMap}
             initial={{ scale: 0.8, opacity: 0 }} 
             animate={{ scale: 1, opacity: 1 }}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-400/40 rounded-2xl px-3 py-2 h-11 md:h-12">
-            <MapIcon size={14} className="text-purple-300" />
-            <span className="text-xs md:text-sm font-black text-white">{currentMap}/{TOTAL_MAPS_COUNT}</span>
+            className="flex items-center bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-400/40 rounded-2xl"
+            style={{
+              gap: 'clamp(4px, 0.6vw, 8px)',
+              padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.4vw, 14px)',
+              height: 'clamp(32px, 4.5vw, 48px)',
+            }}
+          >
+            <MapIcon 
+              className="text-purple-300" 
+              style={{ width: 'clamp(12px, 1.4vw, 16px)', height: 'clamp(12px, 1.4vw, 16px)' }}
+            />
+            <span 
+              className="font-black text-white whitespace-nowrap"
+              style={{ fontSize: 'clamp(11px, 1.3vw, 14px)' }}
+            >
+              {currentMap}/{TOTAL_MAPS_COUNT}
+            </span>
           </motion.div>
 
           {/* ➡️ سهم يمين (المرحلة التالية) */}
@@ -1435,18 +1466,29 @@ export default function CharacterAndMapPage() {
               }
             }}
             disabled={currentMap >= TOTAL_MAPS_COUNT}
-            className={`flex items-center justify-center rounded-2xl w-11 h-11 md:w-12 md:h-12 border-2 transition-all ${
+            className={`flex items-center justify-center rounded-2xl border-2 transition-all ${
               currentMap < TOTAL_MAPS_COUNT
                 ? 'bg-purple-500/20 hover:bg-purple-500/40 border-purple-400/50 text-purple-200 cursor-pointer shadow-lg shadow-purple-500/20'
                 : 'bg-white/5 border-white/10 text-white/20 cursor-not-allowed'
             }`}
+            style={{
+              width: 'clamp(32px, 4.5vw, 48px)',
+              height: 'clamp(32px, 4.5vw, 48px)',
+            }}
             title="المرحلة التالية">
-            <ChevronRight size={20} strokeWidth={3} style={{ transform: 'rotate(180deg)' }} />
+            <ChevronRight 
+              strokeWidth={3} 
+              style={{ 
+                width: 'clamp(14px, 1.8vw, 20px)', 
+                height: 'clamp(14px, 1.8vw, 20px)',
+                transform: 'rotate(180deg)' 
+              }} 
+            />
           </motion.button>
         </div>
 
-        {/* 📊 الجهة الشمال (في RTL): زرار الريست + التقدم */}
-        <div className="flex items-center gap-2">
+        {/* 📊 الجهة الشمال: زرار الريست + التقدم */}
+        <div className="flex items-center" style={{ gap: 'clamp(4px, 0.8vw, 8px)' }}>
           {!isMobileView && (
             <AnimatePresence>
               {(mapPosition.x !== 0 || mapPosition.y !== 0 || mapScale !== 1) && (
@@ -1455,7 +1497,11 @@ export default function CharacterAndMapPage() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0, opacity: 0 }}
                   onClick={resetMapView}
-                  className="flex items-center gap-1 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 rounded-2xl px-3 py-2 text-xs font-bold text-yellow-400 transition-all"
+                  className="flex items-center gap-1 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 rounded-2xl font-bold text-yellow-400 transition-all"
+                  style={{
+                    fontSize: 'clamp(10px, 1.1vw, 12px)',
+                    padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.4vw, 14px)',
+                  }}
                   title="إعادة ضبط العرض">
                   🔄
                 </motion.button>
@@ -1463,16 +1509,30 @@ export default function CharacterAndMapPage() {
             </AnimatePresence>
           )}
 
-          <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
+          <div 
+            className="flex items-center bg-black/40 border border-white/10 rounded-2xl"
+            style={{
+              gap: 'clamp(4px, 0.6vw, 8px)',
+              padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.4vw, 14px)',
+            }}
+          >
             <div className="text-right">
-              <div className="text-[10px] md:text-xs text-white/50 font-bold">تقدمك</div>
-              <div className="text-xs md:text-sm font-black text-[#58CC02]">
+              <div 
+                className="text-white/50 font-bold"
+                style={{ fontSize: 'clamp(8px, 0.9vw, 11px)' }}
+              >
+                تقدمك
+              </div>
+              <div 
+                className="font-black text-[#58CC02] whitespace-nowrap"
+                style={{ fontSize: 'clamp(11px, 1.3vw, 14px)' }}
+              >
                 {(currentMap === 4 || currentMap === 5)
                   ? `${LANDMARKS.length} / ${LANDMARKS.length}` 
                   : `${LANDMARKS.filter(l => l.lesson < unlockedLessonInMap).length} / ${LANDMARKS.length}`}
               </div>
             </div>
-            <div className="text-lg md:text-xl">🗺️</div>
+            <div style={{ fontSize: 'clamp(14px, 1.6vw, 20px)' }}>🗺️</div>
           </div>
         </div>
       </div>
