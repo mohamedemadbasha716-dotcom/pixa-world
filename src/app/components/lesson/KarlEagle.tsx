@@ -43,13 +43,11 @@ export default function KarlEagle({
     const handleResize = () => {
       const currentHeight = window.innerHeight;
       const heightDiff = initialHeight - currentHeight;
-      // لو الفرق أكبر من 150px غالباً الكيبورد فتح
       setKeyboardOpen(heightDiff > 150);
     };
 
     window.addEventListener('resize', handleResize);
     
-    // استخدام visualViewport لو موجود (أدق)
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleResize);
     }
@@ -62,26 +60,27 @@ export default function KarlEagle({
     };
   }, [isMobile]);
 
-  // 🎯 تحديد الحجم Responsive - أصغر بكتير
+  // 🎯 حجم النسر
   const eagleSize = 
     screenSize === 'mobile' ? (keyboardOpen ? 32 : 42) :
     screenSize === 'tablet' ? 55 :
     screenSize === 'laptop' ? 70 :
     85;
 
-  // 🎯 تموضع ذكي في الركن العلوي الأيسر (بعيد عن الكروت والـ HUD)
+  // 🎯 التموضع الجديد: يمين الشاشة على المنتصف عمودياً
+  // بعيد عن الـ HUD العلوي والسفلي والكروت في النص
   const positionStyle = 
     screenSize === 'mobile' ? { 
-      top: keyboardOpen ? 55 : 75, 
-      left: 6,
+      top: keyboardOpen ? 60 : 90, 
+      right: 6,
     } :
     screenSize === 'tablet' ? { 
-      top: 85, 
-      left: 12,
+      top: '35%',
+      right: 15,
     } :
     { 
-      top: 95, 
-      left: 20,
+      top: '30%',
+      right: 25,
     };
 
   return (
@@ -89,23 +88,28 @@ export default function KarlEagle({
       className="fixed pointer-events-none transition-all duration-300" 
       style={{ zIndex: 50, ...positionStyle }}
     >
-      <motion.div
-        animate={
-          mood === 'celebrate'
-            ? { y: [-12, 0, -12], rotate: [-15, 15, -15], scale: [1, 1.15, 1] }
-            : mood === 'happy'
-            ? { y: [-8, 0, -8], rotate: [-8, 8, -8] }
-            : mood === 'sad'
-            ? { y: [0, -3, 0], rotate: [-3, 3, -3] }
-            : { y: [-4, 4, -4] }
-        }
-        transition={{
-          duration: mood === 'celebrate' ? 0.5 : mood === 'happy' ? 0.8 : 2.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      >
-        <div className="relative">
+      {/* 🎯 حاوية أساسية: النسر + الرسالة جنبه على الشمال */}
+      <div className="flex items-center gap-2 flex-row-reverse">
+        
+        {/* 🦅 النسر */}
+        <motion.div
+          animate={
+            mood === 'celebrate'
+              ? { y: [-12, 0, -12], rotate: [-15, 15, -15], scale: [1, 1.15, 1] }
+              : mood === 'happy'
+              ? { y: [-8, 0, -8], rotate: [-8, 8, -8] }
+              : mood === 'sad'
+              ? { y: [0, -3, 0], rotate: [-3, 3, -3] }
+              : { y: [-4, 4, -4] }
+          }
+          transition={{
+            duration: mood === 'celebrate' ? 0.5 : mood === 'happy' ? 0.8 : 2.5,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="relative flex-shrink-0"
+        >
+          {/* توهج خلف النسر */}
           <motion.div
             className="absolute inset-0 rounded-full"
             style={{
@@ -145,56 +149,58 @@ export default function KarlEagle({
             }}
             draggable={false}
           />
+        </motion.div>
 
-          <AnimatePresence>
-            {message && !keyboardOpen && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.6, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.6, y: 10 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                className="absolute whitespace-nowrap"
+        {/* 💬 الرسالة على شمال النسر */}
+        <AnimatePresence>
+          {message && !keyboardOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.6, x: 20 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.6, x: 20 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              className="relative flex items-center"
+              style={{
+                maxWidth: isMobile ? '150px' : '220px',
+              }}
+            >
+              {/* السهم اللي بيشاور على النسر */}
+              <div
+                className="w-0 h-0 flex-shrink-0"
                 style={{
-                  bottom: '100%',
-                  right: '50%',
-                  transform: 'translateX(50%)',
-                  marginBottom: 12,
+                  borderTop: '8px solid transparent',
+                  borderBottom: '8px solid transparent',
+                  borderLeft: `8px solid ${
+                    mood === 'celebrate' || mood === 'happy'
+                      ? 'rgba(88,204,2,0.95)'
+                      : 'rgba(255,107,107,0.95)'
+                  }`,
+                  marginRight: '-1px',
+                }}
+              />
+              
+              {/* البلون */}
+              <div
+                className={`${isMobile ? 'px-2.5 py-1.5' : 'px-4 py-2.5'} rounded-2xl shadow-2xl border-2 backdrop-blur-md`}
+                style={{
+                  background:
+                    mood === 'celebrate' || mood === 'happy'
+                      ? 'linear-gradient(135deg, rgba(88,204,2,0.95), rgba(76,201,240,0.95))'
+                      : 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(247,37,133,0.95))',
+                  borderColor: 'rgba(255,255,255,0.4)',
                 }}
               >
-                <div
-                  className="px-4 py-2.5 rounded-2xl shadow-2xl border-2 backdrop-blur-md"
-                  style={{
-                    background:
-                      mood === 'celebrate' || mood === 'happy'
-                        ? 'linear-gradient(135deg, rgba(88,204,2,0.95), rgba(76,201,240,0.95))'
-                        : 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(247,37,133,0.95))',
-                    borderColor: 'rgba(255,255,255,0.4)',
-                  }}
-                >
-                  <div className="text-base font-black text-white text-center leading-tight">
-                    {message.de}
-                  </div>
-                  <div className="text-xs font-bold text-white/90 text-center mt-0.5">
-                    {message.ar}
-                  </div>
+                <div className={`${isMobile ? 'text-xs' : 'text-base'} font-black text-white text-center leading-tight`}>
+                  {message.de}
                 </div>
-                <div
-                  className="w-0 h-0 mx-auto"
-                  style={{
-                    borderLeft: '6px solid transparent',
-                    borderRight: '6px solid transparent',
-                    borderTop: `6px solid ${
-                      mood === 'celebrate' || mood === 'happy'
-                        ? 'rgba(88,204,2,0.95)'
-                        : 'rgba(255,107,107,0.95)'
-                    }`,
-                  }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
+                <div className={`${isMobile ? 'text-[9px]' : 'text-xs'} font-bold text-white/90 text-center mt-0.5`}>
+                  {message.ar}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

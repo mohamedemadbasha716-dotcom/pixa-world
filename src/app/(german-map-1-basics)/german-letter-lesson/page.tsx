@@ -864,9 +864,9 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     if (!SpeechRecognition) { setSupported(false); return; }
     const recognition = new SpeechRecognition();
     recognition.lang = 'de-DE'; 
-    recognition.continuous = false; 
-    recognition.interimResults = true; // 🆕 نتائج مؤقتة عشان نعرف إنه بيسمع
-    recognition.maxAlternatives = 3;
+    recognition.continuous = true; // 🆕 استمرار الاستماع
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 5; // 🆕 بدائل أكتر عشان يلاقي أقرب نطق
     
     recognition.onstart = () => {
       console.log('🎙️ Recognition started');
@@ -903,7 +903,8 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         if (score > bestScore) { bestScore = score; bestMatch = text; }
       }
       setTranscript(bestMatch); setIsListening(false);
-      if (bestScore >= 0.7) {
+      // 🆕 تخفيض النسبة من 0.7 لـ 0.55 عشان يقبل نطق الأطفال الأقل دقة
+      if (bestScore >= 0.55) {
         setStatus('success'); playCoinSound();
         let cx = window.innerWidth / 2; let cy = window.innerHeight / 2;
         if (micButtonRef.current) {
@@ -930,11 +931,27 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     recognitionRef.current = recognition;
   }, [target, onSuccess]);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!recognitionRef.current || isListening) return;
     setTranscript(''); setStatus('listening'); setIsListening(true);
     
-    // 🆕 Timeout احتياطي: لو مفيش استجابة خلال 10 ثواني، نوقف
+    // 🆕 طلب المايك بإعدادات محسنة عشان الحساسية تزيد
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true, // 🎯 يرفع الصوت الواطي تلقائياً
+          sampleRate: 48000,
+        }
+      });
+      // نقفل الـ stream فوراً لأن SpeechRecognition هيفتح واحد جديد
+      stream.getTracks().forEach(track => track.stop());
+    } catch (e) {
+      console.warn('⚠️ Could not enhance mic settings:', e);
+    }
+    
+    // 🆕 Timeout احتياطي: 15 ثانية بدل 10 عشان يدي فرصة أكبر
     const safetyTimeout = setTimeout(() => {
       console.warn('⏰ Safety timeout - stopping recognition');
       try { 
@@ -944,7 +961,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       setIsListening(false);
       setStatus('try-again');
       setAttempts(a => a + 1);
-    }, 10000);
+    }, 15000);
     
     // نحفظ الـ timeout ID عشان نلغيه لما ييجي result
     const originalOnResult = recognitionRef.current.onresult;
@@ -1042,10 +1059,24 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
               {status === 'error' && (<motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-red-400 text-[11px]">❌ لازم تسمح للموقع باستخدام المايك</motion.p>)}
               {status === 'idle' && (<motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-bold text-white/40 text-[9px]">اضغط على المايك وابدأ تتكلم</motion.p>)}
             </AnimatePresence>
-            {(attempts >= 2 || status === 'error') && (
+            {/* 🆕 زر التخطي يظهر دايماً بعد محاولتين أو error */}
+            {(attempts >= 2 || status === 'error' || status === 'try-again') && attempts >= 2 && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center">
-                <button onClick={onSkip} className="flex items-center gap-1.5 px-3 py-1 rounded-xl font-bold text-white/70 hover:text-white border border-white/15 hover:border-white/30 bg-white/5 hover:bg-white/10 transition-all text-[10px]">
-                  <SkipForward size={12} /> تخطي وكمل
+                <button onClick={onSkip} className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl font-black text-white border-2 transition-all text-[11px]"
+                  style={{
+                    background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
+                    borderColor: 'rgba(255,255,255,0.3)',
+                    boxShadow: '0 4px 15px rgba(76,201,240,0.4)'
+                  }}>
+                  <SkipForward size={13} /> تخطي وكمل ⏭️
+                </button>
+              </motion.div>
+            )}
+            {/* 🆕 زر التخطي حتى لو مش وصل لمحاولتين - للحالات الصعبة */}
+            {attempts === 1 && status === 'try-again' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} className="flex justify-center">
+                <button onClick={onSkip} className="text-white/50 hover:text-white/80 font-bold text-[10px] underline">
+                  تخطي هذا التمرين
                 </button>
               </motion.div>
             )}
@@ -1100,10 +1131,24 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
               {status === 'error' && (<motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-red-400 text-xs">❌ لازم تسمح للموقع باستخدام المايك</motion.p>)}
               {status === 'idle' && (<motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-bold text-white/40 text-[10px]">اضغط على المايك وابدأ تتكلم</motion.p>)}
             </AnimatePresence>
-            {(attempts >= 2 || status === 'error') && (
+            {/* 🆕 زر التخطي يظهر دايماً بعد محاولتين */}
+            {attempts >= 2 && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center">
-                <button onClick={onSkip} className="flex items-center gap-2 px-4 py-1.5 rounded-2xl font-bold text-white/70 hover:text-white border border-white/15 hover:border-white/30 bg-white/5 hover:bg-white/10 transition-all text-xs">
-                  <SkipForward size={14} /> تخطي وكمل
+                <button onClick={onSkip} className="flex items-center gap-2 px-5 py-2 rounded-2xl font-black text-white border-2 transition-all text-sm"
+                  style={{
+                    background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
+                    borderColor: 'rgba(255,255,255,0.3)',
+                    boxShadow: '0 6px 20px rgba(76,201,240,0.4)'
+                  }}>
+                  <SkipForward size={16} /> تخطي وكمل ⏭️
+                </button>
+              </motion.div>
+            )}
+            {/* 🆕 زر التخطي الخفيف بعد محاولة واحدة */}
+            {attempts === 1 && status === 'try-again' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} className="flex justify-center">
+                <button onClick={onSkip} className="text-white/50 hover:text-white/80 font-bold text-xs underline">
+                  تخطي هذا التمرين
                 </button>
               </motion.div>
             )}
@@ -1118,6 +1163,15 @@ function LearnLetterDesktop({ letterData, input, status, onChange, onCheck, inpu
   letterData: Letter; input: string; status: 'idle' | 'correct' | 'wrong';
   onChange: (v: string) => void; onCheck: (e?: React.MouseEvent) => void; inputRef: InputRefType;
 }) {
+  // 🆕 تحقق إذا الحرف نفسه منقوط (ä, ö, ü, ß)
+  const isSpecialLetter = ['Ä', 'Ö', 'Ü', 'ä', 'ö', 'ü', 'ß'].includes(letterData.letter);
+  const specialCharToShow = isSpecialLetter ? [letterData.letter.toLowerCase() === 'ß' ? 'ß' : letterData.letter] : [];
+
+  const handleSpecialChar = (c: string) => {
+    onChange(c);
+    inputRef.current?.focus();
+  };
+
   return (
     <div className="flex items-stretch justify-center gap-5 w-full max-w-4xl mx-auto">
       <GlassCard className="flex-1 max-w-sm p-5" accentColor={letterData.color} isMobile={false}>
@@ -1136,9 +1190,13 @@ function LearnLetterDesktop({ letterData, input, status, onChange, onCheck, inpu
             <span className="font-black text-white text-lg">اكتب الحرف</span>
             <span className="text-xl">✏️</span>
           </div>
-          <div className="w-full max-w-[280px]">
+          <div className="w-full max-w-[280px] space-y-2">
             <GhostInput ref={inputRef} value={input} onChange={v => onChange(v)} onEnter={onCheck}
               ghostText={letterData.letter} color={letterData.color} status={status} fontSize="2.2rem" maxLength={1} uppercase />
+            {/* 🆕 زر الحرف المنقوط لو الحرف نفسه منقوط */}
+            {isSpecialLetter && (
+              <SpecialCharsKeyboard chars={specialCharToShow} onChar={handleSpecialChar} color={letterData.color} />
+            )}
           </div>
           <AnimatePresence>
             {status !== 'idle' && (
