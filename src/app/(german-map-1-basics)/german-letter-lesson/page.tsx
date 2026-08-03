@@ -1138,73 +1138,90 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     resolvedRef.current = false;
     manualStopRef.current = false;
 
-    let stream: MediaStream;
+    // ✅ على الموبايل: ما نفتحش getUserMedia ولا AudioContext نهائياً
+    // عشان ما يحصلش تعارض مع SpeechRecognition
+    // الـ SpeechRecognition هيطلب المايك بنفسه
+    if (!isMobileDevice) {
+      let stream: MediaStream;
 
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          channelCount: 1,
-        }
-      });
-      streamRef.current = stream;
-    } catch (e) {
-      console.error('❌ Mic permission denied:', e);
-      setIsListening(false);
-      setStatus('error');
-      return;
-    }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+          }
+        });
+        streamRef.current = stream;
+      } catch (e) {
+        console.error('❌ Mic permission denied:', e);
+        setIsListening(false);
+        setStatus('error');
+        return;
+      }
 
-    try {
-      const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
-      const audioContext = new AudioCtx();
-      audioContextRef.current = audioContext;
+      try {
+        const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
+        const audioContext = new AudioCtx();
+        audioContextRef.current = audioContext;
 
-      const source = audioContext.createMediaStreamSource(stream);
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.8;
-      source.connect(analyser);
-      analyserRef.current = analyser;
+        const source = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.8;
+        source.connect(analyser);
+        analyserRef.current = analyser;
 
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      let silenceStart = Date.now();
-      let hasSpoken = false;
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        let silenceStart = Date.now();
+        let hasSpoken = false;
 
-      const detectVolume = () => {
-        if (!analyserRef.current) return;
+        const detectVolume = () => {
+          if (!analyserRef.current) return;
 
-        analyserRef.current.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-        const normalized = Math.min(100, (average / 128) * 100);
-        setVolumeLevel(normalized);
+          analyserRef.current.getByteFrequencyData(dataArray);
+          const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+          const normalized = Math.min(100, (average / 128) * 100);
+          setVolumeLevel(normalized);
 
-        if (average > SPEECH_THRESHOLD) {
-          hasSpoken = true;
-          heardSpeechRef.current = true;
-          silenceStart = Date.now();
-        }
+          if (average > SPEECH_THRESHOLD) {
+            hasSpoken = true;
+            heardSpeechRef.current = true;
+            silenceStart = Date.now();
+          }
 
-        if (hasSpoken && Date.now() - silenceStart > SILENCE_AFTER_SPEECH) {
-          console.log('🤫 Silence detected after speech - stopping');
-          requestStop();
-          return;
-        }
+          if (hasSpoken && Date.now() - silenceStart > SILENCE_AFTER_SPEECH) {
+            console.log('🤫 Silence detected after speech - stopping');
+            requestStop();
+            return;
+          }
 
-        if (!hasSpoken && Date.now() - silenceStart > NO_SPEECH_TIMEOUT) {
-          console.log('🚫 No speech detected - stopping');
-          requestStop();
-          return;
-        }
+          if (!hasSpoken && Date.now() - silenceStart > NO_SPEECH_TIMEOUT) {
+            console.log('🚫 No speech detected - stopping');
+            requestStop();
+            return;
+          }
 
-        animationFrameRef.current = requestAnimationFrame(detectVolume);
+          animationFrameRef.current = requestAnimationFrame(detectVolume);
+        };
+
+        detectVolume();
+      } catch (e) {
+        console.warn('⚠️ Audio analysis failed:', e);
+      }
+    } else {
+      // ✅ على الموبايل: بس نعمل fake volume animation عشان الـ UI يبان حي
+      let fakeVolumeDirection = 1;
+      let fakeVolume = 30;
+      const fakeVolumeInterval = () => {
+        fakeVolume += fakeVolumeDirection * (Math.random() * 15);
+        if (fakeVolume > 80) fakeVolumeDirection = -1;
+        if (fakeVolume < 20) fakeVolumeDirection = 1;
+        setVolumeLevel(fakeVolume);
+        animationFrameRef.current = requestAnimationFrame(fakeVolumeInterval);
       };
-
-      detectVolume();
-    } catch (e) {
-      console.warn('⚠️ Audio analysis failed:', e);
+      fakeVolumeInterval();
     }
 
     safetyTimeoutRef.current = setTimeout(() => {
