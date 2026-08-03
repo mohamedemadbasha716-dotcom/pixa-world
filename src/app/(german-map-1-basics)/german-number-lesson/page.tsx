@@ -3193,15 +3193,7 @@ function GermanNumberLessonInner() {
       
       <ScreenBackground groupIdx={groupIdx} isMobile={isMobile} activeColor={activeColor} />
 
-      {!(isMobile && isKeyboardOpen) && (
-        <div style={{ 
-          transform: isMobile ? 'scale(0.4)' : 'scale(0.55)', 
-          transformOrigin: 'bottom right', 
-          position: 'fixed', bottom: isMobile ? 110 : 130, right: 0, zIndex: 25, pointerEvents: 'none' 
-        }}>
-          <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#A78BFA" />
-        </div>
-      )}
+      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#A78BFA" />
 
       <FlyingItems items={flyingItems} />
 

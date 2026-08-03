@@ -7,12 +7,19 @@ interface KarlEagleProps {
   mood: KarlMood;
   message: KarlMessage | null;
   idleGlowColor?: string;
+  // ✅ prop اختياري جديد (لو مبعتش قيمة، هيشتغل زي الأول)
+  mobilePosition?: {
+    top?: number;
+    right?: number;
+    topWithKeyboard?: number;
+  };
 }
 
 export default function KarlEagle({
   mood,
   message,
   idleGlowColor = '#4CC9F0',
+  mobilePosition,
 }: KarlEagleProps) {
   const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'laptop' | 'desktop'>('desktop');
   const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -67,11 +74,15 @@ export default function KarlEagle({
     screenSize === 'laptop' ? 70 :
     85;
 
-  // 🎯 التموضع: يمين الشاشة على المنتصف عمودياً
+  // 🎯 التموضع (نفس القديم بالظبط لو مبعتش mobilePosition)
+  const mobileTop = mobilePosition?.top ?? 90;
+  const mobileRight = mobilePosition?.right ?? 6;
+  const mobileTopWithKeyboard = mobilePosition?.topWithKeyboard ?? 60;
+
   const positionStyle =
     screenSize === 'mobile' ? {
-      top: keyboardOpen ? 60 : 90,
-      right: 6,
+      top: keyboardOpen ? mobileTopWithKeyboard : mobileTop,
+      right: mobileRight,
     } :
     screenSize === 'tablet' ? {
       top: '35%',
