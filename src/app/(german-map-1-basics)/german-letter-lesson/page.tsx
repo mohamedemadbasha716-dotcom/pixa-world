@@ -901,7 +901,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     recognition.lang = 'de-DE';
     recognition.continuous = false;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 5;
+    recognition.maxAlternatives = 10;
 
     recognitionRef.current = recognition;
 
@@ -990,12 +990,12 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         const normalized = Math.min(100, (average / 128) * 100);
         setVolumeLevel(normalized);
 
-        if (average > 15) {
+        if (average > 5) {
           hasSpoken = true;
           silenceStart = Date.now();
         }
 
-        if (hasSpoken && Date.now() - silenceStart > 1500) {
+        if (hasSpoken && Date.now() - silenceStart > 2500) {
           console.log('🤫 Silence detected after speech - stopping');
           try { recognitionRef.current?.stop(); } catch {}
           return;
@@ -1055,7 +1055,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       setTranscript(bestMatch);
       setInterimText('');
 
-      if (bestScore >= 0.5) {
+      if (bestScore >= 0.35) {
         setStatus('success');
         playCoinSound();
         forceStop();
