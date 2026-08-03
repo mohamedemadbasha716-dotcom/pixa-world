@@ -187,13 +187,41 @@ function similarityScore(a: string, b: string): number {
     .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').trim();
   const normalA = normalize(a);
   const normalB = normalize(b);
+  
   if (normalB.split(/\s+/).length === 1) {
+    // ✅ تطابق كامل
     if (normalA === normalB) return 1.0;
-    if (normalA.includes(normalB) || normalB.includes(normalA)) return 0.8;
+    
+    // ✅ لو الكلمة موجودة داخل النطق (أو العكس) - قبول عالي
+    if (normalA.includes(normalB) || normalB.includes(normalA)) return 0.95;
+    
+    // ✅ لو أول 3 حروف متطابقة - النطق قريب جداً
+    if (normalA.length >= 3 && normalB.length >= 3) {
+      if (normalA.substring(0, 3) === normalB.substring(0, 3)) return 0.85;
+    }
+    
+    // ✅ لو أول حرفين متطابقين + الطول قريب
+    if (normalA.length >= 2 && normalB.length >= 2) {
+      if (normalA.substring(0, 2) === normalB.substring(0, 2)) {
+        const lengthDiff = Math.abs(normalA.length - normalB.length);
+        if (lengthDiff <= 2) return 0.75;
+      }
+    }
+    
+    // ✅ لو آخر حرفين متطابقين
+    if (normalA.length >= 2 && normalB.length >= 2) {
+      if (normalA.slice(-2) === normalB.slice(-2)) return 0.7;
+    }
+    
+    // ✅ حساب Levenshtein العادي
     const distance = levenshteinDistance(normalA, normalB);
     const maxLen = Math.max(normalA.length, normalB.length);
-    return 1 - (distance / maxLen);
+    const score = 1 - (distance / maxLen);
+    
+    // ✅ Boost للنتيجة عشان نكون كرماء مع الأطفال
+    return Math.min(1, score * 1.3);
   }
+  
   const wordsA = normalA.split(/\s+/);
   const wordsB = normalB.split(/\s+/);
   const setB = new Set(wordsB);
@@ -1033,10 +1061,24 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       
       for (let i = 0; i < lastResult.length; i++) {
         const text = lastResult[i].transcript.toLowerCase().trim();
-        const score = similarityScore(text, target.toLowerCase());
-        console.log(`🎯 "${text}" → Score: ${score.toFixed(2)}`);
-        if (score > bestScore) {
-          bestScore = score;
+        
+        // 🎯 جرب الكلمة كاملة
+        const fullScore = similarityScore(text, target.toLowerCase());
+        
+        // 🎯 جرب كل كلمة فردية من النطق (لو نطق أكتر من كلمة)
+        const words = text.split(/\s+/);
+        let bestWordScore = 0;
+        for (const word of words) {
+          const wordScore = similarityScore(word, target.toLowerCase());
+          if (wordScore > bestWordScore) bestWordScore = wordScore;
+        }
+        
+        // خد الأعلى
+        const finalScore = Math.max(fullScore, bestWordScore);
+        console.log(`🎯 "${text}" → Score: ${finalScore.toFixed(2)} (target: ${target})`);
+        
+        if (finalScore > bestScore) {
+          bestScore = finalScore;
           bestMatch = text;
         }
       }
@@ -1044,7 +1086,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       setTranscript(bestMatch);
       setInterimText('');
 
-      if (bestScore >= 0.35) {
+      if (bestScore >= 0.2) {
         setStatus('success');
         playCoinSound();
         forceStop();
