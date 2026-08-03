@@ -807,7 +807,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
               iconSrc="/treasuer/energy.webp" iconAlt="energy" />
             <FloatingIconButton onClick={onHint} label="تلميح" color="#FFD700" isMobile={isMobile}
               badge={stats.hints} disabled={stats.hints === 0}
-              iconSrc="/treasuer/HINT.webp" iconAlt="hint" />
+              iconSrc="/treasuer/HINT.svg" iconAlt="hint" />
           </div>
         </div>
       </div>
@@ -1184,6 +1184,8 @@ function WordBuilderMobileNumber({ numData, onComplete, onWrong }: {
     if (isComplete || placedIndices.includes(idx) || flyingLetter !== null) return;
 
     const nextExpectedLetter = word[placedIndices.length];
+    const cx = e.clientX;
+    const cy = e.clientY;
     
     if (letter.toLowerCase() === nextExpectedLetter.toLowerCase()) {
       const targetIdx = placedIndices.length;
@@ -1194,21 +1196,25 @@ function WordBuilderMobileNumber({ numData, onComplete, onWrong }: {
         const fromRect = buttonEl.getBoundingClientRect();
         const toRect = slotEl.getBoundingClientRect();
 
+        // ✅ حط الحرف فوراً + شغّل الأنيميشن
+        setPlacedIndices(prev => [...prev, idx]);
         setFlyingLetter({ letter, fromRect, toRect, targetIdx });
+        playCoinSound();
+
+        // ✅ لو ده آخر حرف - نجهز للنجاح
+        const willBeComplete = placedIndices.length + 1 === word.length;
 
         setTimeout(() => {
-          setPlacedIndices(prev => [...prev, idx]);
           setFlyingLetter(null);
-          playCoinSound();
-
-          if (placedIndices.length + 1 === word.length) {
+          
+          if (willBeComplete) {
             setIsComplete(true);
             speakNumber(word);
             setTimeout(() => {
-              onComplete(e.clientX, e.clientY);
-            }, 600);
+              onComplete(cx, cy);
+            }, 500);
           }
-        }, 600);
+        }, 500);
       }
     } else {
       setWrongShake(idx);
