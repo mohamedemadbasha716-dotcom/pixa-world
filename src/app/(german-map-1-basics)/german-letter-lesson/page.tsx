@@ -183,50 +183,93 @@ function levenshteinDistance(a: string, b: string): number {
 }
 
 function similarityScore(a: string, b: string): number {
-  const normalize = (s: string) => s.toLowerCase().replace(/[.,!?;:'"]/g, '')
-    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').trim();
+  const normalize = (s: string) => s.toLowerCase()
+    .replace(/[.,!?;:'"\-_()]/g, '')
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const normalizeKeepUmlauts = (s: string) => s.toLowerCase()
+    .replace(/[.,!?;:'"\-_()]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
   const normalA = normalize(a);
   const normalB = normalize(b);
-  
+  const directA = normalizeKeepUmlauts(a);
+  const directB = normalizeKeepUmlauts(b);
+
+  if (!normalA || !normalB) return 0;
+
+  if (normalA === normalB || directA === directB) return 1.0;
+
   if (normalB.split(/\s+/).length === 1) {
-    // ✅ تطابق كامل
-    if (normalA === normalB) return 1.0;
-    
-    // ✅ لو الكلمة موجودة داخل النطق (أو العكس) - قبول عالي
     if (normalA.includes(normalB) || normalB.includes(normalA)) return 0.95;
-    
-    // ✅ لو أول 3 حروف متطابقة - النطق قريب جداً
+    if (directA.includes(directB) || directB.includes(directA)) return 0.95;
+
+    const wordsA = normalA.split(/\s+/);
+    for (const word of wordsA) {
+      if (word === normalB) return 0.95;
+      if (word.includes(normalB) || normalB.includes(word)) return 0.9;
+    }
+
     if (normalA.length >= 3 && normalB.length >= 3) {
       if (normalA.substring(0, 3) === normalB.substring(0, 3)) return 0.85;
     }
-    
-    // ✅ لو أول حرفين متطابقين + الطول قريب
+
     if (normalA.length >= 2 && normalB.length >= 2) {
       if (normalA.substring(0, 2) === normalB.substring(0, 2)) {
         const lengthDiff = Math.abs(normalA.length - normalB.length);
-        if (lengthDiff <= 2) return 0.75;
+        if (lengthDiff <= 2) return 0.8;
+        if (lengthDiff <= 4) return 0.7;
       }
     }
-    
-    // ✅ لو آخر حرفين متطابقين
+
     if (normalA.length >= 2 && normalB.length >= 2) {
       if (normalA.slice(-2) === normalB.slice(-2)) return 0.7;
     }
-    
-    // ✅ حساب Levenshtein العادي
+
+    if (normalA[0] === normalB[0]) {
+      const distance = levenshteinDistance(normalA, normalB);
+      const maxLen = Math.max(normalA.length, normalB.length);
+      const score = 1 - (distance / maxLen);
+      return Math.min(1, score * 1.5);
+    }
+
     const distance = levenshteinDistance(normalA, normalB);
     const maxLen = Math.max(normalA.length, normalB.length);
     const score = 1 - (distance / maxLen);
-    
-    // ✅ Boost للنتيجة عشان نكون كرماء مع الأطفال
-    return Math.min(1, score * 1.3);
+    return Math.min(1, score * 1.5);
   }
-  
+
   const wordsA = normalA.split(/\s+/);
   const wordsB = normalB.split(/\s+/);
   const setB = new Set(wordsB);
+
   let matches = 0;
-  for (const word of wordsA) { if (setB.has(word)) matches++; }
+
+  for (const word of wordsA) {
+    if (setB.has(word)) {
+      matches++;
+      continue;
+    }
+
+    for (const bWord of wordsB) {
+      const dist = levenshteinDistance(word, bWord);
+      if (dist <= 1) {
+        matches += 0.8;
+        break;
+      }
+      if (dist <= 2) {
+        matches += 0.5;
+        break;
+      }
+    }
+  }
+
   return matches / Math.max(wordsA.length, wordsB.length);
 }
 
@@ -872,7 +915,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   const [attempts, setAttempts] = useState(0);
   const [supported, setSupported] = useState(true);
   const [volumeLevel, setVolumeLevel] = useState(0);
-  
+
   const recognitionRef = useRef<any>(null);
   const micButtonRef = useRef<HTMLButtonElement>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -882,11 +925,29 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   const animationFrameRef = useRef<number | null>(null);
   const hasResultRef = useRef(false);
   const statusRef = useRef<string>('idle');
-  
+  const bestScoreRef = useRef(0);
+  const bestTranscriptRef = useRef('');
+  const heardSpeechRef = useRef(false);
+  const resolvedRef = useRef(false);
+  const manualStopRef = useRef(false);
+
   const target = letterData.word;
   const targetAr = letterData.wordAr;
 
-  useEffect(() => { statusRef.current = status; }, [status]);
+  const isMobileDevice =
+    typeof navigator !== 'undefined' &&
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  const SUCCESS_THRESHOLD = isMobileDevice ? 0.15 : 0.2;
+  const INTERIM_ACCEPT_THRESHOLD = isMobileDevice ? 0.6 : 0.7;
+  const SILENCE_AFTER_SPEECH = isMobileDevice ? 4000 : 2500;
+  const NO_SPEECH_TIMEOUT = isMobileDevice ? 8000 : 5000;
+  const SAFETY_TIMEOUT = isMobileDevice ? 12000 : 8000;
+  const SPEECH_THRESHOLD = isMobileDevice ? 3 : 5;
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   const cleanup = () => {
     if (safetyTimeoutRef.current) {
@@ -909,16 +970,40 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     setVolumeLevel(0);
   };
 
+  const requestStop = () => {
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
+  };
+
+  const forceStop = () => {
+    cleanup();
+    setIsListening(false);
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) { setSupported(false); return; }
-    
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setSupported(false);
+      return;
+    }
+
     const recognition = new SpeechRecognition();
     recognition.lang = 'de-DE';
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 10;
+    recognition.maxAlternatives = 15;
 
     recognitionRef.current = recognition;
 
@@ -935,43 +1020,132 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     setInterimText('');
     setStatus('idle');
     setAttempts(0);
+    setIsListening(false);
+
     hasResultRef.current = false;
+    bestScoreRef.current = 0;
+    bestTranscriptRef.current = '';
+    heardSpeechRef.current = false;
+    resolvedRef.current = false;
+    manualStopRef.current = false;
+
     cleanup();
+
     if (recognitionRef.current) {
       try { recognitionRef.current.abort(); } catch {}
     }
-    setIsListening(false);
   }, [target]);
 
-  const forceStop = () => {
-    if (safetyTimeoutRef.current) {
-      clearTimeout(safetyTimeoutRef.current);
-      safetyTimeoutRef.current = null;
+  const scoreTranscript = (rawText: string) => {
+    const text = rawText.toLowerCase().trim();
+    if (!text) return { score: 0, match: '' };
+
+    const fullScore = similarityScore(text, target.toLowerCase());
+
+    const words = text.split(/\s+/).filter(Boolean);
+    let bestWordScore = 0;
+    let bestWordMatch = text;
+
+    for (const word of words) {
+      const wordScore = similarityScore(word, target.toLowerCase());
+      if (wordScore > bestWordScore) {
+        bestWordScore = wordScore;
+        bestWordMatch = word;
+      }
     }
-    cleanup();
-    setIsListening(false);
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
+
+    let edgeTrimScore = 0;
+    let edgeTrimMatch = text;
+
+    if (words.length > 1) {
+      const withoutFirst = words.slice(1).join(' ');
+      const withoutLast = words.slice(0, -1).join(' ');
+
+      const wfScore = similarityScore(withoutFirst, target.toLowerCase());
+      const wlScore = similarityScore(withoutLast, target.toLowerCase());
+
+      if (wfScore > edgeTrimScore) {
+        edgeTrimScore = wfScore;
+        edgeTrimMatch = withoutFirst;
+      }
+      if (wlScore > edgeTrimScore) {
+        edgeTrimScore = wlScore;
+        edgeTrimMatch = withoutLast;
+      }
     }
+
+    const finalScore = Math.max(fullScore, bestWordScore, edgeTrimScore);
+
+    let bestMatch = text;
+    if (bestWordScore >= fullScore && bestWordScore >= edgeTrimScore) bestMatch = bestWordMatch;
+    else if (edgeTrimScore >= fullScore && edgeTrimScore >= bestWordScore) bestMatch = edgeTrimMatch;
+
+    return { score: finalScore, match: bestMatch };
+  };
+
+  const finishSuccess = (matchText?: string) => {
+    if (resolvedRef.current) return;
+
+    resolvedRef.current = true;
+    hasResultRef.current = true;
+
+    const finalText = (matchText || bestTranscriptRef.current || '').trim();
+    setTranscript(finalText);
+    setInterimText('');
+    setStatus('success');
+    playCoinSound();
+
+    forceStop();
+
+    let cx = window.innerWidth / 2;
+    let cy = window.innerHeight / 2;
+
+    if (micButtonRef.current) {
+      const rect = micButtonRef.current.getBoundingClientRect();
+      cx = rect.left + rect.width / 2;
+      cy = rect.top + rect.height / 2;
+    }
+
+    setTimeout(() => onSuccess(cx, cy), 1200);
+  };
+
+  const finishTryAgain = (matchText?: string) => {
+    if (resolvedRef.current) return;
+
+    resolvedRef.current = true;
+
+    if (matchText?.trim()) setTranscript(matchText.trim());
+    setInterimText('');
+    setStatus('try-again');
+    playBuzzSound();
+    setAttempts(a => a + 1);
+
+    forceStop();
   };
 
   const handleStart = async () => {
     if (!recognitionRef.current || isListening) return;
-    
+
     setTranscript('');
     setInterimText('');
     setStatus('listening');
     setIsListening(true);
+
     hasResultRef.current = false;
+    bestScoreRef.current = 0;
+    bestTranscriptRef.current = '';
+    heardSpeechRef.current = false;
+    resolvedRef.current = false;
+    manualStopRef.current = false;
 
     let stream: MediaStream;
+
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 48000,
           channelCount: 1,
         }
       });
@@ -987,7 +1161,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
       const audioContext = new AudioCtx();
       audioContextRef.current = audioContext;
-      
+
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 256;
@@ -1001,26 +1175,27 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
 
       const detectVolume = () => {
         if (!analyserRef.current) return;
-        
+
         analyserRef.current.getByteFrequencyData(dataArray);
         const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
         const normalized = Math.min(100, (average / 128) * 100);
         setVolumeLevel(normalized);
 
-        if (average > 5) {
+        if (average > SPEECH_THRESHOLD) {
           hasSpoken = true;
+          heardSpeechRef.current = true;
           silenceStart = Date.now();
         }
 
-        if (hasSpoken && Date.now() - silenceStart > 2500) {
+        if (hasSpoken && Date.now() - silenceStart > SILENCE_AFTER_SPEECH) {
           console.log('🤫 Silence detected after speech - stopping');
-          try { recognitionRef.current?.stop(); } catch {}
+          requestStop();
           return;
         }
 
-        if (!hasSpoken && Date.now() - silenceStart > 5000) {
+        if (!hasSpoken && Date.now() - silenceStart > NO_SPEECH_TIMEOUT) {
           console.log('🚫 No speech detected - stopping');
-          try { recognitionRef.current?.stop(); } catch {}
+          requestStop();
           return;
         }
 
@@ -1033,13 +1208,9 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     }
 
     safetyTimeoutRef.current = setTimeout(() => {
-      console.warn('⏰ Safety timeout - force stop');
-      forceStop();
-      if (!hasResultRef.current) {
-        setStatus('try-again');
-        setAttempts(a => a + 1);
-      }
-    }, 8000);
+      console.warn('⏰ Safety timeout - stop recognition');
+      if (!resolvedRef.current) requestStop();
+    }, SAFETY_TIMEOUT);
 
     recognitionRef.current.onstart = () => {
       console.log('🎙️ Recognition started');
@@ -1047,94 +1218,97 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
 
     recognitionRef.current.onresult = (event: any) => {
       const lastResult = event.results[event.results.length - 1];
-      
+      if (!lastResult) return;
+
+      let localBestScore = 0;
+      let localBestMatch = '';
+
+      for (let i = 0; i < lastResult.length; i++) {
+        const rawText = lastResult[i]?.transcript || '';
+        const text = rawText.toLowerCase().trim();
+        if (!text) continue;
+
+        heardSpeechRef.current = true;
+
+        const { score, match } = scoreTranscript(text);
+        console.log(`🎯 "${text}" → Score: ${score.toFixed(2)} (target: ${target})`);
+
+        if (score > localBestScore) {
+          localBestScore = score;
+          localBestMatch = match;
+        }
+
+        if (score > bestScoreRef.current) {
+          bestScoreRef.current = score;
+          bestTranscriptRef.current = match;
+        }
+      }
+
+      if (!localBestMatch) return;
+
       if (!lastResult.isFinal) {
-        const interim = lastResult[0]?.transcript || '';
-        setInterimText(interim);
+        setInterimText(localBestMatch);
+
+        if (!resolvedRef.current && localBestScore >= INTERIM_ACCEPT_THRESHOLD) {
+          finishSuccess(localBestMatch);
+        }
         return;
       }
 
       hasResultRef.current = true;
-      
-      let bestMatch = '';
-      let bestScore = 0;
-      
-      for (let i = 0; i < lastResult.length; i++) {
-        const text = lastResult[i].transcript.toLowerCase().trim();
-        
-        // 🎯 جرب الكلمة كاملة
-        const fullScore = similarityScore(text, target.toLowerCase());
-        
-        // 🎯 جرب كل كلمة فردية من النطق (لو نطق أكتر من كلمة)
-        const words = text.split(/\s+/);
-        let bestWordScore = 0;
-        for (const word of words) {
-          const wordScore = similarityScore(word, target.toLowerCase());
-          if (wordScore > bestWordScore) bestWordScore = wordScore;
-        }
-        
-        // خد الأعلى
-        const finalScore = Math.max(fullScore, bestWordScore);
-        console.log(`🎯 "${text}" → Score: ${finalScore.toFixed(2)} (target: ${target})`);
-        
-        if (finalScore > bestScore) {
-          bestScore = finalScore;
-          bestMatch = text;
-        }
-      }
-
-      setTranscript(bestMatch);
+      setTranscript(localBestMatch);
       setInterimText('');
 
-      if (bestScore >= 0.2) {
-        setStatus('success');
-        playCoinSound();
-        forceStop();
-        
-        let cx = window.innerWidth / 2;
-        let cy = window.innerHeight / 2;
-        if (micButtonRef.current) {
-          const rect = micButtonRef.current.getBoundingClientRect();
-          cx = rect.left + rect.width / 2;
-          cy = rect.top + rect.height / 2;
-        }
-        setTimeout(() => onSuccess(cx, cy), 1200);
-      } else {
-        setStatus('try-again');
-        playBuzzSound();
-        setAttempts(a => a + 1);
-        forceStop();
+      if (!resolvedRef.current && localBestScore >= SUCCESS_THRESHOLD) {
+        finishSuccess(localBestMatch);
       }
     };
 
     recognitionRef.current.onerror = (event: any) => {
       console.error('❌ Recognition error:', event.error);
-      forceStop();
-      
+
+      if (resolvedRef.current) return;
+
       if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+        resolvedRef.current = true;
+        forceStop();
         setStatus('error');
-      } else if (event.error === 'no-speech') {
-        setStatus('try-again');
-        setAttempts(a => a + 1);
-      } else if (event.error === 'aborted') {
-        if (!hasResultRef.current) {
-          setStatus('idle');
-        }
-      } else {
-        setStatus('try-again');
-        setAttempts(a => a + 1);
+        return;
       }
+
+      if (event.error === 'aborted') {
+        return;
+      }
+
+      if (event.error === 'no-speech') {
+        finishTryAgain(bestTranscriptRef.current || undefined);
+        return;
+      }
+
+      finishTryAgain(bestTranscriptRef.current || undefined);
     };
 
     recognitionRef.current.onend = () => {
       console.log('🛑 Recognition ended');
       cleanup();
       setIsListening(false);
-      
-      if (!hasResultRef.current && statusRef.current === 'listening') {
-        setStatus('try-again');
-        setAttempts(a => a + 1);
+
+      if (resolvedRef.current) return;
+
+      const bestMatch = bestTranscriptRef.current.trim();
+      const bestScore = bestScoreRef.current;
+
+      if (bestMatch && bestScore >= SUCCESS_THRESHOLD) {
+        finishSuccess(bestMatch);
+        return;
       }
+
+      if (manualStopRef.current) {
+        setStatus('idle');
+        return;
+      }
+
+      finishTryAgain(bestMatch || undefined);
     };
 
     try {
@@ -1149,10 +1323,8 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
 
   const handleManualStop = () => {
     console.log('👆 Manual stop by user');
-    forceStop();
-    if (!hasResultRef.current) {
-      setStatus('idle');
-    }
+    manualStopRef.current = true;
+    requestStop();
   };
 
   if (!supported) {
