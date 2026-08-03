@@ -21,7 +21,6 @@ function SignUpContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // كشف الدولة تلقائياً من الـ IP
   useEffect(() => {
     async function detectCountry() {
       try {
@@ -41,9 +40,8 @@ function SignUpContent() {
     e.preventDefault();
     setError('');
 
-    // Validation
     if (fullName.trim().length < 2) {
-      setError('من فضلك اكتبي اسمك كامل');
+      setError('من فضلك اكتب اسمك كامل');
       return;
     }
     if (!email.includes('@')) {
@@ -67,11 +65,10 @@ function SignUpContent() {
     setLoading(false);
 
     if (!result.success) {
-      setError(result.error || 'حدث خطأ، حاولي تاني');
+      setError(result.error || 'حدث خطأ، حاول تاني');
       return;
     }
 
-    // بعد التسجيل الناجح: يوجه حسب الخطة
     if (planType === 'paid') {
       router.push('/pricing');
     } else {
@@ -151,20 +148,36 @@ function SignUpContent() {
           <div className="text-center space-y-3">
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FF4D6D]/20 to-[#9D4EDD]/20 border border-[#FF4D6D]/30 px-4 py-1.5 rounded-full text-xs font-bold text-white backdrop-blur-sm">
               <Sparkle size={12} className="text-yellow-300" />
-              <span>خطوة واحدة وتبدئي رحلة طفلك</span>
+              <span>خطوة واحدة وتبدأ رحلة طفلك</span>
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
-              أهلاً بيكي في عائلتنا 🎉
+            <h1 className="text-2xl md:text-3xl font-black flex items-center justify-center gap-3 flex-wrap">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
+                أهلاً بيك في عائلتنا
+              </span>
+              <motion.span
+                className="inline-block"
+                animate={{
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 15, -15, 0]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+                style={{
+                  WebkitTextFillColor: 'initial',
+                  filter: 'drop-shadow(0 4px 12px rgba(255,215,0,0.5))'
+                }}
+              >
+                🎉
+              </motion.span>
             </h1>
             <p className="text-gray-300 text-sm font-medium">
-              أنشئي حسابك في أقل من دقيقة
+              أنشئ حسابك في أقل من دقيقة
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* اسم الأم */}
+            {/* الاسم */}
             <div className="space-y-2">
               <label className="text-xs font-black text-white/80 flex items-center gap-2">
                 <User size={14} className="text-[#FF4D6D]" />
@@ -174,7 +187,7 @@ function SignUpContent() {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="مثلاً: سارة محمد"
+                placeholder="مثلاً: محمد أحمد"
                 className="w-full px-4 py-3 rounded-2xl bg-white/[0.06] border-2 border-white/10 text-white placeholder:text-white/30 font-bold outline-none focus:border-[#FF4D6D] transition-all"
                 disabled={loading}
                 required
@@ -297,7 +310,7 @@ function SignUpContent() {
                 onClick={() => router.push(`/login?plan=${planType}`)}
                 className="text-[#FF4D6D] font-black hover:underline"
               >
-                سجلي دخول
+                سجّل دخول
               </button>
             </p>
           </div>
@@ -308,7 +321,7 @@ function SignUpContent() {
             <span>•</span>
             <span>✅ بدون تأكيد ايميل</span>
             <span>•</span>
-            <span>🎁 ابدئي فوراً</span>
+            <span>🎁 ابدأ فوراً</span>
           </div>
         </motion.div>
       </main>

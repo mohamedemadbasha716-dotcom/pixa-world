@@ -14,18 +14,24 @@ export default function KarlEagle({
   message,
   idleGlowColor = '#4CC9F0',
 }: KarlEagleProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'laptop' | 'desktop'>('desktop');
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
-  // 📱 كشف الموبايل
+  const isMobile = screenSize === 'mobile';
+
+  // 📱 كشف حجم الشاشة
   useEffect(() => {
-    const checkMobile = () => {
+    const checkSize = () => {
       if (typeof window === 'undefined') return;
-      setIsMobile(window.innerWidth < 768);
+      const w = window.innerWidth;
+      if (w < 640) setScreenSize('mobile');
+      else if (w < 1024) setScreenSize('tablet');
+      else if (w < 1440) setScreenSize('laptop');
+      else setScreenSize('desktop');
     };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    checkSize();
+    window.addEventListener('resize', checkSize);
+    return () => window.removeEventListener('resize', checkSize);
   }, []);
 
   // ⌨️ كشف فتح الكيبورد على الموبايل
@@ -56,20 +62,27 @@ export default function KarlEagle({
     };
   }, [isMobile]);
 
-  // 🎯 تحديد الحجم والموقع حسب الجهاز والحالة
-  const eagleSize = isMobile 
-    ? (keyboardOpen ? 45 : 65)  // أصغر على الموبايل، أصغر أكتر مع الكيبورد
-    : 130; // الحجم الطبيعي للديسكتوب
+  // 🎯 تحديد الحجم Responsive - أصغر بكتير
+  const eagleSize = 
+    screenSize === 'mobile' ? (keyboardOpen ? 32 : 42) :
+    screenSize === 'tablet' ? 55 :
+    screenSize === 'laptop' ? 70 :
+    85;
 
-  const positionStyle = isMobile
-    ? { 
-        bottom: keyboardOpen ? 8 : 12, 
-        right: 8,
-      }
-    : { 
-        bottom: 20, 
-        right: 20,
-      };
+  // 🎯 تموضع ذكي في الركن العلوي الأيسر (بعيد عن الكروت والـ HUD)
+  const positionStyle = 
+    screenSize === 'mobile' ? { 
+      top: keyboardOpen ? 55 : 75, 
+      left: 6,
+    } :
+    screenSize === 'tablet' ? { 
+      top: 85, 
+      left: 12,
+    } :
+    { 
+      top: 95, 
+      left: 20,
+    };
 
   return (
     <div 

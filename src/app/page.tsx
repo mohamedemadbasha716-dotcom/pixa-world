@@ -18,7 +18,7 @@ const BOOKS_DATA = [
     students: '2,340',
     flag: '🇩🇪',
     desc: 'لغة الهندسة والابتكار',
-    route: '/character-and-map',
+    route: '/plans',
     available: true,
     langCode: 'de'
   },
@@ -30,7 +30,7 @@ const BOOKS_DATA = [
     students: '3,120',
     flag: '🇪🇸',
     desc: 'لغة نصف العالم الغربي',
-    route: '/spanish-character-and-map',
+    route: '/plans',
     available: true,
     langCode: 'es'
   },
@@ -42,7 +42,7 @@ const BOOKS_DATA = [
     students: '1,890',
     flag: '🇷🇺',
     desc: 'لغة الفضاء والعلوم',
-    route: '/coming-soon?lang=russian',
+    route: '/plans',
     available: false,
     langCode: 'ru'
   },
@@ -54,7 +54,7 @@ const BOOKS_DATA = [
     students: '2,750',
     flag: '🇯🇵',
     desc: 'لغة التكنولوجيا والأنمي',
-    route: '/coming-soon?lang=japanese',
+    route: '/plans',
     available: false,
     langCode: 'ja'
   },
@@ -66,7 +66,7 @@ const BOOKS_DATA = [
     students: '4,100',
     flag: '🇨🇳',
     desc: 'لغة اقتصاد المستقبل',
-    route: '/coming-soon?lang=chinese',
+    route: '/plans',
     available: false,
     langCode: 'zh'
   },
@@ -77,7 +77,7 @@ const MARKETING_MESSAGES = [
     icon: Brain,
     color: '#FF4D6D',
     title: 'السن الذهبي للتعلم (6-11 سنة)',
-    desc: 'في السن ده، عقل طفلك بيمتص اللغات زي الإسفنج. منهجنا مصمم يستغل الفترة دي بأسلوب ألعاب تفاعلي يخلي طفلك يتعلم وهو مستمتع — مش مجبر.',
+    desc: 'في السن ده، عقل طفلكم بيمتص اللغات زي الإسفنج. منهجنا مصمم يستغل الفترة دي بأسلوب ألعاب تفاعلي يخلي طفلكم يتعلم وهو مستمتع — مش مجبر.',
     stat: '95%',
     statLabel: 'نسبة الاستيعاب'
   },
@@ -85,7 +85,7 @@ const MARKETING_MESSAGES = [
     icon: Globe,
     color: '#4CC9F0',
     title: 'لغات المستقبل اللي مش في المدارس',
-    desc: 'تأسيس طفلك في الألمانية والصينية واليابانية بيديله ميزة تنافسية عالمية، وبيوسع مداركه العقلية من صغره في لغات اقتصاد المستقبل.',
+    desc: 'تأسيس طفلكم في الألمانية والصينية واليابانية بيديله ميزة تنافسية عالمية، وبيوسع مداركه العقلية من صغره في لغات اقتصاد المستقبل.',
     stat: '5',
     statLabel: 'لغات متاحة'
   },
@@ -93,7 +93,7 @@ const MARKETING_MESSAGES = [
     icon: Gamepad2,
     color: '#9D4EDD',
     title: 'التعلم عن طريق اللعب والمغامرة',
-    desc: 'كل درس هو مغامرة مثيرة! طفلك يجمع نقاط ويفتح عوالم جديدة ويتنافس مع أصحابه. التعلم عندنا مش واجب، ده لعبة مفضلة!',
+    desc: 'كل درس هو مغامرة مثيرة! طفلكم يجمع نقاط ويفتح عوالم جديدة ويتنافس مع أصحابه. التعلم عندنا مش واجب، ده لعبة مفضلة!',
     stat: '50+',
     statLabel: 'لعبة تعليمية'
   },
@@ -101,7 +101,7 @@ const MARKETING_MESSAGES = [
     icon: Shield,
     color: '#06D6A0',
     title: 'بيئة آمنة 100% للأطفال',
-    desc: 'المنصة مصممة خصيصاً للأطفال بدون إعلانات أو محتوى غير مناسب. الأهل يقدروا يتابعوا تقدم أطفالهم بتقارير أسبوعية مفصلة.',
+    desc: 'المنصة مصممة خصيصاً للأطفال بدون إعلانات أو محتوى غير مناسب. تقدروا تتابعوا تقدم أطفالكم بتقارير أسبوعية مفصلة.',
     stat: '100%',
     statLabel: 'بيئة آمنة'
   },
@@ -109,7 +109,7 @@ const MARKETING_MESSAGES = [
     icon: Trophy,
     color: '#FFD700',
     title: 'نظام مكافآت يحفز الاستمرار',
-    desc: 'شهادات رقمية، أوسمة بطل اللغات، وترتيب أبطال أسبوعي. طفلك هيحس بالإنجاز في كل خطوة وهيحب يتعلم أكتر وأكتر!',
+    desc: 'شهادات رقمية، أوسمة بطل اللغات، وترتيب أبطال أسبوعي. طفلكم هيحس بالإنجاز في كل خطوة وهيحب يتعلم أكتر وأكتر!',
     stat: '10K+',
     statLabel: 'بطل مسجل'
   },
@@ -127,16 +127,16 @@ const HOW_IT_WORKS_STEPS = [
   {
     icon: GraduationCap,
     color: '#FF4D6D',
-    title: 'سجّلي طفلك',
-    desc: 'أنشئي حساب مجاني في أقل من دقيقة وحددي عمر طفلك ومستواه',
+    title: 'سجّل طفلك',
+    desc: 'أنشئ حساب مجاني في أقل من دقيقة وحدد عمر طفلك ومستواه',
     emoji: '📝',
     step: 1
   },
   {
     icon: Languages,
     color: '#4CC9F0',
-    title: 'اختاري اللغة',
-    desc: 'اختاري من 5 لغات عالمية نادرة اللغة اللي عايزة تأسسي فيها طفلك',
+    title: 'اختار اللغة',
+    desc: 'اختار من 5 لغات عالمية نادرة اللغة اللي عايز تأسس فيها طفلك',
     emoji: '🌍',
     step: 2
   },
@@ -284,31 +284,15 @@ export default function PixiHomePage() {
   const [activeBook, setActiveBook] = useState<number | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTestimonial((p) => (p + 1) % 3);
+      setCurrentTestimonial((p) => (p + 1) % 5);
     }, 4000);
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    const enableSound = () => {
-      if (videoRef.current && !soundEnabled) {
-        videoRef.current.muted = false;
-        videoRef.current.volume = 1;
-        setSoundEnabled(true);
-      }
-    };
-
-    const events = ['click', 'scroll', 'mousemove', 'touchstart', 'keydown'];
-    events.forEach(e => window.addEventListener(e, enableSound, { once: true }));
-
-    return () => {
-      events.forEach(e => window.removeEventListener(e, enableSound));
-    };
-  }, [soundEnabled]);
 
   const testimonials = [
     { name: 'سارة أحمد', role: 'أم لطفلين', text: 'أطفالي بقوا يحبوا يتعلموا لغات! المنصة حولت التعلم للعبة مسلية وبقوا يطلبوا يفتحوها كل يوم', avatar: '👩', rating: 5 },
@@ -370,7 +354,7 @@ export default function PixiHomePage() {
       </motion.header>
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 2. الهيرو - النسخة الاحترافية الجديدة */}
+      {/* 2. الهيرو */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <section className="relative w-full max-w-5xl mx-auto text-center px-6 pt-16 md:pt-24 pb-12 space-y-8 z-10">
 
@@ -430,42 +414,42 @@ export default function PixiHomePage() {
             ابنك ممكن يتكلم ألماني وصيني
           </motion.h2>
 
-         <motion.div
-  initial={{ opacity: 0, scale: 0.8 }}
-  animate={{ opacity: 1, scale: 1 }}
-  transition={{ delay: 0.7, type: 'spring', stiffness: 200 }}
-  className="relative inline-flex items-center justify-center gap-4 flex-wrap"
->
-<h1
-  className="relative text-5xl md:text-8xl bg-clip-text text-transparent px-2"
-  style={{
-    backgroundImage: 'linear-gradient(135deg, #FF4D6D, #F72585, #9D4EDD)',
-    WebkitTextFillColor: 'transparent',
-    fontFamily: "'Baloo Bhaijaan 2', sans-serif",
-    fontWeight: 800,
-    lineHeight: '1.4',
-    paddingBottom: '0.2em',
-  }}
->
-  وهو بيلعب!
-</h1>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.7, type: 'spring', stiffness: 200 }}
+            className="relative inline-flex items-center justify-center gap-4 flex-wrap"
+          >
+            <h1
+              className="relative text-5xl md:text-8xl bg-clip-text text-transparent px-2"
+              style={{
+                backgroundImage: 'linear-gradient(135deg, #FF4D6D, #F72585, #9D4EDD)',
+                WebkitTextFillColor: 'transparent',
+                fontFamily: "'Baloo Bhaijaan 2', sans-serif",
+                fontWeight: 800,
+                lineHeight: '1.4',
+                paddingBottom: '0.2em',
+              }}
+            >
+              وهو بيلعب!
+            </h1>
 
-  <motion.span
-    className="text-5xl md:text-7xl inline-block"
-    animate={{
-      rotate: [0, -10, 10, -5, 0],
-      y: [0, -8, 0],
-    }}
-    transition={{
-      duration: 2.5,
-      repeat: Infinity,
-      ease: 'easeInOut',
-    }}
-    style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))' }}
-  >
-    🎮
-  </motion.span>
-</motion.div>
+            <motion.span
+              className="text-5xl md:text-7xl inline-block"
+              animate={{
+                rotate: [0, -10, 10, -5, 0],
+                y: [0, -8, 0],
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+              style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))' }}
+            >
+              🎮
+            </motion.span>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, x: 30 }}
@@ -518,7 +502,7 @@ export default function PixiHomePage() {
           >
             مش دروس تقليدية ولا كتب مملة… دي مغامرة تعليمية بصوت وصورة وتفاعل
             <br />
-            في لغات مش هتلاقيها في أي مدرسة 🌍
+            في لغات مش هتلاقوها في أي مدرسة 🌍
           </p>
         </motion.div>
 
@@ -529,7 +513,7 @@ export default function PixiHomePage() {
           transition={{ delay: 1.1 }}
           className="text-gray-300 text-sm md:text-base max-w-2xl mx-auto leading-relaxed font-medium"
         >
-          مع <span className="text-[#FF4D6D] font-black" dir="ltr">PIXA WORLD</span> طفلك هيتأسس في{' '}
+          مع <span className="text-[#FF4D6D] font-black" dir="ltr">PIXA WORLD</span> طفلكم هيتأسس في{' '}
           <span className="text-[#FFD700] font-black">الألماني، الصيني، الياباني، الإسباني، والروسي</span>{' '}
           بنظام مستويات تدريجي وأسلوب ألعاب يخليه عايز يكمل كل يوم
         </motion.p>
@@ -544,21 +528,22 @@ export default function PixiHomePage() {
           <motion.button
             whileHover={{ scale: 1.05, boxShadow: '0 0 40px rgba(255,77,109,0.5)' }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => window.location.href = '/character-and-map'}
+            onClick={() => window.location.href = '/plans'}
             className="bg-gradient-to-r from-[#FF4D6D] to-[#F72585] text-white px-10 py-4 rounded-2xl font-black text-base shadow-2xl shadow-[#FF4D6D]/30 flex items-center gap-3"
           >
             <Rocket size={20} />
-            ابدئي رحلة طفلك الآن
+            ابدأ رحلة طفلك الآن
             <ArrowRight size={18} className="rotate-180" />
           </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => window.location.href = '/plans'}
             className="bg-white/10 border border-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-white/15 transition-colors"
           >
             <Play size={16} />
-            شاهدي كيف يتعلم
+            شاهد كيف يتعلم
           </motion.button>
         </motion.div>
 
@@ -573,7 +558,7 @@ export default function PixiHomePage() {
             { icon: Languages, value: '5 لغات', label: 'عالمية نادرة', color: '#4CC9F0' },
             { icon: Gamepad2, value: '50+', label: 'لعبة تعليمية', color: '#9D4EDD' },
             { icon: Shield, value: '100%', label: 'بيئة آمنة', color: '#06D6A0' },
-            { icon: Star, value: '4.9 ⭐', label: 'تقييم الأهل', color: '#FFD700' },
+            { icon: Star, value: '4.9 ⭐', label: 'تقييم الأهالي', color: '#FFD700' },
           ].map((stat, i) => (
             <motion.div
               key={i}
@@ -605,7 +590,7 @@ export default function PixiHomePage() {
               whileHover={{ scale: 1.2, y: -5 }}
               animate={{ y: [0, -5, 0] }}
               transition={{ y: { duration: 2, repeat: Infinity, delay: i * 0.3 } }}
-              onClick={() => window.location.href = book.route}
+              onClick={() => window.location.href = '/plans'}
             >
               <span className="text-2xl md:text-3xl" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.3))' }}>
                 {book.flag}
@@ -619,210 +604,7 @@ export default function PixiHomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 3. فيديو تعريفي */}
-      {/* ═══════════════════════════════════════════════════════════ */}
-      <section className="w-full max-w-5xl mx-auto px-6 mb-20 z-10 relative">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 40 }}
-          whileInView={{ opacity: 1, scale: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, type: 'spring' }}
-          className="relative rounded-[32px] border-2 border-white/15 overflow-hidden shadow-2xl shadow-[#FF4D6D]/20 group"
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-[#FF4D6D]/15 via-transparent to-[#4361EE]/15 opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-10 pointer-events-none" />
-
-          <video
-            ref={videoRef}
-            src="/videos/cover-video.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-700"
-          />
-
-          <AnimatePresence>
-            {!soundEnabled && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="absolute top-4 right-4 z-20 bg-black/60 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full flex items-center gap-2 text-sm font-bold text-white shadow-lg"
-              >
-                <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity }}>
-                  🔇
-                </motion.span>
-                <span>اضغط لتشغيل الصوت</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#1a1a3e] to-transparent pointer-events-none" />
-        </motion.div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 4. إزاي بتشتغل المنصة - HOW IT WORKS (قسم جديد) */}
-      {/* ═══════════════════════════════════════════════════════════ */}
-      <section className="w-full max-w-6xl mx-auto px-6 mb-24 space-y-12 z-10 relative">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center space-y-4"
-        >
-          <div className="inline-flex items-center gap-2 bg-[#06D6A0]/20 border border-[#06D6A0]/30 px-4 py-1.5 rounded-full text-xs font-bold text-[#6ee7b7] backdrop-blur-sm">
-            <Target size={14} />
-            في 4 خطوات بس
-          </div>
-          <h2 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
-            إزاي طفلك يبدأ؟
-          </h2>
-          <p className="text-gray-300 text-sm max-w-lg mx-auto">
-            العملية سهلة وبسيطة — في دقائق طفلك هيبدأ مغامرته التعليمية
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {HOW_IT_WORKS_STEPS.map((step, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-              whileHover={{ y: -8, scale: 1.03 }}
-              className="relative p-7 rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.03] border border-white/[0.12] hover:border-white/25 transition-all duration-500 group cursor-default overflow-hidden backdrop-blur-sm shadow-xl text-center"
-            >
-              <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full blur-[60px] opacity-0 group-hover:opacity-25 transition-opacity duration-500"
-                style={{ backgroundColor: step.color }}
-              />
-
-              <div className="relative z-10 space-y-4">
-                {/* رقم الخطوة */}
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center mx-auto font-black text-lg"
-                  style={{
-                    backgroundColor: step.color + '25',
-                    border: `2px solid ${step.color}50`,
-                    color: step.color,
-                    boxShadow: `0 0 15px ${step.color}30`,
-                  }}
-                >
-                  {step.step}
-                </div>
-
-                <motion.div
-                  className="text-4xl"
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
-                >
-                  {step.emoji}
-                </motion.div>
-
-                <h3 className="text-base font-black text-white/95">{step.title}</h3>
-                <p className="text-gray-300 font-medium text-[12px] leading-[1.8]">{step.desc}</p>
-              </div>
-
-              {/* السهم بين الخطوات - يظهر بس في الديسكتوب */}
-              {i < HOW_IT_WORKS_STEPS.length - 1 && (
-                <div className="hidden lg:block absolute top-1/2 -left-3 -translate-y-1/2 z-20">
-                  <motion.div
-                    animate={{ x: [0, -5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <ChevronLeft size={20} className="text-white/30" />
-                  </motion.div>
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 5. ليه تختار PIXA WORLD - المميزات */}
-      {/* ═══════════════════════════════════════════════════════════ */}
-      <section className="w-full max-w-6xl mx-auto px-6 mb-24 space-y-12 z-10 relative">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center space-y-4"
-        >
-          <div className="inline-flex items-center gap-2 bg-[#9D4EDD]/20 border border-[#9D4EDD]/30 px-4 py-1.5 rounded-full text-xs font-bold text-[#c084fc] backdrop-blur-sm">
-            <Sparkles size={14} />
-            مميزات حصرية
-          </div>
-          <h2 className="text-3xl md:text-5xl font-black flex items-center justify-center gap-3 flex-wrap">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
-              ليه تختار
-            </span>
-            <span
-              className="bg-clip-text text-transparent"
-              style={{
-                backgroundImage: 'linear-gradient(135deg, #FF4D6D, #F72585, #9D4EDD)',
-                filter: 'drop-shadow(0 0 20px rgba(247,37,133,0.4))',
-              }}
-              dir="ltr"
-            >
-              PIXA WORLD
-            </span>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
-              ؟
-            </span>
-          </h2>
-          <p className="text-gray-300 text-sm max-w-lg mx-auto">
-            اكتشفي كل المميزات اللي بتخلي أطفالك يحبوا تعلم اللغات
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MARKETING_MESSAGES.map((msg, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              whileHover={{ y: -8, scale: 1.02 }}
-              className="relative p-7 rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.03] border border-white/[0.12] hover:border-white/25 transition-all duration-500 group cursor-default overflow-hidden backdrop-blur-sm shadow-xl"
-            >
-              <div
-                className="absolute top-0 right-0 w-32 h-32 rounded-full blur-[60px] opacity-0 group-hover:opacity-30 transition-opacity duration-500"
-                style={{ backgroundColor: msg.color }}
-              />
-
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-5">
-                  <motion.div
-                    whileHover={{ rotate: 15, scale: 1.1 }}
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
-                    style={{
-                      backgroundColor: msg.color + '20',
-                      border: `1px solid ${msg.color}40`,
-                      boxShadow: `0 0 20px ${msg.color}20`
-                    }}
-                  >
-                    <msg.icon size={26} style={{ color: msg.color, filter: `drop-shadow(0 0 8px ${msg.color}80)` }} />
-                  </motion.div>
-                  <div className="text-left">
-                    <div className="text-2xl font-black" style={{ color: msg.color, textShadow: `0 0 15px ${msg.color}60` }}>{msg.stat}</div>
-                    <div className="text-[9px] text-gray-400 font-bold">{msg.statLabel}</div>
-                  </div>
-                </div>
-
-                <h3 className="text-base font-black mb-3 text-white/95 leading-relaxed">{msg.title}</h3>
-                <p className="text-gray-300 font-medium text-[13px] leading-[1.8]">{msg.desc}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 6. عرض الكتب - اللغات المتاحة */}
+      {/* 3. عرض الكتب - اللغات المتاحة (اتنقل هنا - أول حاجة بعد الهيرو) */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <section className="w-full max-w-6xl mx-auto px-6 mb-28 z-10 relative">
         <motion.div
@@ -833,12 +615,12 @@ export default function PixiHomePage() {
         >
           <div className="inline-flex items-center gap-2 bg-[#4CC9F0]/20 border border-[#4CC9F0]/30 px-4 py-1.5 rounded-full text-xs font-bold text-[#7dd3fc] backdrop-blur-sm">
             <BookOpen size={14} />
-            اختاري لغة طفلك
+            اختار لغة طفلك
           </div>
           <h2 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
-            5 لغات عالمية في انتظار طفلك
+            5 لغات عالمية في انتظار طفلكم
           </h2>
-          <p className="text-gray-300 text-sm">اضغطي على أي كتاب وابدئي رحلة طفلك التعليمية</p>
+          <p className="text-gray-300 text-sm">اضغط على أي كتاب وابدأ رحلة طفلك التعليمية</p>
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 md:gap-6 pt-10">
@@ -852,7 +634,7 @@ export default function PixiHomePage() {
               className="relative group cursor-pointer flex flex-col items-center"
               onHoverStart={() => setActiveBook(book.id)}
               onHoverEnd={() => setActiveBook(null)}
-              onClick={() => window.location.href = book.route}
+              onClick={() => window.location.href = '/plans'}
             >
               <motion.div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
@@ -1028,7 +810,267 @@ export default function PixiHomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 7. آراء الأهالي - محسّن */}
+      {/* 4. فيديو تعريفي */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <section className="w-full max-w-5xl mx-auto px-6 mb-20 z-10 relative">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 40 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, type: 'spring' }}
+          className="relative rounded-[32px] border-2 border-white/15 overflow-hidden shadow-2xl shadow-[#FF4D6D]/20 group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-[#FF4D6D]/15 via-transparent to-[#4361EE]/15 opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-10 pointer-events-none" />
+
+          <video
+            ref={videoRef}
+            src="/videos/cover-video.mp4"
+            autoPlay
+            loop
+            muted={isMuted}
+            playsInline
+            className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-700"
+          />
+
+          {/* أزرار التحكم في الفيديو */}
+          <div className="absolute bottom-6 left-6 z-20 flex items-center gap-3">
+            {/* زر تشغيل / إيقاف */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => {
+                if (videoRef.current) {
+                  if (isPlaying) {
+                    videoRef.current.pause();
+                  } else {
+                    videoRef.current.play();
+                  }
+                  setIsPlaying(!isPlaying);
+                }
+              }}
+              className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-lg hover:bg-black/80 transition-colors"
+            >
+              {isPlaying ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                  <rect x="6" y="4" width="4" height="16" rx="1" />
+                  <rect x="14" y="4" width="4" height="16" rx="1" />
+                </svg>
+              ) : (
+                <Play size={18} fill="white" className="mr-[-2px]" />
+              )}
+            </motion.button>
+
+            {/* زر كتم / تشغيل الصوت */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => {
+                if (videoRef.current) {
+                  videoRef.current.muted = !isMuted;
+                  if (isMuted) {
+                    videoRef.current.volume = 1;
+                  }
+                  setIsMuted(!isMuted);
+                }
+              }}
+              className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-lg hover:bg-black/80 transition-colors"
+            >
+              {isMuted ? (
+                <span className="text-lg">🔇</span>
+              ) : (
+                <Volume2 size={18} />
+              )}
+            </motion.button>
+          </div>
+
+          {/* رسالة تشغيل الصوت */}
+          <AnimatePresence>
+            {isMuted && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="absolute top-4 right-4 z-20 bg-black/60 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full flex items-center gap-2 text-sm font-bold text-white shadow-lg cursor-pointer"
+                onClick={() => {
+                  if (videoRef.current) {
+                    videoRef.current.muted = false;
+                    videoRef.current.volume = 1;
+                    setIsMuted(false);
+                  }
+                }}
+              >
+                <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity }}>
+                  🔇
+                </motion.span>
+                <span>اضغط لتشغيل الصوت</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#1a1a3e] to-transparent pointer-events-none" />
+        </motion.div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 5. إزاي بتشتغل المنصة - HOW IT WORKS */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <section className="w-full max-w-6xl mx-auto px-6 mb-24 space-y-12 z-10 relative">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center space-y-4"
+        >
+          <div className="inline-flex items-center gap-2 bg-[#06D6A0]/20 border border-[#06D6A0]/30 px-4 py-1.5 rounded-full text-xs font-bold text-[#6ee7b7] backdrop-blur-sm">
+            <Target size={14} />
+            في 4 خطوات بس
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
+            إزاي طفلكم يبدأ؟
+          </h2>
+          <p className="text-gray-300 text-sm max-w-lg mx-auto">
+            العملية سهلة وبسيطة — في دقائق طفلكم هيبدأ مغامرته التعليمية
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {HOW_IT_WORKS_STEPS.map((step, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.15 }}
+              whileHover={{ y: -8, scale: 1.03 }}
+              className="relative p-7 rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.03] border border-white/[0.12] hover:border-white/25 transition-all duration-500 group cursor-default overflow-hidden backdrop-blur-sm shadow-xl text-center"
+            >
+              <div
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full blur-[60px] opacity-0 group-hover:opacity-25 transition-opacity duration-500"
+                style={{ backgroundColor: step.color }}
+              />
+
+              <div className="relative z-10 space-y-4">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center mx-auto font-black text-lg"
+                  style={{
+                    backgroundColor: step.color + '25',
+                    border: `2px solid ${step.color}50`,
+                    color: step.color,
+                    boxShadow: `0 0 15px ${step.color}30`,
+                  }}
+                >
+                  {step.step}
+                </div>
+
+                <motion.div
+                  className="text-4xl"
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                >
+                  {step.emoji}
+                </motion.div>
+
+                <h3 className="text-base font-black text-white/95">{step.title}</h3>
+                <p className="text-gray-300 font-medium text-[12px] leading-[1.8]">{step.desc}</p>
+              </div>
+
+              {i < HOW_IT_WORKS_STEPS.length - 1 && (
+                <div className="hidden lg:block absolute top-1/2 -left-3 -translate-y-1/2 z-20">
+                  <motion.div
+                    animate={{ x: [0, -5, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <ChevronLeft size={20} className="text-white/30" />
+                  </motion.div>
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 6. ليه تختار PIXA WORLD - المميزات */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <section className="w-full max-w-6xl mx-auto px-6 mb-24 space-y-12 z-10 relative">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center space-y-4"
+        >
+          <div className="inline-flex items-center gap-2 bg-[#9D4EDD]/20 border border-[#9D4EDD]/30 px-4 py-1.5 rounded-full text-xs font-bold text-[#c084fc] backdrop-blur-sm">
+            <Sparkles size={14} />
+            مميزات حصرية
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black flex items-center justify-center gap-3 flex-wrap">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
+              ليه تختاروا
+            </span>
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage: 'linear-gradient(135deg, #FF4D6D, #F72585, #9D4EDD)',
+                filter: 'drop-shadow(0 0 20px rgba(247,37,133,0.4))',
+              }}
+              dir="ltr"
+            >
+              PIXA WORLD
+            </span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
+              ؟
+            </span>
+          </h2>
+          <p className="text-gray-300 text-sm max-w-lg mx-auto">
+            اكتشفوا كل المميزات اللي بتخلي أطفالكم يحبوا تعلم اللغات
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {MARKETING_MESSAGES.map((msg, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              whileHover={{ y: -8, scale: 1.02 }}
+              className="relative p-7 rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.03] border border-white/[0.12] hover:border-white/25 transition-all duration-500 group cursor-default overflow-hidden backdrop-blur-sm shadow-xl"
+            >
+              <div
+                className="absolute top-0 right-0 w-32 h-32 rounded-full blur-[60px] opacity-0 group-hover:opacity-30 transition-opacity duration-500"
+                style={{ backgroundColor: msg.color }}
+              />
+
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-5">
+                  <motion.div
+                    whileHover={{ rotate: 15, scale: 1.1 }}
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
+                    style={{
+                      backgroundColor: msg.color + '20',
+                      border: `1px solid ${msg.color}40`,
+                      boxShadow: `0 0 20px ${msg.color}20`
+                    }}
+                  >
+                    <msg.icon size={26} style={{ color: msg.color, filter: `drop-shadow(0 0 8px ${msg.color}80)` }} />
+                  </motion.div>
+                  <div className="text-left">
+                    <div className="text-2xl font-black" style={{ color: msg.color, textShadow: `0 0 15px ${msg.color}60` }}>{msg.stat}</div>
+                    <div className="text-[9px] text-gray-400 font-bold">{msg.statLabel}</div>
+                  </div>
+                </div>
+
+                <h3 className="text-base font-black mb-3 text-white/95 leading-relaxed">{msg.title}</h3>
+                <p className="text-gray-300 font-medium text-[13px] leading-[1.8]">{msg.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 7. آراء الأهالي */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <section className="w-full max-w-4xl mx-auto px-6 mb-24 z-10 relative">
         <motion.div
@@ -1094,7 +1136,7 @@ export default function PixiHomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 8. CTA Section - محسّن */}
+      {/* 8. CTA Section */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <section className="w-full max-w-4xl mx-auto px-6 mb-24 z-10 relative">
         <motion.div
@@ -1119,11 +1161,11 @@ export default function PixiHomePage() {
             </motion.div>
 
             <h2 className="text-3xl md:text-4xl font-black text-white drop-shadow-lg">
-              مستقبل طفلك يبدأ من هنا
+              مستقبل طفلكم يبدأ من هنا
             </h2>
 
             <p className="text-white/90 text-sm md:text-base max-w-md mx-auto font-medium leading-relaxed">
-              سجلي مجاناً دلوقتي وخلي طفلك يبدأ رحلة تعلم اللغات بأسلوب ممتع ومختلف — مش هيحس إنه بيذاكر!
+              سجّلوا مجاناً دلوقتي وخلّوا طفلكم يبدأ رحلة تعلم اللغات بأسلوب ممتع ومختلف — مش هيحس إنه بيذاكر!
             </p>
 
             {/* نقاط سريعة */}
@@ -1147,15 +1189,16 @@ export default function PixiHomePage() {
                 className="bg-white text-[#F72585] px-10 py-4 rounded-2xl font-black text-base shadow-2xl flex items-center gap-3"
               >
                 <GraduationCap size={20} />
-                ابدئي رحلة طفلك مجاناً
+                ابدأ رحلة طفلك مجاناً
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => window.location.href = '/plans'}
                 className="bg-white/15 border border-white/30 backdrop-blur-sm text-white px-8 py-4 rounded-2xl font-black text-sm flex items-center gap-2"
               >
                 <Play size={16} />
-                شاهدي الفيديو التعريفي
+                شاهد الفيديو التعريفي
               </motion.button>
             </div>
           </div>
@@ -1163,7 +1206,7 @@ export default function PixiHomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 9. FAQ - أسئلة شائعة (قسم جديد) */}
+      {/* 9. FAQ - أسئلة شائعة */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <section className="w-full max-w-3xl mx-auto px-6 mb-24 z-10 relative">
         <motion.div
@@ -1190,22 +1233,22 @@ export default function PixiHomePage() {
             },
             {
               q: 'هل المنصة مجانية؟',
-              a: 'أيوا! تقدري تبدئي مجاناً تماماً وطفلك يجرب المحتوى. فيه خطط مدفوعة للمميزات المتقدمة بأسعار مناسبة جداً.',
+              a: 'أيوا! تقدروا تبدأوا مجاناً تماماً وطفلكم يجرب المحتوى. فيه خطط مدفوعة للمميزات المتقدمة بأسعار مناسبة جداً.',
               color: '#4CC9F0'
             },
             {
               q: 'إزاي طفلي هيتعلم نطق صح؟',
-              a: 'كل كلمة وجملة في المنصة مسجلة بصوت ناطقين أصليين. طفلك يسمع النطق الصحيح ويقدر يكرره ويتدرب عليه.',
+              a: 'كل كلمة وجملة في المنصة مسجلة بصوت ناطقين أصليين. طفلكم يسمع النطق الصحيح ويقدر يكرره ويتدرب عليه.',
               color: '#9D4EDD'
             },
             {
-              q: 'المنصة آمنة لأطفالي؟',
-              a: 'طبعاً! المنصة مصممة 100% للأطفال بدون أي إعلانات أو محتوى غير مناسب. وتقدري تتابعي تقدم طفلك بتقارير مفصلة.',
+              q: 'المنصة آمنة لأطفالنا؟',
+              a: 'طبعاً! المنصة مصممة 100% للأطفال بدون أي إعلانات أو محتوى غير مناسب. وتقدروا تتابعوا تقدم طفلكم بتقارير مفصلة.',
               color: '#06D6A0'
             },
             {
               q: 'لغات نادرة ليه مش إنجليزي؟',
-              a: 'الإنجليزي متوفر في كل مكان. إحنا بنأسس طفلك في لغات المستقبل اللي هتديله ميزة تنافسية حقيقية زي الألماني والصيني والياباني.',
+              a: 'الإنجليزي متوفر في كل مكان. إحنا بنأسس طفلكم في لغات المستقبل اللي هتديله ميزة تنافسية حقيقية زي الألماني والصيني والياباني.',
               color: '#FFD700'
             },
           ].map((faq, i) => (
@@ -1273,7 +1316,7 @@ export default function PixiHomePage() {
                 { label: 'الأسئلة الشائعة' },
                 { label: 'تواصل معنا' },
               ].map((link, i) => (
-                <a key={i} href="#" className="block text-gray-300 text-sm hover:text-[#4CC9F0] transition-colors font-medium">
+                <a key={i} href="/plans" className="block text-gray-300 text-sm hover:text-[#4CC9F0] transition-colors font-medium">
                   {link.label}
                 </a>
               ))}
@@ -1284,7 +1327,7 @@ export default function PixiHomePage() {
               {BOOKS_DATA.map((book) => (
                 <a
                   key={book.id}
-                  href={book.route}
+                  href="/plans"
                   className="block text-gray-300 text-sm hover:text-[#FF4D6D] transition-colors font-medium"
                 >
                   {book.flag} {book.title}

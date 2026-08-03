@@ -574,7 +574,9 @@ function CircularSoundButton({ onClick, color, size = 48 }: { onClick: () => voi
       <Volume2 size={size * 0.4} className="text-white" />
     </motion.button>
   );
-}function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
+}
+
+function LetterChoiceMobile({ letterData, onCorrect, onWrong }: {
   letterData: Letter;
   onCorrect: (clientX: number, clientY: number) => void;
   onWrong: () => void;
@@ -1161,8 +1163,7 @@ function LearnLetterDesktop({ letterData, input, status, onChange, onCheck, inpu
 function LearnLetterPhase({ letterData, onDone, onKarlReact, onCombo, onCorrect, isMobile }: {
   letterData: Letter; onDone: () => void; onKarlReact: (mood: KarlMood) => void;
   onCombo: () => void; onCorrect: (clientX: number, clientY: number) => void; isMobile: boolean;
-}) {
-  const [input, setInput] = useState('');
+}) {  const [input, setInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
   const [confettiTrigger, setConfettiTrigger] = useState(0);
   const [confettiPos, setConfettiPos] = useState({ x: 0, y: 0 });
