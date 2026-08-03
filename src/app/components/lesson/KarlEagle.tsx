@@ -39,7 +39,7 @@ export default function KarlEagle({
     if (!isMobile || typeof window === 'undefined') return;
 
     const initialHeight = window.innerHeight;
-    
+
     const handleResize = () => {
       const currentHeight = window.innerHeight;
       const heightDiff = initialHeight - currentHeight;
@@ -47,7 +47,7 @@ export default function KarlEagle({
     };
 
     window.addEventListener('resize', handleResize);
-    
+
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleResize);
     }
@@ -61,36 +61,124 @@ export default function KarlEagle({
   }, [isMobile]);
 
   // 🎯 حجم النسر
-  const eagleSize = 
+  const eagleSize =
     screenSize === 'mobile' ? (keyboardOpen ? 32 : 42) :
     screenSize === 'tablet' ? 55 :
     screenSize === 'laptop' ? 70 :
     85;
 
-  // 🎯 التموضع الجديد: يمين الشاشة على المنتصف عمودياً
-  // بعيد عن الـ HUD العلوي والسفلي والكروت في النص
-  const positionStyle = 
-    screenSize === 'mobile' ? { 
-      top: keyboardOpen ? 60 : 90, 
+  // 🎯 التموضع: يمين الشاشة على المنتصف عمودياً
+  const positionStyle =
+    screenSize === 'mobile' ? {
+      top: keyboardOpen ? 60 : 90,
       right: 6,
     } :
-    screenSize === 'tablet' ? { 
+    screenSize === 'tablet' ? {
       top: '35%',
       right: 15,
     } :
-    { 
+    {
       top: '30%',
       right: 25,
     };
 
   return (
-    <div 
-      className="fixed pointer-events-none transition-all duration-300" 
+    <div
+      className="fixed pointer-events-none transition-all duration-300"
       style={{ zIndex: 50, ...positionStyle }}
     >
-      {/* 🎯 حاوية أساسية: النسر + الرسالة جنبه على الشمال */}
-      <div className="flex items-center gap-2 flex-row-reverse">
-        
+      {/* 🦅 النسر + الرسالة فوقه */}
+      <div className="relative">
+
+        {/* 💬 الرسالة الصغيرة فوق النسر مباشرة */}
+        <AnimatePresence>
+          {message && !keyboardOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.3, y: 10 }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: 0,
+              }}
+              exit={{
+                opacity: 0,
+                scale: 0.5,
+                y: 5,
+                transition: { duration: 0.15 }
+              }}
+              transition={{
+                type: 'spring',
+                stiffness: 400,
+                damping: 20,
+              }}
+              className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+              style={{
+                bottom: '100%',
+                marginBottom: '6px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {/* البلون الصغير */}
+              <div
+                className="relative px-3 py-1.5 rounded-2xl shadow-xl border backdrop-blur-md"
+                style={{
+                  background:
+                    mood === 'celebrate'
+                      ? 'linear-gradient(135deg, rgba(255,215,0,0.98), rgba(255,140,0,0.98))'
+                      : mood === 'happy'
+                      ? 'linear-gradient(135deg, rgba(88,204,2,0.98), rgba(76,201,240,0.98))'
+                      : 'linear-gradient(135deg, rgba(255,107,107,0.98), rgba(247,37,133,0.98))',
+                  borderColor: 'rgba(255,255,255,0.5)',
+                  boxShadow:
+                    mood === 'celebrate'
+                      ? '0 6px 20px rgba(255,215,0,0.5)'
+                      : mood === 'happy'
+                      ? '0 6px 20px rgba(88,204,2,0.4)'
+                      : '0 6px 20px rgba(255,107,107,0.4)',
+                }}
+              >
+                {/* النص الألماني */}
+                <div
+                  className="text-xs font-black text-white text-center leading-tight"
+                  style={{
+                    textShadow: '0 1px 3px rgba(0,0,0,0.4)',
+                  }}
+                >
+                  {message.de}
+                </div>
+
+                {/* النص العربي */}
+                <div
+                  className="text-[9px] font-bold text-white/95 text-center leading-tight"
+                  style={{
+                    textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  {message.ar}
+                </div>
+
+                {/* السهم لأسفل بيشاور على النسر */}
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 w-0 h-0"
+                  style={{
+                    bottom: '-6px',
+                    borderLeft: '6px solid transparent',
+                    borderRight: '6px solid transparent',
+                    borderTop: `6px solid ${
+                      mood === 'celebrate'
+                        ? 'rgba(255,140,0,0.98)'
+                        : mood === 'happy'
+                        ? 'rgba(76,201,240,0.98)'
+                        : 'rgba(247,37,133,0.98)'
+                    }`,
+                    filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.2))',
+                  }}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* 🦅 النسر */}
         <motion.div
           animate={
@@ -107,7 +195,7 @@ export default function KarlEagle({
             repeat: Infinity,
             ease: 'easeInOut',
           }}
-          className="relative flex-shrink-0"
+          className="relative"
         >
           {/* توهج خلف النسر */}
           <motion.div
@@ -150,161 +238,6 @@ export default function KarlEagle({
             draggable={false}
           />
         </motion.div>
-
-        {/* 💬 الرسالة على شمال النسر - Popup أنيق */}
-        <AnimatePresence>
-          {message && !keyboardOpen && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.3, x: 40, rotate: -8 }}
-              animate={{ 
-                opacity: 1, 
-                scale: 1, 
-                x: 0, 
-                rotate: 0,
-              }}
-              exit={{ 
-                opacity: 0, 
-                scale: 0.5, 
-                x: 30,
-                transition: { duration: 0.2 }
-              }}
-              transition={{ 
-                type: 'spring', 
-                stiffness: 260, 
-                damping: 18,
-                mass: 0.8,
-              }}
-              className="relative flex items-center"
-              style={{
-                minWidth: isMobile ? '130px' : '180px',
-                maxWidth: isMobile ? '170px' : '260px',
-              }}
-            >
-              {/* البلون الكبير */}
-              <motion.div
-                animate={{
-                  y: [0, -3, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-                className={`relative ${isMobile ? 'px-3 py-2' : 'px-5 py-3'} rounded-3xl shadow-2xl border-2 backdrop-blur-xl w-full`}
-                style={{
-                  background:
-                    mood === 'celebrate'
-                      ? 'linear-gradient(135deg, rgba(255,215,0,0.98), rgba(255,140,0,0.98))'
-                      : mood === 'happy'
-                      ? 'linear-gradient(135deg, rgba(88,204,2,0.98), rgba(76,201,240,0.98))'
-                      : 'linear-gradient(135deg, rgba(255,107,107,0.98), rgba(247,37,133,0.98))',
-                  borderColor: 'rgba(255,255,255,0.6)',
-                  boxShadow:
-                    mood === 'celebrate'
-                      ? '0 10px 40px rgba(255,215,0,0.6), 0 0 60px rgba(255,215,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)'
-                      : mood === 'happy'
-                      ? '0 10px 40px rgba(88,204,2,0.5), 0 0 60px rgba(76,201,240,0.3), inset 0 1px 0 rgba(255,255,255,0.4)'
-                      : '0 10px 40px rgba(255,107,107,0.5), 0 0 60px rgba(247,37,133,0.3), inset 0 1px 0 rgba(255,255,255,0.4)',
-                }}
-              >
-                {/* لمعة زجاجية علوية */}
-                <div 
-                  className="absolute top-0 left-0 right-0 h-1/2 rounded-t-3xl pointer-events-none opacity-30"
-                  style={{
-                    background: 'linear-gradient(180deg, rgba(255,255,255,0.5), transparent)',
-                  }}
-                />
-
-                {/* الأيقونة العلوية حسب المزاج */}
-                <div className="flex items-center justify-center gap-1.5 mb-1">
-                  <motion.span
-                    animate={{
-                      rotate: mood === 'celebrate' ? [0, 15, -15, 0] : 0,
-                      scale: [1, 1.2, 1],
-                    }}
-                    transition={{
-                      duration: 0.6,
-                      repeat: Infinity,
-                      repeatDelay: 0.5,
-                    }}
-                    className={isMobile ? 'text-base' : 'text-xl'}
-                  >
-                    {mood === 'celebrate' ? '🎉' : mood === 'happy' ? '✨' : '💪'}
-                  </motion.span>
-                </div>
-
-                {/* النص الألماني */}
-                <div 
-                  className={`${isMobile ? 'text-sm' : 'text-lg'} font-black text-white text-center leading-tight relative z-10`}
-                  style={{
-                    textShadow: '0 2px 8px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.4)',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  {message.de}
-                </div>
-
-                {/* النص العربي */}
-                <div 
-                  className={`${isMobile ? 'text-[10px]' : 'text-xs'} font-bold text-white/95 text-center mt-1 relative z-10`}
-                  style={{
-                    textShadow: '0 1px 4px rgba(0,0,0,0.3)',
-                  }}
-                >
-                  {message.ar}
-                </div>
-
-                {/* نجوم متطايرة للاحتفال */}
-                {mood === 'celebrate' && (
-                  <>
-                    {[0, 1, 2].map((i) => (
-                      <motion.span
-                        key={i}
-                        className="absolute text-xs pointer-events-none"
-                        style={{
-                          top: `${20 + i * 15}%`,
-                          left: `${10 + i * 30}%`,
-                        }}
-                        animate={{
-                          y: [-5, -15, -5],
-                          opacity: [0.5, 1, 0.5],
-                          rotate: [0, 180, 360],
-                        }}
-                        transition={{
-                          duration: 1.5,
-                          repeat: Infinity,
-                          delay: i * 0.3,
-                        }}
-                      >
-                        ⭐
-                      </motion.span>
-                    ))}
-                  </>
-                )}
-              </motion.div>
-
-              {/* السهم اللي بيشاور على النسر */}
-              <div
-                className="absolute w-0 h-0"
-                style={{
-                  right: '-10px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  borderTop: '10px solid transparent',
-                  borderBottom: '10px solid transparent',
-                  borderLeft: `12px solid ${
-                    mood === 'celebrate'
-                      ? 'rgba(255,140,0,0.98)'
-                      : mood === 'happy'
-                      ? 'rgba(76,201,240,0.98)'
-                      : 'rgba(247,37,133,0.98)'
-                  }`,
-                  filter: 'drop-shadow(2px 0 4px rgba(0,0,0,0.2))',
-                }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );
