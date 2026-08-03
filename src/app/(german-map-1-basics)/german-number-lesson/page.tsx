@@ -138,30 +138,93 @@ function levenshteinDistance(a: string, b: string): number {
 }
 
 function similarityScore(a: string, b: string): number {
-  const normalize = (s: string) => s
-    .toLowerCase()
-    .replace(/[.,!?;:'"]/g, '')
-    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+  const normalize = (s: string) => s.toLowerCase()
+    .replace(/[.,!?;:'"\-_()]/g, '')
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const normalizeKeepUmlauts = (s: string) => s.toLowerCase()
+    .replace(/[.,!?;:'"\-_()]/g, '')
+    .replace(/\s+/g, ' ')
     .trim();
 
   const normalA = normalize(a);
   const normalB = normalize(b);
+  const directA = normalizeKeepUmlauts(a);
+  const directB = normalizeKeepUmlauts(b);
+
+  if (!normalA || !normalB) return 0;
+
+  if (normalA === normalB || directA === directB) return 1.0;
 
   if (normalB.split(/\s+/).length === 1) {
-    if (normalA === normalB) return 1.0;
-    if (normalA.includes(normalB) || normalB.includes(normalA)) return 0.8;
+    if (normalA.includes(normalB) || normalB.includes(normalA)) return 0.95;
+    if (directA.includes(directB) || directB.includes(directA)) return 0.95;
+
+    const wordsA = normalA.split(/\s+/);
+    for (const word of wordsA) {
+      if (word === normalB) return 0.95;
+      if (word.includes(normalB) || normalB.includes(word)) return 0.9;
+    }
+
+    if (normalA.length >= 3 && normalB.length >= 3) {
+      if (normalA.substring(0, 3) === normalB.substring(0, 3)) return 0.85;
+    }
+
+    if (normalA.length >= 2 && normalB.length >= 2) {
+      if (normalA.substring(0, 2) === normalB.substring(0, 2)) {
+        const lengthDiff = Math.abs(normalA.length - normalB.length);
+        if (lengthDiff <= 2) return 0.8;
+        if (lengthDiff <= 4) return 0.7;
+      }
+    }
+
+    if (normalA.length >= 2 && normalB.length >= 2) {
+      if (normalA.slice(-2) === normalB.slice(-2)) return 0.7;
+    }
+
+    if (normalA[0] === normalB[0]) {
+      const distance = levenshteinDistance(normalA, normalB);
+      const maxLen = Math.max(normalA.length, normalB.length);
+      const score = 1 - (distance / maxLen);
+      return Math.min(1, score * 1.5);
+    }
+
     const distance = levenshteinDistance(normalA, normalB);
     const maxLen = Math.max(normalA.length, normalB.length);
-    return 1 - (distance / maxLen);
+    const score = 1 - (distance / maxLen);
+    return Math.min(1, score * 1.5);
   }
 
   const wordsA = normalA.split(/\s+/);
   const wordsB = normalB.split(/\s+/);
   const setB = new Set(wordsB);
+
   let matches = 0;
+
   for (const word of wordsA) {
-    if (setB.has(word)) matches++;
+    if (setB.has(word)) {
+      matches++;
+      continue;
+    }
+
+    for (const bWord of wordsB) {
+      const dist = levenshteinDistance(word, bWord);
+      if (dist <= 1) {
+        matches += 0.8;
+        break;
+      }
+      if (dist <= 2) {
+        matches += 0.5;
+        break;
+      }
+    }
   }
+
   return matches / Math.max(wordsA.length, wordsB.length);
 }
 
@@ -799,26 +862,18 @@ function SoundButton({ onClick, color, label, size = 40 }: {
   );
 }
 
-// ═══════════════════════════════════════
-// HeroNumberDisplay - باستخدام صور الكروت
-// ═══════════════════════════════════════
-// ═══════════════════════════════════════
-// HeroNumberDisplay - الصورة كاملة بدون قص
-// ═══════════════════════════════════════
 function HeroNumberDisplay({ numData, isMobile }: { numData: NumberItem; isMobile?: boolean }) {
   const size = isMobile ? 200 : 320;
   const imgSrc = NUMBER_IMAGES[numData.num];
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      {/* Glow خفيف خلف الصورة */}
       <motion.div className="absolute inset-8 rounded-3xl blur-3xl"
         style={{ background: `radial-gradient(circle, ${numData.color}66, transparent 70%)` }}
         animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} 
       />
 
-      {/* الصورة كاملة بدون قص ولا بوردر */}
       <motion.div 
         animate={{ y: [0, -6, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -835,7 +890,6 @@ function HeroNumberDisplay({ numData, isMobile }: { numData: NumberItem; isMobil
             draggable={false}
           />
         ) : (
-          // Fallback لو الصورة مش موجودة
           <div className="w-full h-full flex flex-col items-center justify-center rounded-2xl"
             style={{ 
               background: `linear-gradient(180deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
@@ -856,7 +910,6 @@ function HeroNumberDisplay({ numData, isMobile }: { numData: NumberItem; isMobil
         )}
       </motion.div>
 
-      {/* نجوم سحرية حواليها */}
       {[
         { x: '0%', y: '5%', delay: 0, size: 14 },
         { x: '95%', y: '10%', delay: 0.5, size: 12 },
@@ -913,8 +966,10 @@ function EmojiCount({ emoji, count, color, isMobile }: { emoji: string; count: n
       ))}
     </div>
   );
-}// ═══════════════════════════════════════
-// NumberChoiceMobile - بنفس كارت الكمبيوتر (HeroNumberDisplay)
+}
+
+// ═══════════════════════════════════════
+// 🆕 NumberChoiceMobile - مع أنيميشن الرقم اللي يطير لفوق
 // ═══════════════════════════════════════
 function NumberChoiceMobile({ numData, allNumbers, onCorrect, onWrong }: {
   numData: NumberItem;
@@ -926,7 +981,9 @@ function NumberChoiceMobile({ numData, allNumbers, onCorrect, onWrong }: {
   const [hiddenNums, setHiddenNums] = useState<Set<number>>(new Set());
   const [wrongNum, setWrongNum] = useState<number | null>(null);
   const [status, setStatus] = useState<'idle' | 'correct'>('idle');
+  const [flyingNumber, setFlyingNumber] = useState<{ num: number; fromRect: DOMRect; toRect: DOMRect; } | null>(null);
   
+  const targetBoxRef = useRef<HTMLDivElement>(null);
   const choiceRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const darkColor = useMemo(() => getDarkColor(numData.color), [numData.color]);
 
@@ -935,15 +992,22 @@ function NumberChoiceMobile({ numData, allNumbers, onCorrect, onWrong }: {
     setHiddenNums(new Set());
     setWrongNum(null);
     setStatus('idle');
+    setFlyingNumber(null);
   }, [numData.num, allNumbers]);
 
   const handleChoice = (choice: number, e: React.MouseEvent<HTMLButtonElement>) => {
     if (status === 'correct' || hiddenNums.has(choice)) return;
 
     if (choice === numData.num) {
-      setHiddenNums(prev => new Set(prev).add(choice));
-      setStatus('correct');
-      onCorrect(e.clientX, e.clientY);
+      const buttonEl = choiceRefs.current[choice];
+      const targetEl = targetBoxRef.current;
+      if (buttonEl && targetEl) {
+        const fromRect = buttonEl.getBoundingClientRect();
+        const toRect = targetEl.getBoundingClientRect();
+        setFlyingNumber({ num: choice, fromRect, toRect });
+        setHiddenNums(prev => new Set(prev).add(choice));
+        setTimeout(() => { setStatus('correct'); onCorrect(e.clientX, e.clientY); }, 700);
+      }
     } else {
       setWrongNum(choice);
       playBuzzSound();
@@ -953,126 +1017,137 @@ function NumberChoiceMobile({ numData, allNumbers, onCorrect, onWrong }: {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-3 rounded-[1.5rem] relative overflow-hidden"
-      style={{
-        background: 'rgba(20,15,55,0.55)',
-        backdropFilter: 'blur(30px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(30px) saturate(180%)',
-        border: '2px solid rgba(255,255,255,0.2)',
-        boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 50px ${numData.color}33`,
-      }}>
-      <div className="absolute inset-0 pointer-events-none rounded-[1.5rem]"
-        style={{ background: `radial-gradient(ellipse at 50% 0%, ${numData.color}33, transparent 60%)` }} />
-      
-      <div className="relative z-10 flex flex-col items-center gap-2.5">
+    <>
+      <AnimatePresence>
+        {flyingNumber && (
+          <motion.div className="fixed pointer-events-none z-[100] flex items-center justify-center rounded-2xl"
+            initial={{ left: flyingNumber.fromRect.left, top: flyingNumber.fromRect.top, width: flyingNumber.fromRect.width, height: flyingNumber.fromRect.height, scale: 1, opacity: 1 }}
+            animate={{ left: flyingNumber.toRect.left, top: flyingNumber.toRect.top, width: flyingNumber.toRect.width, height: flyingNumber.toRect.height, scale: [1, 1.3, 1], opacity: [1, 1, 0] }}
+            transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94], opacity: { times: [0, 0.7, 1] }, scale: { times: [0, 0.5, 1] } }}
+            style={{
+              background: `linear-gradient(145deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
+              border: `2px solid rgba(255,255,255,0.6)`,
+              boxShadow: `0 8px 30px ${numData.color}cc, 0 0 40px ${numData.color}88`,
+            }}>
+            <span className="font-black text-white tabular-nums"
+              style={{ fontSize: '3rem', lineHeight: 1, textShadow: `0 2px 8px rgba(0,0,0,0.5)` }}>
+              {flyingNumber.num}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="w-full max-w-md mx-auto p-3 rounded-[1.5rem] relative overflow-hidden"
+        style={{
+          background: 'rgba(20,15,55,0.55)',
+          backdropFilter: 'blur(30px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(30px) saturate(180%)',
+          border: '2px solid rgba(255,255,255,0.2)',
+          boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 50px ${numData.color}33`,
+        }}>
+        <div className="absolute inset-0 pointer-events-none rounded-[1.5rem]"
+          style={{ background: `radial-gradient(ellipse at 50% 0%, ${numData.color}33, transparent 60%)` }} />
         
-        {/* العنوان */}
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          className="px-4 py-1.5 rounded-2xl"
-          style={{ 
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', 
-            border: `2px solid ${numData.color}66`, 
-            boxShadow: `0 4px 15px ${numData.color}44` 
-          }}>
-          <span className="font-black text-xs text-gray-800">استمع جيداً واختر الرقم</span>
-        </motion.div>
+        <div className="relative z-10 flex flex-col items-center gap-2.5">
+          
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+            className="px-4 py-1.5 rounded-2xl"
+            style={{ 
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', 
+              border: `2px solid ${numData.color}66`, 
+              boxShadow: `0 4px 15px ${numData.color}44` 
+            }}>
+            <span className="font-black text-xs text-gray-800">استمع جيداً واختر الرقم</span>
+          </motion.div>
 
-        {/* 🆕 كارت الكمبيوتر الكامل (HeroNumberDisplay) */}
-        <HeroNumberDisplay numData={numData} isMobile />
+          <div ref={targetBoxRef} className="relative">
+            <HeroNumberDisplay numData={numData} isMobile />
+            {status === 'correct' && (
+              <motion.div className="absolute inset-0 pointer-events-none" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                {[0, 60, 120, 180, 240, 300].map(angle => (
+                  <motion.div key={angle} className="absolute"
+                    style={{ top: '50%', left: '50%', width: 10, height: 10, background: '#FFD700', borderRadius: '50%', boxShadow: '0 0 15px #FFD700', transformOrigin: '0 0' }}
+                    initial={{ x: 0, y: 0, scale: 1, opacity: 1 }}
+                    animate={{ x: Math.cos(angle * Math.PI / 180) * 80, y: Math.sin(angle * Math.PI / 180) * 80, scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.8 }} />
+                ))}
+              </motion.div>
+            )}
+          </div>
 
-        {/* زرار الصوت */}
-        <SoundButton onClick={() => speakNumber(numData.de)} color={numData.color} size={45} />
+          <SoundButton onClick={() => speakNumber(numData.de)} color={numData.color} size={45} />
 
-        {/* النص */}
-        <div className="flex items-center gap-1.5">
-          <span className="font-black text-white text-xs">اختر الرقم الصحيح</span>
-          <span className="text-sm">👇</span>
-        </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-black text-white text-xs">اختر الرقم الصحيح</span>
+            <span className="text-sm">👇</span>
+          </div>
 
-        {/* أزرار الاختيارات */}
-        <div className="flex items-center justify-center gap-2.5 w-full" dir="ltr">
-          {choices.map((choice, idx) => {
-            const isHidden = hiddenNums.has(choice);
-            const isWrong = wrongNum === choice;
+          <div className="flex items-center justify-center gap-2.5 w-full" dir="ltr">
+            {choices.map((choice, idx) => {
+              const isHidden = hiddenNums.has(choice);
+              const isWrong = wrongNum === choice;
 
-            return (
-              <AnimatePresence key={`${numData.num}-${choice}-${idx}`} mode="wait">
-                {!isHidden && (
-                  <motion.button
-                    ref={el => { choiceRefs.current[choice] = el; }}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={isWrong ? { 
-                      x: [-8, 8, -8, 8, 0],
-                      scale: 1, opacity: 1,
-                    } : { scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    transition={isWrong 
-                      ? { duration: 0.4 }
-                      : { delay: idx * 0.1, type: 'spring', stiffness: 300 }
-                    }
-                    whileHover={{ scale: 1.08, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => handleChoice(choice, e)}
-                    disabled={status === 'correct' || isWrong}
-                    className="relative rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden border-2"
-                    style={{
-                      width: 70, height: 70,
-                      background: isWrong 
-                        ? 'linear-gradient(145deg, #FF4444, #CC0000)' 
-                        : 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(245,245,255,0.95))',
-                      borderColor: isWrong ? '#FF4444' : `${numData.color}aa`,
-                      boxShadow: isWrong 
-                        ? '0 5px 18px rgba(255,68,68,0.6)' 
-                        : `0 5px 18px ${numData.color}55`,
-                    }}
-                  >
-                    <span className="font-black tabular-nums"
+              return (
+                <AnimatePresence key={`${numData.num}-${choice}-${idx}`} mode="wait">
+                  {!isHidden && (
+                    <motion.button
+                      ref={el => { choiceRefs.current[choice] = el; }}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={isWrong ? { x: [-8, 8, -8, 8, 0], scale: 1, opacity: 1 } : { scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={isWrong ? { duration: 0.4 } : { delay: idx * 0.1, type: 'spring', stiffness: 300 }}
+                      whileHover={{ scale: 1.08, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={(e) => handleChoice(choice, e)}
+                      disabled={status === 'correct' || isWrong || flyingNumber !== null}
+                      className="relative rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden border-2"
                       style={{
-                        fontSize: '2.2rem',
-                        lineHeight: 1,
-                        color: isWrong ? 'white' : darkColor,
-                        textShadow: isWrong ? '0 2px 6px rgba(0,0,0,0.4)' : 'none',
+                        width: 70, height: 70,
+                        background: isWrong 
+                          ? 'linear-gradient(145deg, #FF4444, #CC0000)' 
+                          : 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(245,245,255,0.95))',
+                        borderColor: isWrong ? '#FF4444' : `${numData.color}aa`,
+                        boxShadow: isWrong ? '0 5px 18px rgba(255,68,68,0.6)' : `0 5px 18px ${numData.color}55`,
                       }}
                     >
-                      {choice}
-                    </span>
-                  </motion.button>
-                )}
-              </AnimatePresence>
-            );
-          })}
+                      <span className="font-black tabular-nums"
+                        style={{
+                          fontSize: '2.2rem',
+                          lineHeight: 1,
+                          color: isWrong ? 'white' : darkColor,
+                          textShadow: isWrong ? '0 2px 6px rgba(0,0,0,0.4)' : 'none',
+                        }}
+                      >
+                        {choice}
+                      </span>
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              );
+            })}
+          </div>
+
+          <AnimatePresence>
+            {status === 'correct' && (
+              <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex items-center justify-center gap-2 font-black text-xs py-1 px-3 rounded-xl"
+                style={{ background: 'rgba(88,204,2,0.3)', color: '#58CC02', border: '1.5px solid #58CC0288' }}>
+                <Check size={12} /> ممتاز!
+              </motion.div>
+            )}
+            {wrongNum !== null && (
+              <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex items-center justify-center gap-2 font-black text-xs py-1 px-3 rounded-xl"
+                style={{ background: 'rgba(255,68,68,0.3)', color: '#FF6B6B', border: '1.5px solid #FF444488' }}>
+                <X size={12} /> جرب تاني
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-
-        <AnimatePresence>
-          {status === 'correct' && (
-            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="flex items-center justify-center gap-2 font-black text-xs py-1 px-3 rounded-xl"
-              style={{ 
-                background: 'rgba(88,204,2,0.3)', 
-                color: '#58CC02', 
-                border: '1.5px solid #58CC0288' 
-              }}>
-              <Check size={12} /> ممتاز!
-            </motion.div>
-          )}
-          {wrongNum !== null && (
-            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="flex items-center justify-center gap-2 font-black text-xs py-1 px-3 rounded-xl"
-              style={{ 
-                background: 'rgba(255,68,68,0.3)', 
-                color: '#FF6B6B', 
-                border: '1.5px solid #FF444488' 
-              }}>
-              <X size={12} /> جرب تاني
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
-    </div>
+    </>
   );
-}
-
-// ═══════════════════════════════════════
+}// ═══════════════════════════════════════
 // WordBuilderMobileNumber
 // ═══════════════════════════════════════
 function WordBuilderMobileNumber({ numData, onComplete, onWrong }: {
@@ -1209,7 +1284,6 @@ function WordBuilderMobileNumber({ numData, onComplete, onWrong }: {
             <span className="font-black text-xs text-gray-800">استمع للكلمة ورتب الحروف</span>
           </motion.div>
 
-          {/* 🆕 صورة الكارت بالألماني كاملة بدون قص */}
           <motion.div 
             animate={{ y: [0, -4, 0] }} 
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -1227,7 +1301,6 @@ function WordBuilderMobileNumber({ numData, onComplete, onWrong }: {
                 draggable={false}
               />
             ) : (
-              // Fallback لو الصورة مش موجودة
               <div className="w-full h-full rounded-2xl flex flex-col items-center justify-center border-2 p-2"
                 style={{ 
                   background: `linear-gradient(180deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
@@ -1241,7 +1314,6 @@ function WordBuilderMobileNumber({ numData, onComplete, onWrong }: {
             )}
           </motion.div>
 
-          {/* النص العربي تحت الصورة */}
           <div className="text-center">
             <div className="font-bold text-xs" 
               style={{ color: numData.color, textShadow: '0 2px 6px rgba(0,0,0,0.7)' }}>
@@ -1513,14 +1585,12 @@ function HeroWordDisplay({ numData, isMobile }: { numData: NumberItem; isMobile?
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      {/* Glow خفيف خلف الصورة */}
       <motion.div className="absolute inset-8 rounded-3xl blur-3xl"
         style={{ background: `radial-gradient(circle, ${numData.color}66, transparent 70%)` }}
         animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} 
       />
 
-      {/* الصورة كاملة بدون قص ولا بوردر */}
       <motion.div 
         animate={{ y: [0, -6, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -1557,7 +1627,6 @@ function HeroWordDisplay({ numData, isMobile }: { numData: NumberItem; isMobile?
         )}
       </motion.div>
 
-      {/* نجوم سحرية حواليها */}
       {[
         { x: '0%', y: '5%', delay: 0, size: 14 },
         { x: '95%', y: '10%', delay: 0.5, size: 12 },
@@ -1726,7 +1795,7 @@ function WritePhase({ numData, groupTitle, onDone, onKarlReact, onCombo, onCorre
 }
 
 // ═══════════════════════════════════════
-// 🎤 SpeakingPractice - بتصميم Grid موحّد مع listen/write
+// 🎤 SpeakingPractice - النسخة الجديدة (زي درس الحروف)
 // ═══════════════════════════════════════
 function SpeakingPractice({ numData, isMobile, onSuccess, onSkip }: {
   numData: NumberItem;
@@ -1736,92 +1805,379 @@ function SpeakingPractice({ numData, isMobile, onSuccess, onSkip }: {
 }) {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [interimText, setInterimText] = useState('');
   const [status, setStatus] = useState<'idle' | 'listening' | 'success' | 'try-again' | 'error'>('idle');
   const [attempts, setAttempts] = useState(0);
   const [supported, setSupported] = useState(true);
+  const [volumeLevel, setVolumeLevel] = useState(0);
+
   const recognitionRef = useRef<any>(null);
   const micButtonRef = useRef<HTMLButtonElement>(null);
+  const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const hasResultRef = useRef(false);
+  const statusRef = useRef<string>('idle');
+  const bestScoreRef = useRef(0);
+  const bestTranscriptRef = useRef('');
+  const heardSpeechRef = useRef(false);
+  const resolvedRef = useRef(false);
+  const manualStopRef = useRef(false);
 
   const targetWord = numData.de;
+
+  const isMobileDevice =
+    typeof navigator !== 'undefined' &&
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  const SUCCESS_THRESHOLD = isMobileDevice ? 0.15 : 0.2;
+  const INTERIM_ACCEPT_THRESHOLD = isMobileDevice ? 0.6 : 0.7;
+  const SILENCE_AFTER_SPEECH = isMobileDevice ? 4000 : 2500;
+  const NO_SPEECH_TIMEOUT = isMobileDevice ? 8000 : 5000;
+  const SAFETY_TIMEOUT = isMobileDevice ? 12000 : 8000;
+  const SPEECH_THRESHOLD = isMobileDevice ? 3 : 5;
+
+  useEffect(() => { statusRef.current = status; }, [status]);
+
+  const cleanup = () => {
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+    analyserRef.current = null;
+    setVolumeLevel(0);
+  };
+
+  const requestStop = () => {
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
+  };
+
+  const forceStop = () => {
+    cleanup();
+    setIsListening(false);
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setSupported(false);
-      return;
-    }
+    if (!SpeechRecognition) { setSupported(false); return; }
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'de-DE';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 3;
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 15;
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const results = event.results[0];
-      let bestMatch = '';
-      let bestScore = 0;
-
-      for (let i = 0; i < (results as any).length; i++) {
-        const text = (results as any)[i].transcript.toLowerCase().trim();
-        const score = similarityScore(text, targetWord.toLowerCase());
-        if (score > bestScore) {
-          bestScore = score;
-          bestMatch = text;
-        }
-      }
-
-      setTranscript(bestMatch);
-      setIsListening(false);
-
-      if (bestScore >= 0.65) {
-        setStatus('success');
-        playCoinSound();
-        
-        let cx = window.innerWidth / 2;
-        let cy = window.innerHeight / 2;
-        if (micButtonRef.current) {
-          const rect = micButtonRef.current.getBoundingClientRect();
-          cx = rect.left + rect.width / 2;
-          cy = rect.top + rect.height / 2;
-        }
-        
-        setTimeout(() => onSuccess(cx, cy), 1500);
-      } else {
-        setStatus('try-again');
-        playBuzzSound();
-        setAttempts(a => a + 1);
-      }
-    };
-
-    recognition.onerror = (event: any) => {
-      setIsListening(false);
-      if (event.error === 'not-allowed') {
-        setStatus('error');
-      } else if (event.error !== 'no-speech') {
-        setStatus('try-again');
-        setAttempts(a => a + 1);
-      } else {
-        setStatus('idle');
-      }
-    };
-
-    recognition.onend = () => setIsListening(false);
     recognitionRef.current = recognition;
-  }, [targetWord, onSuccess]);
 
-  const handleStart = () => {
-    if (!recognitionRef.current || isListening) return;
+    return () => {
+      cleanup();
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort(); } catch {}
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     setTranscript('');
+    setInterimText('');
+    setStatus('idle');
+    setAttempts(0);
+    setIsListening(false);
+    hasResultRef.current = false;
+    bestScoreRef.current = 0;
+    bestTranscriptRef.current = '';
+    heardSpeechRef.current = false;
+    resolvedRef.current = false;
+    manualStopRef.current = false;
+    cleanup();
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch {}
+    }
+  }, [targetWord]);
+
+  const scoreTranscript = (rawText: string) => {
+    const text = rawText.toLowerCase().trim();
+    if (!text) return { score: 0, match: '' };
+
+    const fullScore = similarityScore(text, targetWord.toLowerCase());
+    const words = text.split(/\s+/).filter(Boolean);
+    let bestWordScore = 0;
+    let bestWordMatch = text;
+
+    for (const word of words) {
+      const wordScore = similarityScore(word, targetWord.toLowerCase());
+      if (wordScore > bestWordScore) {
+        bestWordScore = wordScore;
+        bestWordMatch = word;
+      }
+    }
+
+    let edgeTrimScore = 0;
+    let edgeTrimMatch = text;
+
+    if (words.length > 1) {
+      const withoutFirst = words.slice(1).join(' ');
+      const withoutLast = words.slice(0, -1).join(' ');
+      const wfScore = similarityScore(withoutFirst, targetWord.toLowerCase());
+      const wlScore = similarityScore(withoutLast, targetWord.toLowerCase());
+
+      if (wfScore > edgeTrimScore) { edgeTrimScore = wfScore; edgeTrimMatch = withoutFirst; }
+      if (wlScore > edgeTrimScore) { edgeTrimScore = wlScore; edgeTrimMatch = withoutLast; }
+    }
+
+    const finalScore = Math.max(fullScore, bestWordScore, edgeTrimScore);
+    let bestMatch = text;
+    if (bestWordScore >= fullScore && bestWordScore >= edgeTrimScore) bestMatch = bestWordMatch;
+    else if (edgeTrimScore >= fullScore && edgeTrimScore >= bestWordScore) bestMatch = edgeTrimMatch;
+
+    return { score: finalScore, match: bestMatch };
+  };
+
+  const finishSuccess = (matchText?: string) => {
+    if (resolvedRef.current) return;
+    resolvedRef.current = true;
+    hasResultRef.current = true;
+
+    const finalText = (matchText || bestTranscriptRef.current || '').trim();
+    setTranscript(finalText);
+    setInterimText('');
+    setStatus('success');
+    playCoinSound();
+    forceStop();
+
+    let cx = window.innerWidth / 2;
+    let cy = window.innerHeight / 2;
+    if (micButtonRef.current) {
+      const rect = micButtonRef.current.getBoundingClientRect();
+      cx = rect.left + rect.width / 2;
+      cy = rect.top + rect.height / 2;
+    }
+    setTimeout(() => onSuccess(cx, cy), 1200);
+  };
+
+  const finishTryAgain = (matchText?: string) => {
+    if (resolvedRef.current) return;
+    resolvedRef.current = true;
+    if (matchText?.trim()) setTranscript(matchText.trim());
+    setInterimText('');
+    setStatus('try-again');
+    playBuzzSound();
+    setAttempts(a => a + 1);
+    forceStop();
+  };
+
+  const handleStart = async () => {
+    if (!recognitionRef.current || isListening) return;
+
+    setTranscript('');
+    setInterimText('');
     setStatus('listening');
     setIsListening(true);
+
+    hasResultRef.current = false;
+    bestScoreRef.current = 0;
+    bestTranscriptRef.current = '';
+    heardSpeechRef.current = false;
+    resolvedRef.current = false;
+    manualStopRef.current = false;
+
+    if (!isMobileDevice) {
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+          }
+        });
+        streamRef.current = stream;
+      } catch (e) {
+        console.error('❌ Mic permission denied:', e);
+        setIsListening(false);
+        setStatus('error');
+        return;
+      }
+
+      try {
+        const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
+        const audioContext = new AudioCtx();
+        audioContextRef.current = audioContext;
+
+        const source = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.8;
+        source.connect(analyser);
+        analyserRef.current = analyser;
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        let silenceStart = Date.now();
+        let hasSpoken = false;
+
+        const detectVolume = () => {
+          if (!analyserRef.current) return;
+          analyserRef.current.getByteFrequencyData(dataArray);
+          const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+          const normalized = Math.min(100, (average / 128) * 100);
+          setVolumeLevel(normalized);
+
+          if (average > SPEECH_THRESHOLD) {
+            hasSpoken = true;
+            heardSpeechRef.current = true;
+            silenceStart = Date.now();
+          }
+
+          if (hasSpoken && Date.now() - silenceStart > SILENCE_AFTER_SPEECH) {
+            requestStop();
+            return;
+          }
+          if (!hasSpoken && Date.now() - silenceStart > NO_SPEECH_TIMEOUT) {
+            requestStop();
+            return;
+          }
+          animationFrameRef.current = requestAnimationFrame(detectVolume);
+        };
+        detectVolume();
+      } catch (e) {
+        console.warn('⚠️ Audio analysis failed:', e);
+      }
+    } else {
+      let fakeVolumeDirection = 1;
+      let fakeVolume = 30;
+      const fakeVolumeInterval = () => {
+        fakeVolume += fakeVolumeDirection * (Math.random() * 15);
+        if (fakeVolume > 80) fakeVolumeDirection = -1;
+        if (fakeVolume < 20) fakeVolumeDirection = 1;
+        setVolumeLevel(fakeVolume);
+        animationFrameRef.current = requestAnimationFrame(fakeVolumeInterval);
+      };
+      fakeVolumeInterval();
+    }
+
+    safetyTimeoutRef.current = setTimeout(() => {
+      if (!resolvedRef.current) requestStop();
+    }, SAFETY_TIMEOUT);
+
+    recognitionRef.current.onstart = () => { console.log('🎙️ Recognition started'); };
+
+    recognitionRef.current.onresult = (event: any) => {
+      const lastResult = event.results[event.results.length - 1];
+      if (!lastResult) return;
+
+      let localBestScore = 0;
+      let localBestMatch = '';
+
+      for (let i = 0; i < lastResult.length; i++) {
+        const rawText = lastResult[i]?.transcript || '';
+        const text = rawText.toLowerCase().trim();
+        if (!text) continue;
+
+        heardSpeechRef.current = true;
+        const { score, match } = scoreTranscript(text);
+        console.log(`🎯 "${text}" → Score: ${score.toFixed(2)} (target: ${targetWord})`);
+
+        if (score > localBestScore) { localBestScore = score; localBestMatch = match; }
+        if (score > bestScoreRef.current) {
+          bestScoreRef.current = score;
+          bestTranscriptRef.current = match;
+        }
+      }
+
+      if (!localBestMatch) return;
+
+      if (!lastResult.isFinal) {
+        setInterimText(localBestMatch);
+        if (!resolvedRef.current && localBestScore >= INTERIM_ACCEPT_THRESHOLD) {
+          finishSuccess(localBestMatch);
+        }
+        return;
+      }
+
+      hasResultRef.current = true;
+      setTranscript(localBestMatch);
+      setInterimText('');
+
+      if (!resolvedRef.current && localBestScore >= SUCCESS_THRESHOLD) {
+        finishSuccess(localBestMatch);
+      }
+    };
+
+    recognitionRef.current.onerror = (event: any) => {
+      console.error('❌ Recognition error:', event.error);
+      if (resolvedRef.current) return;
+
+      if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+        resolvedRef.current = true;
+        forceStop();
+        setStatus('error');
+        return;
+      }
+      if (event.error === 'aborted') return;
+      if (event.error === 'no-speech') {
+        finishTryAgain(bestTranscriptRef.current || undefined);
+        return;
+      }
+      finishTryAgain(bestTranscriptRef.current || undefined);
+    };
+
+    recognitionRef.current.onend = () => {
+      cleanup();
+      setIsListening(false);
+      if (resolvedRef.current) return;
+
+      const bestMatch = bestTranscriptRef.current.trim();
+      const bestScore = bestScoreRef.current;
+
+      if (bestMatch && bestScore >= SUCCESS_THRESHOLD) {
+        finishSuccess(bestMatch);
+        return;
+      }
+      if (manualStopRef.current) {
+        setStatus('idle');
+        return;
+      }
+      finishTryAgain(bestMatch || undefined);
+    };
+
     try {
       recognitionRef.current.start();
     } catch (e) {
+      console.error('❌ Failed to start:', e);
+      cleanup();
       setIsListening(false);
       setStatus('error');
     }
+  };
+
+  const handleManualStop = () => {
+    manualStopRef.current = true;
+    requestStop();
   };
 
   if (!supported) {
@@ -1841,7 +2197,10 @@ function SpeakingPractice({ numData, isMobile, onSuccess, onSkip }: {
     );
   }
 
-  // ═════════ نسخة الموبايل (بكارت HeroWordDisplay الكامل) ═════════
+  const showSkipButton = attempts >= 2 || status === 'error';
+  const showSoftSkip = attempts === 1;
+
+  // ═════════ نسخة الموبايل ═════════
   if (isMobile) {
     return (
       <motion.div 
@@ -1864,131 +2223,94 @@ function SpeakingPractice({ numData, isMobile, onSuccess, onSkip }: {
             style={{ background: `radial-gradient(ellipse at 50% 0%, ${numData.color}33, transparent 60%)` }} />
           
           <div className="relative z-10 flex flex-col items-center gap-2">
-            
-            {/* العنوان */}
             <div className="text-center">
               <h3 className="font-black text-white text-base flex items-center justify-center gap-1.5">
                 <span>انطق الرقم</span>
-                <motion.span 
-                  initial={{ scale: 0 }} 
-                  animate={{ scale: [0, 1.2, 1] }} 
-                  transition={{ duration: 0.5 }}
-                  className="text-xl">
-                  🎤
-                </motion.span>
+                <motion.span initial={{ scale: 0 }} animate={{ scale: [0, 1.2, 1] }} transition={{ duration: 0.5 }} className="text-xl">🎤</motion.span>
               </h3>
-              <p className="text-white/60 font-bold text-[10px] mt-0.5">
-                اضغط على المايك واتكلم بوضوح
-              </p>
+              <p className="text-white/60 font-bold text-[10px] mt-0.5">اضغط على المايك واتكلم بوضوح</p>
             </div>
 
-            {/* 🆕 كارت الكلمة الكامل (HeroWordDisplay) */}
             <HeroWordDisplay numData={numData} isMobile />
 
-            {/* زرار اسمع النطق الصح */}
             <button onClick={() => speakNumber(targetWord)}
               className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/5 text-white/80 hover:bg-white/10 transition-all font-bold px-4 py-1.5 text-xs">
               <Volume2 size={12} /> اسمع النطق الصح
             </button>
 
-            {/* زرار المايك */}
             <motion.button
               ref={micButtonRef}
               whileHover={!isListening ? { scale: 1.05 } : {}}
-              whileTap={!isListening ? { scale: 0.95 } : {}}
-              onClick={handleStart}
-              disabled={isListening || status === 'success'}
+              whileTap={{ scale: 0.95 }}
+              onClick={isListening ? handleManualStop : handleStart}
+              disabled={status === 'success'}
               className="relative rounded-full flex items-center justify-center transition-all flex-shrink-0 w-16 h-16"
               style={{
-                background: status === 'success'
-                  ? 'linear-gradient(135deg, #58CC02, #096A02)'
-                  : isListening
-                  ? 'linear-gradient(135deg, #FF4444, #C70039)'
-                  : `linear-gradient(135deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
-                boxShadow: isListening
-                  ? '0 0 60px rgba(255,68,68,0.6)'
-                  : `0 10px 40px ${numData.color}66`,
+                background: status === 'success' ? 'linear-gradient(135deg, #58CC02, #096A02)' :
+                  isListening ? 'linear-gradient(135deg, #FF4444, #C70039)' :
+                  `linear-gradient(135deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
+                boxShadow: isListening ? `0 0 ${20 + volumeLevel * 0.4}px rgba(255,68,68,${0.5 + volumeLevel / 200})` : `0 10px 40px ${numData.color}66`,
               }}
             >
               {isListening && (
                 <>
                   {[0, 0.3, 0.6].map((delay, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute inset-0 rounded-full border-4"
+                    <motion.div key={i} className="absolute inset-0 rounded-full border-4"
                       style={{ borderColor: '#FF4444' }}
-                      initial={{ scale: 1, opacity: 0.8 }}
-                      animate={{ scale: 1.6, opacity: 0 }}
-                      transition={{ duration: 1.5, delay, repeat: Infinity, ease: 'easeOut' }}
-                    />
+                      initial={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.6, opacity: 0 }}
+                      transition={{ duration: 1.5, delay, repeat: Infinity, ease: 'easeOut' }} />
                   ))}
+                  <div className="absolute inset-0 rounded-full border-2"
+                    style={{
+                      borderColor: `rgba(255,255,255,${0.3 + volumeLevel / 200})`,
+                      transform: `scale(${1 + volumeLevel / 150})`,
+                      transition: 'all 0.1s',
+                    }} />
                 </>
               )}
-              {status === 'success' ? (
-                <Check size={30} className="text-white" strokeWidth={3} />
-              ) : (
-                <Mic size={30} className="text-white" />
-              )}
+              {status === 'success' ? <Check size={30} className="text-white" strokeWidth={3} /> : <Mic size={30} className="text-white" />}
             </motion.button>
 
-            {/* الرسائل */}
+            {isListening && (<p className="text-[9px] text-white/50 font-bold">اضغط تاني للإيقاف</p>)}
+
             <AnimatePresence mode="wait">
-              {transcript && (
-                <motion.div 
-                  key="transcript"
-                  initial={{ opacity: 0, y: 10 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  exit={{ opacity: 0 }}
-                  className="text-center">
-                  <p className="text-white/40 font-bold mb-0.5 text-[10px]">
-                    سمعتك بتقول:
-                  </p>
-                  <p className="font-black text-white text-sm" style={{ direction: 'ltr' }}>
-                    "{transcript}"
-                  </p>
+              {interimText && isListening && (
+                <motion.div key="interim" initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} exit={{ opacity: 0 }} className="text-center">
+                  <p className="text-white/60 font-bold text-[10px] italic" style={{ direction: 'ltr' }}>"{interimText}..."</p>
+                </motion.div>
+              )}
+              {transcript && !isListening && (
+                <motion.div key="transcript" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-center">
+                  <p className="text-white/40 font-bold mb-0.5 text-[10px]">سمعتك بتقول:</p>
+                  <p className="font-black text-white text-sm" style={{ direction: 'ltr' }}>"{transcript}"</p>
                 </motion.div>
               )}
             </AnimatePresence>
 
             <AnimatePresence mode="wait">
-              {status === 'listening' && (
-                <motion.p key="listening" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="font-black text-red-400 text-xs">
-                  🎙️ بسمعك دلوقتي...
-                </motion.p>
-              )}
-              {status === 'success' && (
-                <motion.p key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-                  className="font-black text-green-400 text-base">
-                  ✅ نطق ممتاز! 🌟
-                </motion.p>
-              )}
-              {status === 'try-again' && (
-                <motion.p key="try-again" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="font-black text-yellow-400 text-xs">
-                  😊 قريب! حاول تاني بصوت أوضح
-                </motion.p>
-              )}
-              {status === 'error' && (
-                <motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="font-black text-red-400 text-xs">
-                  ❌ لازم تسمح للموقع باستخدام المايك
-                </motion.p>
-              )}
-              {status === 'idle' && (
-                <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="font-bold text-white/40 text-[10px]">
-                  اضغط على المايك وابدأ تتكلم
-                </motion.p>
-              )}
+              {status === 'listening' && (<motion.p key="listening" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="font-black text-red-400 text-xs">🎙️ بسمعك... اتكلم بوضوح</motion.p>)}
+              {status === 'success' && (<motion.p key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="font-black text-green-400 text-base">✅ نطق ممتاز! 🌟</motion.p>)}
+              {status === 'try-again' && (<motion.p key="try-again" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-yellow-400 text-xs">😊 مش سمعتك كويس، حاول تاني</motion.p>)}
+              {status === 'error' && (<motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-red-400 text-xs">❌ لازم تسمح للموقع باستخدام المايك</motion.p>)}
+              {status === 'idle' && !isListening && (<motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-bold text-white/40 text-[10px]">اضغط على المايك وابدأ تتكلم</motion.p>)}
             </AnimatePresence>
 
-            {/* زرار التخطي */}
-            {(attempts >= 2 || status === 'error') && (
+            {showSkipButton && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center">
-                <button onClick={onSkip}
-                  className="flex items-center gap-2 rounded-2xl font-bold text-white/70 hover:text-white border border-white/15 hover:border-white/30 bg-white/5 hover:bg-white/10 transition-all px-4 py-2 text-xs">
-                  <SkipForward size={14} /> تخطي وكمل
+                <button onClick={onSkip} className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl font-black text-white border-2 transition-all text-[11px]"
+                  style={{
+                    background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
+                    borderColor: 'rgba(255,255,255,0.3)',
+                    boxShadow: '0 4px 15px rgba(76,201,240,0.4)'
+                  }}>
+                  <SkipForward size={13} /> تخطي وكمل ⏭️
+                </button>
+              </motion.div>
+            )}
+            {showSoftSkip && !showSkipButton && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} className="flex justify-center">
+                <button onClick={onSkip} className="text-white/50 hover:text-white/80 font-bold text-[10px] underline">
+                  تخطي هذا التمرين
                 </button>
               </motion.div>
             )}
@@ -1998,7 +2320,7 @@ function SpeakingPractice({ numData, isMobile, onSuccess, onSkip }: {
     );
   }
 
-  // ═════════ نسخة الكمبيوتر (كارت زجاجي شيك يحتوي المحتويات) ═════════
+  // ═════════ نسخة الكمبيوتر ═════════
   return (
     <motion.div 
       key={`speak-${numData.num}`}
@@ -2009,12 +2331,10 @@ function SpeakingPractice({ numData, isMobile, onSuccess, onSkip }: {
       className="w-full max-w-5xl mx-auto"
     >
       <div className="grid lg:grid-cols-5 gap-8 items-center">
-        {/* الشمال: كارت الكلمة الكامل */}
         <div className="lg:col-span-3 flex flex-col items-center gap-4">
           <HeroWordDisplay numData={numData} />
         </div>
 
-        {/* اليمين: كارت زجاجي شيك يحتوي كل المحتويات */}
         <div className="lg:col-span-2">
           <div className="relative rounded-[1.8rem] p-6 overflow-hidden"
             style={{
@@ -2024,139 +2344,119 @@ function SpeakingPractice({ numData, isMobile, onSuccess, onSkip }: {
               border: '2px solid rgba(255,255,255,0.2)',
               boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 50px ${numData.color}33`,
             }}>
-            {/* Glow علوي */}
             <div className="absolute inset-0 pointer-events-none rounded-[1.8rem]"
               style={{ background: `radial-gradient(ellipse at 50% 0%, ${numData.color}33, transparent 60%)` }} />
 
             <div className="relative z-10 flex flex-col items-center gap-4">
-              
-              {/* العنوان */}
               <div className="text-center w-full">
-                <div className="text-[10px] font-black uppercase tracking-widest mb-1.5" 
-                  style={{ color: `${numData.color}cc` }}>
+                <div className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: `${numData.color}cc` }}>
                   Sprechen · النطق
                 </div>
                 <div className="text-2xl font-black text-white flex items-center gap-2 justify-center">
                   <span>انطق الرقم</span>
-                  <motion.span 
-                    initial={{ scale: 0 }} 
-                    animate={{ scale: [0, 1.2, 1] }} 
-                    transition={{ duration: 0.5 }}
-                    className="text-2xl">
-                    🎤
-                  </motion.span>
+                  <motion.span initial={{ scale: 0 }} animate={{ scale: [0, 1.2, 1] }} transition={{ duration: 0.5 }} className="text-2xl">🎤</motion.span>
                 </div>
-                <div className="text-xs font-bold text-white/50 mt-1">
-                  اضغط على المايك واتكلم بوضوح
-                </div>
+                <div className="text-xs font-bold text-white/50 mt-1">اضغط على المايك واتكلم بوضوح</div>
               </div>
 
-              {/* زرار اسمع النطق الصح */}
               <button onClick={() => speakNumber(targetWord)}
                 className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 text-white/80 hover:bg-white/10 transition-all font-bold px-4 py-2 text-xs">
                 <Volume2 size={14} /> اسمع النطق الصح
               </button>
 
-              {/* زرار المايك */}
               <motion.button
                 ref={micButtonRef}
                 whileHover={!isListening ? { scale: 1.05 } : {}}
-                whileTap={!isListening ? { scale: 0.95 } : {}}
-                onClick={handleStart}
-                disabled={isListening || status === 'success'}
+                whileTap={{ scale: 0.95 }}
+                onClick={isListening ? handleManualStop : handleStart}
+                disabled={status === 'success'}
                 className="relative rounded-full flex items-center justify-center transition-all flex-shrink-0 w-24 h-24"
                 style={{
-                  background: status === 'success'
-                    ? 'linear-gradient(135deg, #58CC02, #096A02)'
-                    : isListening
-                    ? 'linear-gradient(135deg, #FF4444, #C70039)'
-                    : `linear-gradient(135deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
-                  boxShadow: isListening
-                    ? '0 0 60px rgba(255,68,68,0.6)'
-                    : `0 10px 40px ${numData.color}66`,
+                  background: status === 'success' ? 'linear-gradient(135deg, #58CC02, #096A02)' :
+                    isListening ? 'linear-gradient(135deg, #FF4444, #C70039)' :
+                    `linear-gradient(135deg, ${numData.gradient[0]}, ${numData.gradient[1]})`,
+                  boxShadow: isListening ? `0 0 ${30 + volumeLevel * 0.5}px rgba(255,68,68,${0.5 + volumeLevel / 200})` : `0 10px 40px ${numData.color}66`,
                 }}
               >
                 {isListening && (
                   <>
                     {[0, 0.3, 0.6].map((delay, i) => (
-                      <motion.div
-                        key={i}
-                        className="absolute inset-0 rounded-full border-4"
+                      <motion.div key={i} className="absolute inset-0 rounded-full border-4"
                         style={{ borderColor: '#FF4444' }}
-                        initial={{ scale: 1, opacity: 0.8 }}
-                        animate={{ scale: 1.6, opacity: 0 }}
-                        transition={{ duration: 1.5, delay, repeat: Infinity, ease: 'easeOut' }}
-                      />
+                        initial={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.6, opacity: 0 }}
+                        transition={{ duration: 1.5, delay, repeat: Infinity, ease: 'easeOut' }} />
                     ))}
+                    <div className="absolute inset-0 rounded-full border-2"
+                      style={{
+                        borderColor: `rgba(255,255,255,${0.3 + volumeLevel / 200})`,
+                        transform: `scale(${1 + volumeLevel / 150})`,
+                        transition: 'all 0.1s',
+                      }} />
                   </>
                 )}
-                {status === 'success' ? (
-                  <Check size={42} className="text-white" strokeWidth={3} />
-                ) : (
-                  <Mic size={42} className="text-white" />
-                )}
+                {status === 'success' ? <Check size={42} className="text-white" strokeWidth={3} /> : <Mic size={42} className="text-white" />}
               </motion.button>
 
-              {/* الـ transcript */}
+              {isListening && (<p className="text-[10px] text-white/50 font-bold">اضغط تاني للإيقاف</p>)}
+
               <AnimatePresence mode="wait">
-                {transcript && (
-                  <motion.div 
-                    key="transcript"
-                    initial={{ opacity: 0, y: 10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    exit={{ opacity: 0 }}
+                {interimText && isListening && (
+                  <motion.div key="interim" initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} exit={{ opacity: 0 }} className="text-center">
+                    <p className="text-white/60 font-bold text-xs italic" style={{ direction: 'ltr' }}>"{interimText}..."</p>
+                  </motion.div>
+                )}
+                {transcript && !isListening && (
+                  <motion.div key="transcript" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                     className="text-center py-2 px-3 rounded-xl w-full"
-                    style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                    }}>
-                    <p className="text-white/40 font-bold mb-1 text-[11px]">
-                      سمعتك بتقول:
-                    </p>
-                    <p className="font-black text-white text-base" style={{ direction: 'ltr' }}>
-                      "{transcript}"
-                    </p>
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <p className="text-white/40 font-bold mb-1 text-[11px]">سمعتك بتقول:</p>
+                    <p className="font-black text-white text-base" style={{ direction: 'ltr' }}>"{transcript}"</p>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* الرسائل */}
               <AnimatePresence mode="wait">
                 {status !== 'idle' && (
                   <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                     className="flex items-center justify-center gap-2 font-black text-sm py-2.5 px-3 rounded-xl w-full"
                     style={{
-                      background: 
-                        status === 'success' ? 'rgba(34,197,94,0.18)' :
+                      background: status === 'success' ? 'rgba(34,197,94,0.18)' :
                         status === 'listening' ? 'rgba(239,68,68,0.18)' :
                         status === 'try-again' ? 'rgba(250,204,21,0.18)' :
                         'rgba(239,68,68,0.18)',
-                      color: 
-                        status === 'success' ? '#22c55e' :
+                      color: status === 'success' ? '#22c55e' :
                         status === 'listening' ? '#ef4444' :
                         status === 'try-again' ? '#facc15' :
                         '#ef4444',
-                      border: `1px solid ${
-                        status === 'success' ? '#22c55e44' :
+                      border: `1px solid ${status === 'success' ? '#22c55e44' :
                         status === 'listening' ? '#ef444444' :
                         status === 'try-again' ? '#facc1544' :
-                        '#ef444444'
-                      }`,
+                        '#ef444444'}`,
                     }}>
-                    {status === 'listening' && '🎙️ بسمعك دلوقتي...'}
+                    {status === 'listening' && '🎙️ بسمعك... اتكلم بوضوح'}
                     {status === 'success' && '✅ نطق ممتاز! 🌟'}
-                    {status === 'try-again' && '😊 قريب! حاول تاني بصوت أوضح'}
+                    {status === 'try-again' && '😊 مش سمعتك كويس، حاول تاني'}
                     {status === 'error' && '❌ لازم تسمح للموقع باستخدام المايك'}
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* زرار التخطي */}
-              {(attempts >= 2 || status === 'error') && (
+              {showSkipButton && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                  <button onClick={onSkip}
-                    className="flex items-center gap-2 rounded-2xl font-bold text-white/70 hover:text-white border border-white/15 hover:border-white/30 bg-white/5 hover:bg-white/10 transition-all px-5 py-2 text-xs">
-                    <SkipForward size={14} /> تخطي وكمل
+                  <button onClick={onSkip} className="flex items-center gap-2 px-5 py-2 rounded-2xl font-black text-white border-2 transition-all text-sm"
+                    style={{
+                      background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
+                      borderColor: 'rgba(255,255,255,0.3)',
+                      boxShadow: '0 6px 20px rgba(76,201,240,0.4)'
+                    }}>
+                    <SkipForward size={16} /> تخطي وكمل ⏭️
+                  </button>
+                </motion.div>
+              )}
+              {showSoftSkip && !showSkipButton && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.6 }}>
+                  <button onClick={onSkip} className="text-white/50 hover:text-white/80 font-bold text-xs underline">
+                    تخطي هذا التمرين
                   </button>
                 </motion.div>
               )}
@@ -2166,8 +2466,10 @@ function SpeakingPractice({ numData, isMobile, onSuccess, onSkip }: {
       </div>
     </motion.div>
   );
-}// ═══════════════════════════════════════
-// 🃏 ImageFlashCard - زي كروت أيام الأسبوع بالظبط
+}
+
+// ═══════════════════════════════════════
+// 🃏 ImageFlashCard
 // ═══════════════════════════════════════
 function ImageFlashCard({ 
   numData, matched, isWrong, isSuccess, isOver, isDragging, side, isMobile,
@@ -2181,7 +2483,6 @@ function ImageFlashCard({
   side: 'number' | 'word';
   isMobile: boolean;
 }) {
-  // 🆕 جلب الصورة حسب نوع البطاقة
   const imgSrc = side === 'number' 
     ? NUMBER_IMAGES[numData.num]
     : NUMBER_WORD_IMAGES[numData.de];
@@ -2214,7 +2515,6 @@ function ImageFlashCard({
       }}
     >
       {imgSrc ? (
-        // 🆕 الصورة كاملة بدون قص (object-cover ملء الكارت)
         <img 
           src={imgSrc} 
           alt={side === 'number' ? `Number ${numData.num}` : numData.de}
@@ -2222,7 +2522,6 @@ function ImageFlashCard({
           draggable={false}
         />
       ) : (
-        // Fallback لو الصورة مش موجودة
         <div className="w-full h-full flex items-center justify-center"
           style={{ background: `linear-gradient(180deg, ${numData.gradient[0]}, ${numData.gradient[1]})` }}>
           {side === 'number' ? (
@@ -2242,7 +2541,6 @@ function ImageFlashCard({
         </div>
       )}
 
-      {/* 🆕 رقم الترتيب في الزاوية - زي كروت أيام الأسبوع */}
       {!matched && (
         <div className="absolute top-1.5 right-1.5 w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center font-black text-[11px] md:text-xs text-white z-10"
           style={{
@@ -2254,7 +2552,6 @@ function ImageFlashCard({
         </div>
       )}
 
-      {/* 🆕 علامة ✓ عند المطابقة - زي كروت أيام الأسبوع */}
       {matched && (
         <motion.div 
           initial={{ scale: 0, rotate: -180 }} 
@@ -2270,7 +2567,6 @@ function ImageFlashCard({
         </motion.div>
       )}
 
-      {/* 🆕 Glow overlay لو في hover/drag */}
       {(isDragging || isOver) && (
         <motion.div
           className="absolute inset-0 pointer-events-none"
@@ -2283,7 +2579,6 @@ function ImageFlashCard({
         />
       )}
 
-      {/* نجوم سحرية عند النجاح */}
       {matched && [
         { x: '5%', y: '15%', delay: 0, size: 10 },
         { x: '90%', y: '25%', delay: 0.3, size: 8 },
@@ -2321,7 +2616,7 @@ function ImageFlashCard({
 }
 
 // ═══════════════════════════════════════
-// 🎯 MatchGame - أي كارت يسحب على المقابل (الاتنين يختفوا)
+// 🎯 MatchGame
 // ═══════════════════════════════════════
 type DragSource = { num: number; side: 'number' | 'word' };
 
@@ -2358,9 +2653,7 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
     }
   }, [matched]);
 
-  // 🆕 يقبل أي اتجاه: رقم على كلمة، أو كلمة على رقم
   const tryMatch = (source: DragSource, target: DragSource, cx: number, cy: number) => {
-    // لازم يكونوا من جهتين مختلفتين (مش نفس الصف)
     if (source.side === target.side) return;
 
     if (source.num === target.num) {
@@ -2384,7 +2677,6 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
     }
   };
 
-  // === Desktop drag handlers ===
   const handleDragStart = (src: DragSource) => setDragging(src);
   const handleDragEnd = () => { setDragging(null); setOverTarget(null); };
   const handleDragOver = (e: React.DragEvent, tgt: DragSource) => { 
@@ -2400,7 +2692,6 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
     setDragging(null);
   };
 
-  // === Touch handlers ===
   const onTouchStart = (e: React.TouchEvent, src: DragSource) => {
     if (matched.has(src.num)) return;
     touchDragging.current = src;
@@ -2474,7 +2765,6 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
   const cardWidth = isMobile ? 58 : 90;
   const cardHeight = isMobile ? 82 : 125;
 
-  // 🆕 دالة عرض الكارت (مشتركة بين الصفين)
   const renderCard = (item: NumberItem, side: 'number' | 'word') => {
     const isMatched = matched.has(item.num);
     const isWrong = side === 'number' 
@@ -2486,7 +2776,6 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
     const imgSrc = side === 'number' ? NUMBER_IMAGES[item.num] : NUMBER_WORD_IMAGES[item.de];
 
     if (isMatched) {
-      // الكارت يختفي بعد المطابقة
       return (
         <div 
           key={`${side}-${item.num}`}
@@ -2567,7 +2856,6 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
           </div>
         )}
 
-        {/* Drop zone indicator */}
         {isOver && (
           <motion.div
             className="absolute inset-0 pointer-events-none"
@@ -2593,7 +2881,6 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
         transition={{ type: 'spring', stiffness: 260, damping: 24 }}
         className="w-full max-w-4xl mx-auto flex flex-col items-center gap-2 md:gap-3">
         
-        {/* العنوان والـ Progress */}
         <div className="flex items-center gap-3 w-full max-w-md px-2">
           <motion.div 
             initial={{ scale: 0 }} 
@@ -2642,7 +2929,6 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
           )}
         </div>
 
-        {/* الصف الأول: بطاقات الأرقام */}
         <div className="w-full flex flex-col items-center gap-1">
           <span className="text-[9px] md:text-[10px] text-cyan-300/80 font-black tracking-widest uppercase flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" style={{ boxShadow: '0 0 6px #4CC9F0' }} />
@@ -2654,14 +2940,12 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
           </div>
         </div>
 
-        {/* خط فاصل */}
         <div className="w-full max-w-xs flex items-center gap-2 my-0.5">
           <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           <Sparkles size={10} className="text-white/30" />
           <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         </div>
 
-        {/* الصف الثاني: بطاقات الكلمات */}
         <div className="w-full flex flex-col items-center gap-1">
           <span className="text-[9px] md:text-[10px] text-pink-300/80 font-black tracking-widest uppercase flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-pink-400" style={{ boxShadow: '0 0 6px #EC4899' }} />
@@ -2894,7 +3178,6 @@ function GermanNumberLessonInner() {
   const totalStepsInGroup = currentGroup.numbers.length;
   const activeColor = currentNum?.color ?? '#A78BFA';
 
-  // 🆕 padding مناسب للكمبيوتر عشان كل حاجة تبان
   const desktopPaddingTop = '130px';
   const desktopPaddingBottom = '120px';
 
