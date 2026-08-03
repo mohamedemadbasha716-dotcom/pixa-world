@@ -712,132 +712,121 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
   onWrong: () => void;
 }) {
   const word = letterData.word;
-  const [shuffledLetters, setShuffledLetters] = useState<string[]>([]);
-  const [placedIndices, setPlacedIndices] = useState<number[]>([]);
-  const [wrongShake, setWrongShake] = useState<number | null>(null);
+  const [shuffledLetters, setShuffledLetters] = useState<Array<{ id: number; letter: string }>>([]);
+  const [placedLetters, setPlacedLetters] = useState<Array<{ id: number; letter: string }>>([]);
+  const [wrongShakeId, setWrongShakeId] = useState<number | null>(null);
   const [isComplete, setIsComplete] = useState(false);
-  const [flyingLetter, setFlyingLetter] = useState<{ letter: string; fromRect: DOMRect; toRect: DOMRect; targetIdx: number; } | null>(null);
-  const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const letterRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const darkColor = useMemo(() => getDarkColor(letterData.color), [letterData.color]);
 
   useEffect(() => {
-    setShuffledLetters(shuffleWordLetters(word));
-    setPlacedIndices([]); setWrongShake(null); setIsComplete(false); setFlyingLetter(null);
+    const letters = word.split('').map((letter, i) => ({ id: i, letter }));
+    let shuffled = [...letters];
+    let attempts = 0;
+    while (shuffled.map(l => l.letter).join('') === word && attempts < 10) {
+      shuffled = [...letters].sort(() => Math.random() - 0.5);
+      attempts++;
+    }
+    setShuffledLetters(shuffled);
+    setPlacedLetters([]);
+    setWrongShakeId(null);
+    setIsComplete(false);
   }, [word]);
 
-  const handleLetterClick = (letter: string, idx: number, e: React.MouseEvent<HTMLButtonElement>) => {
-    if (isComplete || placedIndices.includes(idx) || flyingLetter !== null) return;
-    const nextExpectedLetter = word[placedIndices.length];
-    if (letter === nextExpectedLetter) {
-      const targetIdx = placedIndices.length;
-      const buttonEl = letterRefs.current[idx];
-      const slotEl = slotRefs.current[targetIdx];
-      if (buttonEl && slotEl) {
-        const fromRect = buttonEl.getBoundingClientRect();
-        const toRect = slotEl.getBoundingClientRect();
-        setFlyingLetter({ letter, fromRect, toRect, targetIdx });
-        setTimeout(() => {
-          setPlacedIndices(prev => [...prev, idx]);
-          setFlyingLetter(null); playCoinSound();
-          if (placedIndices.length + 1 === word.length) {
-            setIsComplete(true); speakWord(word);
-            setTimeout(() => { onComplete(e.clientX, e.clientY); }, 600);
-          }
-        }, 600);
+  const handleLetterClick = (item: { id: number; letter: string }, e: React.MouseEvent<HTMLButtonElement>) => {
+    if (isComplete) return;
+    const nextExpectedLetter = word[placedLetters.length];
+    
+    if (item.letter === nextExpectedLetter) {
+      setPlacedLetters(prev => [...prev, item]);
+      setShuffledLetters(prev => prev.filter(l => l.id !== item.id));
+      playCoinSound();
+      
+      if (placedLetters.length + 1 === word.length) {
+        setIsComplete(true);
+        speakWord(word);
+        const cx = e.clientX;
+        const cy = e.clientY;
+        setTimeout(() => { onComplete(cx, cy); }, 600);
       }
     } else {
-      setWrongShake(idx); playBuzzSound(); onWrong();
-      setTimeout(() => setWrongShake(null), 600);
+      setWrongShakeId(item.id);
+      playBuzzSound();
+      onWrong();
+      setTimeout(() => setWrongShakeId(null), 500);
     }
   };
 
   return (
-    <>
-      <AnimatePresence>
-        {flyingLetter && (
-          <motion.div className="fixed pointer-events-none z-[100] flex items-center justify-center rounded-lg"
-            initial={{ left: flyingLetter.fromRect.left, top: flyingLetter.fromRect.top, width: flyingLetter.fromRect.width, height: flyingLetter.fromRect.height, scale: 1 }}
-            animate={{ left: flyingLetter.toRect.left, top: flyingLetter.toRect.top, width: flyingLetter.toRect.width, height: flyingLetter.toRect.height, scale: [1, 1.2, 1] }}
-            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], scale: { times: [0, 0.5, 1] } }}
-            style={{ background: `linear-gradient(145deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`, border: `2px solid rgba(255,255,255,0.6)`, boxShadow: `0 6px 25px ${letterData.color}cc` }}>
-            <span className="font-black text-white" style={{ fontSize: '1.5rem', lineHeight: 1, textShadow: `0 2px 6px rgba(0,0,0,0.5)` }}>{flyingLetter.letter}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <GlassCard className="w-full max-w-md mx-auto p-3" accentColor={letterData.color} isMobile={true} useBgImage={true}>
-        <div className="flex flex-col items-center gap-2">
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="px-3 py-1.5 rounded-2xl"
-            style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', border: `2px solid ${letterData.color}66`, boxShadow: `0 4px 15px ${letterData.color}44` }}>
-            <span className="font-black text-xs text-gray-800">استمع للكلمة ورتب الحروف</span>
-          </motion.div>
-          <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-            className="rounded-2xl flex items-center justify-center border-2 flex-shrink-0 relative overflow-hidden"
-            style={{ width: 70, height: 70, background: `linear-gradient(145deg, ${letterData.gradient[0]}44, ${letterData.gradient[1]}33)`, borderColor: `${letterData.color}77`, boxShadow: `0 6px 18px ${letterData.color}66` }}>
-            <EmojiOrIcon word={letterData.word} emoji={letterData.emoji} size={56} color={letterData.color} />
-          </motion.div>
-          <div className="text-center">
-            <div className="font-bold text-xs" style={{ color: letterData.color, textShadow: '0 2px 6px rgba(0,0,0,0.7)' }}>{letterData.wordAr}</div>
-          </div>
-          <CircularSoundButton onClick={() => speakWord(word)} color={letterData.color} size={38} />
-          <div className="flex items-center justify-center gap-1.5 flex-wrap mt-1" dir="ltr">
-            {word.split('').map((letter, idx) => {
-              const isFilled = idx < placedIndices.length;
-              return (
-                <motion.div ref={el => { slotRefs.current[idx] = el; }} key={`slot-${idx}`}
-                  initial={{ scale: 0.8 }} animate={{ scale: isFilled ? [0.8, 1.15, 1] : 1 }} transition={{ duration: 0.3 }}
-                  className="rounded-lg flex items-center justify-center flex-shrink-0 border-2 relative overflow-hidden"
-                  style={{ width: 38, height: 44, background: isFilled ? `linear-gradient(145deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})` : 'rgba(255,255,255,0.05)', borderColor: isFilled ? letterData.color : `${letterData.color}55`, borderStyle: isFilled ? 'solid' : 'dashed', boxShadow: isFilled ? `0 4px 12px ${letterData.color}aa` : 'none' }}>
-                  {!isFilled && (
-                    <span className="font-black absolute inset-0 flex items-center justify-center pointer-events-none"
-                      style={{ fontSize: '1.4rem', lineHeight: 1, color: letterData.color, opacity: 0.25, textShadow: 'none' }}>{letter}</span>
-                  )}
-                  {isFilled && (
-                    <motion.span initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }}
-                      className="font-black text-white relative z-10"
-                      style={{ fontSize: '1.5rem', lineHeight: 1, textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>{letter}</motion.span>
-                  )}
-                </motion.div>
-              );
-            })}
-          </div>
-          <div className="flex items-center justify-center gap-2 flex-wrap mt-1" dir="ltr">
-            {shuffledLetters.map((letter, idx) => {
-              const isPlaced = placedIndices.includes(idx);
-              const isShaking = wrongShake === idx;
-              const isFlying = flyingLetter && flyingLetter.letter === letter && !placedIndices.includes(idx);
-              return (
-                <AnimatePresence key={`shuffled-${idx}`} mode="wait">
-                  {!isPlaced && !isFlying && (
-                    <motion.button ref={el => { letterRefs.current[idx] = el; }}
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={isShaking ? { x: [-6, 6, -6, 6, 0], scale: 1, opacity: 1, background: 'linear-gradient(145deg, #FF4444, #CC0000)' } : { scale: 1, opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={isShaking ? { duration: 0.4 } : { delay: idx * 0.05, type: 'spring', stiffness: 300 }}
-                      whileHover={{ scale: 1.08, y: -2 }} whileTap={{ scale: 0.95 }}
-                      onClick={(e) => handleLetterClick(letter, idx, e)}
-                      disabled={isComplete || flyingLetter !== null}
-                      className="rounded-lg flex items-center justify-center flex-shrink-0 border-2"
-                      style={{ width: 42, height: 42, background: isShaking ? 'linear-gradient(145deg, #FF4444, #CC0000)' : 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(245,245,255,0.95))', borderColor: isShaking ? '#FF4444' : `${letterData.color}aa`, boxShadow: isShaking ? '0 4px 15px rgba(255,68,68,0.6)' : `0 4px 14px ${letterData.color}55` }}>
-                      <span className="font-black" style={{ fontSize: '1.5rem', lineHeight: 1, color: isShaking ? 'white' : darkColor, textShadow: isShaking ? '0 2px 6px rgba(0,0,0,0.4)' : 'none' }}>{letter}</span>
-                    </motion.button>
-                  )}
-                </AnimatePresence>
-              );
-            })}
-          </div>
-          <AnimatePresence>
-            {isComplete && (
-              <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-                className="flex items-center justify-center gap-2 font-black text-sm py-1.5 px-4 rounded-xl mt-1"
-                style={{ background: 'rgba(88,204,2,0.3)', color: '#58CC02', border: '2px solid #58CC0288' }}>
-                <Check size={14} /> ممتاز! 🎉
-              </motion.div>
-            )}
-          </AnimatePresence>
+    <GlassCard className="w-full max-w-md mx-auto p-3" accentColor={letterData.color} isMobile={true} useBgImage={true}>
+      <div className="flex flex-col items-center gap-2">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="px-3 py-1.5 rounded-2xl"
+          style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', border: `2px solid ${letterData.color}66`, boxShadow: `0 4px 15px ${letterData.color}44` }}>
+          <span className="font-black text-xs text-gray-800">استمع للكلمة ورتب الحروف</span>
+        </motion.div>
+        <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          className="rounded-2xl flex items-center justify-center border-2 flex-shrink-0 relative overflow-hidden"
+          style={{ width: 70, height: 70, background: `linear-gradient(145deg, ${letterData.gradient[0]}44, ${letterData.gradient[1]}33)`, borderColor: `${letterData.color}77`, boxShadow: `0 6px 18px ${letterData.color}66` }}>
+          <EmojiOrIcon word={letterData.word} emoji={letterData.emoji} size={56} color={letterData.color} />
+        </motion.div>
+        <div className="text-center">
+          <div className="font-bold text-xs" style={{ color: letterData.color, textShadow: '0 2px 6px rgba(0,0,0,0.7)' }}>{letterData.wordAr}</div>
         </div>
-      </GlassCard>
-    </>
+        <CircularSoundButton onClick={() => speakWord(word)} color={letterData.color} size={38} />
+        <div className="flex items-center justify-center gap-1.5 flex-wrap mt-1 min-h-[48px]" dir="ltr">
+          {word.split('').map((letter, idx) => {
+            const placedItem = placedLetters[idx];
+            const isFilled = !!placedItem;
+            return (
+              <div key={`slot-${idx}`}
+                className="rounded-lg flex items-center justify-center flex-shrink-0 border-2 relative overflow-hidden transition-all duration-200"
+                style={{ width: 38, height: 44, background: isFilled ? `linear-gradient(145deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})` : 'rgba(255,255,255,0.05)', borderColor: isFilled ? letterData.color : `${letterData.color}55`, borderStyle: isFilled ? 'solid' : 'dashed', boxShadow: isFilled ? `0 4px 12px ${letterData.color}aa` : 'none' }}>
+                {!isFilled && (
+                  <span className="font-black absolute inset-0 flex items-center justify-center pointer-events-none"
+                    style={{ fontSize: '1.4rem', lineHeight: 1, color: letterData.color, opacity: 0.25 }}>{letter}</span>
+                )}
+                {isFilled && (
+                  <motion.span key={`placed-${placedItem.id}`}
+                    initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="font-black text-white relative z-10"
+                    style={{ fontSize: '1.5rem', lineHeight: 1, textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>
+                    {placedItem.letter}
+                  </motion.span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div className="flex items-center justify-center gap-2 flex-wrap mt-1 min-h-[46px]" dir="ltr">
+          {shuffledLetters.map((item) => {
+            const isShaking = wrongShakeId === item.id;
+            return (
+              <motion.button key={`shuffled-${item.id}`}
+                animate={isShaking ? { x: [-6, 6, -6, 6, 0] } : { scale: 1, opacity: 1 }}
+                transition={isShaking ? { duration: 0.4 } : { duration: 0.15 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => handleLetterClick(item, e)}
+                disabled={isComplete}
+                className="rounded-lg flex items-center justify-center flex-shrink-0 border-2 active:scale-90 transition-transform"
+                style={{ width: 42, height: 42, background: isShaking ? 'linear-gradient(145deg, #FF4444, #CC0000)' : 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(245,245,255,0.95))', borderColor: isShaking ? '#FF4444' : `${letterData.color}aa`, boxShadow: isShaking ? '0 4px 15px rgba(255,68,68,0.6)' : `0 4px 14px ${letterData.color}55`, touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}>
+                <span className="font-black pointer-events-none" style={{ fontSize: '1.5rem', lineHeight: 1, color: isShaking ? 'white' : darkColor, textShadow: isShaking ? '0 2px 6px rgba(0,0,0,0.4)' : 'none' }}>
+                  {item.letter}
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
+        <AnimatePresence>
+          {isComplete && (
+            <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+              className="flex items-center justify-center gap-2 font-black text-sm py-1.5 px-4 rounded-xl mt-1"
+              style={{ background: 'rgba(88,204,2,0.3)', color: '#58CC02', border: '2px solid #58CC0288' }}>
+              <Check size={14} /> ممتاز! 🎉
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </GlassCard>
   );
 }
 
