@@ -151,52 +151,157 @@ export default function KarlEagle({
           />
         </motion.div>
 
-        {/* 💬 الرسالة على شمال النسر */}
+        {/* 💬 الرسالة على شمال النسر - Popup أنيق */}
         <AnimatePresence>
           {message && !keyboardOpen && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.6, x: 20 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.6, x: 20 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              initial={{ opacity: 0, scale: 0.3, x: 40, rotate: -8 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1, 
+                x: 0, 
+                rotate: 0,
+              }}
+              exit={{ 
+                opacity: 0, 
+                scale: 0.5, 
+                x: 30,
+                transition: { duration: 0.2 }
+              }}
+              transition={{ 
+                type: 'spring', 
+                stiffness: 260, 
+                damping: 18,
+                mass: 0.8,
+              }}
               className="relative flex items-center"
               style={{
-                maxWidth: isMobile ? '150px' : '220px',
+                minWidth: isMobile ? '130px' : '180px',
+                maxWidth: isMobile ? '170px' : '260px',
               }}
             >
-              {/* السهم اللي بيشاور على النسر */}
-              <div
-                className="w-0 h-0 flex-shrink-0"
-                style={{
-                  borderTop: '8px solid transparent',
-                  borderBottom: '8px solid transparent',
-                  borderLeft: `8px solid ${
-                    mood === 'celebrate' || mood === 'happy'
-                      ? 'rgba(88,204,2,0.95)'
-                      : 'rgba(255,107,107,0.95)'
-                  }`,
-                  marginRight: '-1px',
+              {/* البلون الكبير */}
+              <motion.div
+                animate={{
+                  y: [0, -3, 0],
                 }}
-              />
-              
-              {/* البلون */}
-              <div
-                className={`${isMobile ? 'px-2.5 py-1.5' : 'px-4 py-2.5'} rounded-2xl shadow-2xl border-2 backdrop-blur-md`}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+                className={`relative ${isMobile ? 'px-3 py-2' : 'px-5 py-3'} rounded-3xl shadow-2xl border-2 backdrop-blur-xl w-full`}
                 style={{
                   background:
-                    mood === 'celebrate' || mood === 'happy'
-                      ? 'linear-gradient(135deg, rgba(88,204,2,0.95), rgba(76,201,240,0.95))'
-                      : 'linear-gradient(135deg, rgba(255,107,107,0.95), rgba(247,37,133,0.95))',
-                  borderColor: 'rgba(255,255,255,0.4)',
+                    mood === 'celebrate'
+                      ? 'linear-gradient(135deg, rgba(255,215,0,0.98), rgba(255,140,0,0.98))'
+                      : mood === 'happy'
+                      ? 'linear-gradient(135deg, rgba(88,204,2,0.98), rgba(76,201,240,0.98))'
+                      : 'linear-gradient(135deg, rgba(255,107,107,0.98), rgba(247,37,133,0.98))',
+                  borderColor: 'rgba(255,255,255,0.6)',
+                  boxShadow:
+                    mood === 'celebrate'
+                      ? '0 10px 40px rgba(255,215,0,0.6), 0 0 60px rgba(255,215,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)'
+                      : mood === 'happy'
+                      ? '0 10px 40px rgba(88,204,2,0.5), 0 0 60px rgba(76,201,240,0.3), inset 0 1px 0 rgba(255,255,255,0.4)'
+                      : '0 10px 40px rgba(255,107,107,0.5), 0 0 60px rgba(247,37,133,0.3), inset 0 1px 0 rgba(255,255,255,0.4)',
                 }}
               >
-                <div className={`${isMobile ? 'text-xs' : 'text-base'} font-black text-white text-center leading-tight`}>
+                {/* لمعة زجاجية علوية */}
+                <div 
+                  className="absolute top-0 left-0 right-0 h-1/2 rounded-t-3xl pointer-events-none opacity-30"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.5), transparent)',
+                  }}
+                />
+
+                {/* الأيقونة العلوية حسب المزاج */}
+                <div className="flex items-center justify-center gap-1.5 mb-1">
+                  <motion.span
+                    animate={{
+                      rotate: mood === 'celebrate' ? [0, 15, -15, 0] : 0,
+                      scale: [1, 1.2, 1],
+                    }}
+                    transition={{
+                      duration: 0.6,
+                      repeat: Infinity,
+                      repeatDelay: 0.5,
+                    }}
+                    className={isMobile ? 'text-base' : 'text-xl'}
+                  >
+                    {mood === 'celebrate' ? '🎉' : mood === 'happy' ? '✨' : '💪'}
+                  </motion.span>
+                </div>
+
+                {/* النص الألماني */}
+                <div 
+                  className={`${isMobile ? 'text-sm' : 'text-lg'} font-black text-white text-center leading-tight relative z-10`}
+                  style={{
+                    textShadow: '0 2px 8px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.4)',
+                    letterSpacing: '0.5px',
+                  }}
+                >
                   {message.de}
                 </div>
-                <div className={`${isMobile ? 'text-[9px]' : 'text-xs'} font-bold text-white/90 text-center mt-0.5`}>
+
+                {/* النص العربي */}
+                <div 
+                  className={`${isMobile ? 'text-[10px]' : 'text-xs'} font-bold text-white/95 text-center mt-1 relative z-10`}
+                  style={{
+                    textShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                  }}
+                >
                   {message.ar}
                 </div>
-              </div>
+
+                {/* نجوم متطايرة للاحتفال */}
+                {mood === 'celebrate' && (
+                  <>
+                    {[0, 1, 2].map((i) => (
+                      <motion.span
+                        key={i}
+                        className="absolute text-xs pointer-events-none"
+                        style={{
+                          top: `${20 + i * 15}%`,
+                          left: `${10 + i * 30}%`,
+                        }}
+                        animate={{
+                          y: [-5, -15, -5],
+                          opacity: [0.5, 1, 0.5],
+                          rotate: [0, 180, 360],
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          delay: i * 0.3,
+                        }}
+                      >
+                        ⭐
+                      </motion.span>
+                    ))}
+                  </>
+                )}
+              </motion.div>
+
+              {/* السهم اللي بيشاور على النسر */}
+              <div
+                className="absolute w-0 h-0"
+                style={{
+                  right: '-10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  borderTop: '10px solid transparent',
+                  borderBottom: '10px solid transparent',
+                  borderLeft: `12px solid ${
+                    mood === 'celebrate'
+                      ? 'rgba(255,140,0,0.98)'
+                      : mood === 'happy'
+                      ? 'rgba(76,201,240,0.98)'
+                      : 'rgba(247,37,133,0.98)'
+                  }`,
+                  filter: 'drop-shadow(2px 0 4px rgba(0,0,0,0.2))',
+                }}
+              />
             </motion.div>
           )}
         </AnimatePresence>
