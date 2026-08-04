@@ -2768,8 +2768,8 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
 
   const progress = (matched.size / group.length) * 100;
   
-  const cardWidth = isMobile ? 58 : 90;
-  const cardHeight = isMobile ? 82 : 125;
+  const cardWidth = isMobile ? 75 : 90;
+  const cardHeight = isMobile ? 108 : 125;
 
   const renderCard = (item: NumberItem, side: 'number' | 'word') => {
     const isMatched = matched.has(item.num);
@@ -2941,7 +2941,7 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
             الأرقام
           </span>
 
-          <div className="flex items-center justify-center gap-1.5 md:gap-2 flex-wrap" dir="ltr">
+          <div className="flex items-center justify-center gap-1 md:gap-2 flex-wrap px-1" dir="ltr">
             {group.map((n) => renderCard(n, 'number'))}
           </div>
         </div>
@@ -2958,7 +2958,7 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
             بالألمانية — اسحب لأي اتجاه
           </span>
 
-          <div className="flex items-center justify-center gap-1.5 md:gap-2 flex-wrap" dir="ltr">
+          <div className="flex items-center justify-center gap-1 md:gap-2 flex-wrap px-1" dir="ltr">
             {shuffledWords.map((w) => renderCard(w, 'word'))}
           </div>
         </div>
@@ -3193,7 +3193,12 @@ function GermanNumberLessonInner() {
       
       <ScreenBackground groupIdx={groupIdx} isMobile={isMobile} activeColor={activeColor} />
 
-      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#A78BFA" />
+      <KarlEagle 
+        mood={karlMood} 
+        message={karlMessage} 
+        idleGlowColor="#A78BFA"
+        mobilePosition={{ top: 160, right: 8, topWithKeyboard: 80 }}
+      />
 
       <FlyingItems items={flyingItems} />
 
@@ -3208,8 +3213,8 @@ function GermanNumberLessonInner() {
           zIndex: 10, 
           minHeight: '100vh',
           maxWidth: '1400px',
-          paddingTop: isMobile ? '110px' : desktopPaddingTop,
-          paddingBottom: isMobile ? '95px' : desktopPaddingBottom,
+          paddingTop: isMobile ? (phase === 'test' ? '85px' : '110px') : desktopPaddingTop,
+          paddingBottom: isMobile ? (phase === 'test' ? '80px' : '95px') : desktopPaddingBottom,
         }}>
         <AnimatePresence mode="wait">
           {phase === 'listen' && (
