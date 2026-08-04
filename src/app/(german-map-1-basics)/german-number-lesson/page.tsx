@@ -2768,8 +2768,8 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
 
   const progress = (matched.size / group.length) * 100;
   
-  const cardWidth = isMobile ? 75 : 90;
-  const cardHeight = isMobile ? 108 : 125;
+  const cardWidth = isMobile ? 63 : 90;
+  const cardHeight = isMobile ? 90 : 125;
 
   const renderCard = (item: NumberItem, side: 'number' | 'word') => {
     const isMatched = matched.has(item.num);
@@ -2941,7 +2941,7 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
             الأرقام
           </span>
 
-          <div className="flex items-center justify-center gap-1 md:gap-2 flex-wrap px-1" dir="ltr">
+          <div className="flex items-center justify-center gap-1 md:gap-2 flex-nowrap px-1" dir="ltr">
             {group.map((n) => renderCard(n, 'number'))}
           </div>
         </div>
@@ -2958,7 +2958,7 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
             بالألمانية — اسحب لأي اتجاه
           </span>
 
-          <div className="flex items-center justify-center gap-1 md:gap-2 flex-wrap px-1" dir="ltr">
+          <div className="flex items-center justify-center gap-1 md:gap-2 flex-nowrap px-1" dir="ltr">
             {shuffledWords.map((w) => renderCard(w, 'word'))}
           </div>
         </div>
@@ -3197,7 +3197,7 @@ function GermanNumberLessonInner() {
         mood={karlMood} 
         message={karlMessage} 
         idleGlowColor="#A78BFA"
-        mobilePosition={{ top: 160, right: 8, topWithKeyboard: 80 }}
+        mobilePosition={{ top: 220, right: 20, topWithKeyboard: 80 }}
       />
 
       <FlyingItems items={flyingItems} />
