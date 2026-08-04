@@ -2885,8 +2885,13 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
       <motion.div key="match-game"
         initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }}
         transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-        className="w-full max-w-4xl mx-auto flex flex-col items-center gap-2 md:gap-3">
+        className="w-full max-w-4xl mx-auto flex flex-col items-center"
+        style={{ 
+          gap: isMobile ? '14px' : '12px',
+          justifyContent: 'flex-start',
+        }}>
         
+        {/* 🎯 البار العلوي: طابق الكروت + Progress */}
         <div className="flex items-center gap-3 w-full max-w-md px-2">
           <motion.div 
             initial={{ scale: 0 }} 
@@ -2935,7 +2940,8 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
           )}
         </div>
 
-        <div className="w-full flex flex-col items-center gap-1">
+        {/* 🎯 الصف الأول: الأرقام */}
+        <div className="w-full flex flex-col items-center gap-1.5">
           <span className="text-[9px] md:text-[10px] text-cyan-300/80 font-black tracking-widest uppercase flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" style={{ boxShadow: '0 0 6px #4CC9F0' }} />
             الأرقام
@@ -2946,13 +2952,15 @@ function MatchGame({ group, groupTitle, onComplete, onCorrect, onKarlReact, onCo
           </div>
         </div>
 
-        <div className="w-full max-w-xs flex items-center gap-2 my-0.5">
+        {/* 🎯 المسافة الكبيرة بين الصفين */}
+        <div className="w-full max-w-xs flex items-center gap-2" style={{ margin: isMobile ? '20px 0' : '8px 0' }}>
           <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           <Sparkles size={10} className="text-white/30" />
           <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         </div>
 
-        <div className="w-full flex flex-col items-center gap-1">
+        {/* 🎯 الصف الثاني: الكلمات الألمانية */}
+        <div className="w-full flex flex-col items-center gap-1.5">
           <span className="text-[9px] md:text-[10px] text-pink-300/80 font-black tracking-widest uppercase flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-pink-400" style={{ boxShadow: '0 0 6px #EC4899' }} />
             بالألمانية — اسحب لأي اتجاه
@@ -3197,7 +3205,7 @@ function GermanNumberLessonInner() {
         mood={karlMood} 
         message={karlMessage} 
         idleGlowColor="#A78BFA"
-        mobilePosition={{ top: 220, right: 20, topWithKeyboard: 80 }}
+        mobilePosition={{ top: 320, right: 15, topWithKeyboard: 80 }}
       />
 
       <FlyingItems items={flyingItems} />
@@ -3208,12 +3216,13 @@ function GermanNumberLessonInner() {
         onHome={handleHomeClick} isMobile={isMobile}
       />
 
-      <div className="flex flex-col items-center justify-center relative px-3 md:px-6 mx-auto w-full"
+      <div className="flex flex-col items-center relative px-3 md:px-6 mx-auto w-full"
         style={{ 
           zIndex: 10, 
           minHeight: '100vh',
           maxWidth: '1400px',
-          paddingTop: isMobile ? (phase === 'test' ? '85px' : '110px') : desktopPaddingTop,
+          justifyContent: phase === 'test' ? 'flex-start' : 'center',
+          paddingTop: isMobile ? (phase === 'test' ? '75px' : '110px') : desktopPaddingTop,
           paddingBottom: isMobile ? (phase === 'test' ? '80px' : '95px') : desktopPaddingBottom,
         }}>
         <AnimatePresence mode="wait">
