@@ -849,9 +849,27 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
 
             <FloatingIconButton label="طاقة" color="#4CC9F0" isMobile={isMobile} disabled
               iconSrc="/treasuer/energy.webp" iconAlt="energy" />
-            <FloatingIconButton onClick={onHint} label="تلميح" color="#FFD700" isMobile={isMobile}
-              badge={stats.hints} disabled={stats.hints === 0}
-              iconSrc="/treasuer/hint.svg" iconAlt="hint" />
+            <motion.button
+              whileHover={{ scale: 1.1, y: -2 }}
+              whileTap={{ scale: 0.92 }}
+              onClick={onHint}
+              disabled={stats.hints === 0}
+              className="flex flex-col items-center gap-0.5 disabled:opacity-70">
+              <div className="relative w-9 h-9 md:w-11 md:h-11 flex items-center justify-center text-3xl md:text-4xl"
+                style={{ filter: `drop-shadow(0 2px 8px #FFD700aa) drop-shadow(0 0 4px #FFD70066)` }}>
+                💡
+                {stats.hints > 0 && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 md:w-4.5 md:h-4.5 rounded-full flex items-center justify-center text-[8px] md:text-[9px] font-black text-white border"
+                    style={{ background: '#FF4D6D', borderColor: 'rgba(15,10,45,0.95)', boxShadow: '0 2px 6px rgba(255,77,109,0.6)' }}>
+                    {stats.hints}
+                  </div>
+                )}
+              </div>
+              <span className="text-[7px] md:text-[9px] font-black leading-none" 
+                style={{ color: '#FFD700', textShadow: `0 1px 3px rgba(0,0,0,0.8)` }}>
+                تلميح
+              </span>
+            </motion.button>
           </div>
         </div>
       </div>
