@@ -331,7 +331,7 @@ function GrammarQuestionView({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
         {item.choices.map((choice, idx) => {
           const isThisSelected = selectedIndex === idx;
           const isThisCorrect = idx === item.correctIndex;
@@ -731,7 +731,7 @@ export default function GrammarMiniPhase({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -30 }}
       transition={{ type: 'spring', stiffness: 250, damping: 25 }}
-      className="w-full max-w-lg mx-auto"
+      className={`w-full mx-auto ${isMobile ? 'max-w-lg' : 'max-w-3xl'}`}
     >
       {/* Glass Card Container */}
       <div

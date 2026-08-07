@@ -48,99 +48,176 @@ interface SpeechRecognitionEvent {
 }
 
 // ═══════════════════════════════════════
-// 🎯 Boxes للبحث في الصورة
+// 🎯 Boxes للصورة العريضة (Desktop/PC)
 // ═══════════════════════════════════════
-const FOREST_OBJECTS: Record<string, Box[]> = {
-  Eule:           [{ x: 2.0,  y: 6.0,  w: 12.0, h: 22.0 }],
-  Reh:            [{ x: 10.0, y: 35.0, w: 16.0, h: 32.0 }],
-  Wolf:           [{ x: 37.0, y: 40.0, w: 12.0, h: 24.0 }],
-  Fuchs:          [{ x: 6.0,  y: 65.0, w: 20.0, h: 24.0 }],
-  Igel:           [{ x: 37.0, y: 76.0, w: 9.0,  h: 12.0 }],
-  Schmetterling:  [{ x: 47.0, y: 56.0, w: 9.0,  h: 14.0 }],
-  Frosch:         [{ x: 54.0, y: 80.0, w: 11.0, h: 14.0 }],
-  Hase:           [{ x: 59.0, y: 60.0, w: 10.0, h: 16.0 }],
-  Apfel:          [{ x: 14.0, y: 1.0,  w: 11.0, h: 20.0 }],
-  Traube:         [{ x: 25.0, y: 1.0,  w: 10.0, h: 18.0 }],
-  Kirsche:        [{ x: 36.0, y: 1.0,  w: 8.0,  h: 14.0 }],
-  Banane:         [{ x: 47.0, y: 0.0,  w: 11.0, h: 20.0 }],
-  Birne:          [{ x: 59.0, y: 1.0,  w: 9.0,  h: 18.0 }],
-  Zitrone:        [{ x: 69.0, y: 1.0,  w: 8.0,  h: 16.0 }],
-  Orange:         [{ x: 78.0, y: 1.0,  w: 10.0, h: 18.0 }],
-  Erdbeere:       [{ x: 8.0,  y: 86.0, w: 16.0, h: 12.0 }],
-  Karotte:        [{ x: 65.0, y: 60.0, w: 20.0, h: 14.0 }],
-  Tomate:         [{ x: 69.0, y: 70.0, w: 8.0,  h: 12.0 }],
-  Kuerbis:        [{ x: 75.0, y: 70.0, w: 14.0, h: 20.0 }],
-  Aubergine:      [{ x: 85.0, y: 68.0, w: 9.0,  h: 22.0 }],
-  Mais:           [{ x: 91.0, y: 40.0, w: 9.0,  h: 38.0 }],
-  Zucchini:       [{ x: 83.0, y: 80.0, w: 13.0, h: 12.0 }],
-  Pilz:           [{ x: 0.0,  y: 80.0, w: 14.0, h: 20.0 }],
-  Paprika:        [{ x: 91.0, y: 80.0, w: 9.0,  h: 18.0 }],
+const FOREST_OBJECTS_PC: Record<string, Box[]> = {
+  // 🦊 الحيوانات (7)
+  Eule:    [{ x: 4.0,  y: 15.0, w: 8.0,  h: 22.0 }],
+  Reh:     [{ x: 27.0, y: 22.0, w: 9.0,  h: 32.0 }],
+  Fuchs:   [{ x: 15.0, y: 42.0, w: 15.0, h: 42.0 }],
+  Wolf:    [{ x: 58.0, y: 30.0, w: 12.0, h: 40.0 }],
+  Igel:    [{ x: 32.0, y: 55.0, w: 10.0, h: 25.0 }],
+  Hase:    [{ x: 55.0, y: 55.0, w: 10.0, h: 30.0 }],
+  Frosch:  [{ x: 40.0, y: 80.0, w: 9.0,  h: 15.0 }],
+
+  // 🍎 الفواكه (7)
+  Traube:   [{ x: 15.0, y: 3.0,  w: 10.0, h: 18.0 }],
+  Kirsche:  [{ x: 34.0, y: 2.0,  w: 8.0,  h: 15.0 }],
+  Banane:   [{ x: 55.0, y: 2.0,  w: 10.0, h: 18.0 }],
+  Birne:    [{ x: 75.0, y: 6.0,  w: 8.0,  h: 18.0 }],
+  Zitrone:  [{ x: 88.0, y: 22.0, w: 7.0,  h: 14.0 }],
+  Orange:   [{ x: 92.0, y: 5.0,  w: 7.0,  h: 15.0 }],
+  Erdbeere: [{ x: 1.0,  y: 78.0, w: 12.0, h: 20.0 }],
+
+  // 🥕 الخضروات (6)
+  Karotte: [
+    { x: 72.0, y: 60.0, w: 5.0, h: 22.0 },
+    { x: 77.0, y: 60.0, w: 5.0, h: 22.0 },
+    { x: 82.0, y: 60.0, w: 5.0, h: 22.0 },
+  ],
+  Tomate:  [{ x: 82.0, y: 62.0, w: 8.0,  h: 12.0 }],
+  Kürbis:  [{ x: 88.0, y: 78.0, w: 12.0, h: 20.0 }],
+  Pilz:    [{ x: 0.0,  y: 65.0, w: 8.0,  h: 20.0 }],
+  Paprika: [{ x: 88.0, y: 70.0, w: 7.0,  h: 12.0 }],
+  Gurke:   [{ x: 68.0, y: 82.0, w: 12.0, h: 10.0 }],
 };
 
-const COLOR_OBJECTS: Record<string, Box[]> = {
+// ═══════════════════════════════════════
+// 🎯 Boxes للصورة الطولية (Mobile)
+// ═══════════════════════════════════════
+const FOREST_OBJECTS_MOB: Record<string, Box[]> = {
+  // 🦊 الحيوانات (7)
+  Eule:    [{ x: 5.0,  y: 15.0, w: 15.0, h: 12.0 }],
+  Reh:     [{ x: 30.0, y: 25.0, w: 15.0, h: 18.0 }],
+  Fuchs:   [{ x: 8.0,  y: 40.0, w: 22.0, h: 22.0 }],
+  Wolf:    [{ x: 55.0, y: 32.0, w: 20.0, h: 20.0 }],
+  Igel:    [{ x: 20.0, y: 55.0, w: 20.0, h: 12.0 }],
+  Hase:    [{ x: 60.0, y: 50.0, w: 20.0, h: 18.0 }],
+  Frosch:  [{ x: 30.0, y: 65.0, w: 15.0, h: 8.0  }],
+
+  // 🍎 الفواكه (7)
+  Traube:   [{ x: 20.0, y: 2.0,  w: 18.0, h: 10.0 }],
+  Kirsche:  [{ x: 42.0, y: 8.0,  w: 15.0, h: 8.0  }],
+  Banane:   [{ x: 65.0, y: 3.0,  w: 20.0, h: 10.0 }],
+  Birne:    [{ x: 15.0, y: 14.0, w: 12.0, h: 10.0 }],
+  Zitrone:  [{ x: 78.0, y: 15.0, w: 12.0, h: 8.0  }],
+  Orange:   [{ x: 82.0, y: 22.0, w: 12.0, h: 8.0  }],
+  Erdbeere: [{ x: 0.0,  y: 82.0, w: 22.0, h: 12.0 }],
+
+  // 🥕 الخضروات (6)
+  Karotte: [
+    { x: 40.0, y: 78.0, w: 7.0, h: 12.0 },
+    { x: 47.0, y: 78.0, w: 7.0, h: 12.0 },
+    { x: 54.0, y: 78.0, w: 7.0, h: 12.0 },
+  ],
+  Tomate:  [{ x: 85.0, y: 68.0, w: 12.0, h: 8.0  }],
+  Kürbis:  [{ x: 60.0, y: 85.0, w: 20.0, h: 12.0 }],
+  Pilz:    [{ x: 0.0,  y: 70.0, w: 12.0, h: 15.0 }],
+  Paprika: [{ x: 82.0, y: 88.0, w: 12.0, h: 10.0 }],
+  Gurke:   [{ x: 32.0, y: 90.0, w: 20.0, h: 8.0  }],
+};
+
+// ═══════════════════════════════════════
+// 🎨 Boxes الألوان للصورة العريضة (PC)
+// ═══════════════════════════════════════
+const COLOR_OBJECTS_PC: Record<string, Box[]> = {
   Rot: [
-    { x: 14.0, y: 1.0,  w: 11.0, h: 20.0 },
-    { x: 36.0, y: 1.0,  w: 8.0,  h: 14.0 },
-    { x: 8.0,  y: 86.0, w: 16.0, h: 12.0 },
-    { x: 69.0, y: 70.0, w: 8.0,  h: 12.0 },
-    { x: 91.0, y: 80.0, w: 9.0,  h: 18.0 },
-    { x: 29.5, y: 56.0, w: 6.0,  h: 5.0  },
+    { x: 34.0, y: 2.0,  w: 8.0,  h: 15.0 },
+    { x: 1.0,  y: 78.0, w: 12.0, h: 20.0 },
+    { x: 82.0, y: 62.0, w: 8.0,  h: 12.0 },
+    { x: 88.0, y: 70.0, w: 7.0,  h: 12.0 },
+    { x: 0.0,  y: 65.0, w: 8.0,  h: 20.0 },
   ],
   Gelb: [
-    { x: 86.0, y: 6.0,  w: 14.0, h: 28.0 },
-    { x: 47.0, y: 0.0,  w: 11.0, h: 20.0 },
-    { x: 69.0, y: 1.0,  w: 8.0,  h: 16.0 },
-    { x: 91.0, y: 40.0, w: 9.0,  h: 38.0 },
-    { x: 47.0, y: 47.0, w: 5.0,  h: 6.0  },
-    { x: 55.0, y: 47.0, w: 5.0,  h: 6.0  },
+    { x: 55.0, y: 2.0,  w: 10.0, h: 18.0 },
+    { x: 88.0, y: 22.0, w: 7.0,  h: 14.0 },
   ],
-  Gruen: [
-    { x: 54.0, y: 80.0, w: 11.0, h: 14.0 },
-    { x: 83.0, y: 80.0, w: 13.0, h: 12.0 },
-    { x: 59.0, y: 1.0,  w: 9.0,  h: 18.0 },
-    { x: 65.0, y: 56.0, w: 20.0, h: 6.0  },
-    { x: 6.0,  y: 55.0, w: 20.0, h: 12.0 },
-    { x: 37.0, y: 55.0, w: 15.0, h: 22.0 },
-    { x: 58.0, y: 75.0, w: 25.0, h: 25.0 },
+  Grün: [
+    { x: 75.0, y: 6.0,  w: 8.0,  h: 18.0 },
+    { x: 40.0, y: 80.0, w: 9.0,  h: 15.0 },
+    { x: 68.0, y: 82.0, w: 12.0, h: 10.0 },
+    { x: 0.0,  y: 45.0, w: 20.0, h: 25.0 },
+    { x: 40.0, y: 88.0, w: 20.0, h: 12.0 },
   ],
   Blau: [
-    { x: 47.0, y: 56.0, w: 9.0,  h: 14.0 },
-    { x: 44.0, y: 60.0, w: 28.0, h: 40.0 },
-    { x: 27.0, y: 55.0, w: 11.0, h: 25.0 },
-    { x: 81.0, y: 51.0, w: 8.0,  h: 8.0  },
+    { x: 30.0, y: 70.0, w: 25.0, h: 20.0 },
+    { x: 40.0, y: 0.0,  w: 20.0, h: 8.0  },
   ],
   Lila: [
-    { x: 25.0, y: 1.0,  w: 10.0, h: 18.0 },
-    { x: 85.0, y: 68.0, w: 9.0,  h: 22.0 },
-    { x: 0.0,  y: 80.0, w: 14.0, h: 20.0 },
-    { x: 80.0, y: 50.0, w: 6.0,  h: 6.0  },
+    { x: 15.0, y: 3.0,  w: 10.0, h: 18.0 },
   ],
   Orange: [
-    { x: 78.0, y: 1.0,  w: 10.0, h: 18.0 },
-    { x: 75.0, y: 70.0, w: 14.0, h: 20.0 },
-    { x: 65.0, y: 60.0, w: 20.0, h: 14.0 },
-    { x: 6.0,  y: 65.0, w: 20.0, h: 24.0 },
+    { x: 92.0, y: 5.0,  w: 7.0,  h: 15.0 },
+    { x: 15.0, y: 42.0, w: 15.0, h: 42.0 },
+    { x: 72.0, y: 60.0, w: 15.0, h: 22.0 },
+    { x: 88.0, y: 78.0, w: 12.0, h: 20.0 },
   ],
   Braun: [
-    { x: 37.0, y: 76.0, w: 9.0,  h: 12.0 },
-    { x: 2.0,  y: 6.0,  w: 12.0, h: 22.0 },
-    { x: 10.0, y: 35.0, w: 16.0, h: 32.0 },
-    { x: 27.0, y: 40.0, w: 9.0,  h: 12.0 },
-    { x: 0.0,  y: 0.0,  w: 18.0, h: 100.0 },
-    { x: 78.0, y: 0.0,  w: 14.0, h: 65.0  },
-    { x: 38.0, y: 28.0, w: 26.0, h: 28.0 },
+    { x: 4.0,  y: 15.0, w: 8.0,  h: 22.0 },
+    { x: 27.0, y: 22.0, w: 9.0,  h: 32.0 },
+    { x: 32.0, y: 55.0, w: 10.0, h: 25.0 },
   ],
-  Weiss: [
-    { x: 59.0, y: 60.0, w: 10.0, h: 16.0 },
-    { x: 4.0,  y: 10.0, w: 7.0,  h: 12.0 },
-    { x: 12.0, y: 63.0, w: 6.0,  h: 6.0  },
-    { x: 1.0,  y: 83.0, w: 4.0,  h: 4.0  },
+  Weiß: [
+    { x: 55.0, y: 55.0, w: 10.0, h: 30.0 },
+  ],
+  Grau: [
+    { x: 58.0, y: 30.0, w: 12.0, h: 40.0 },
   ],
 };
 
-function getBoxesForWord(word: string, sectionId: string): Box[] {
-  if (sectionId === 'colors') return COLOR_OBJECTS[word] ?? [];
-  return FOREST_OBJECTS[word] ?? [];
+// ═══════════════════════════════════════
+// 🎨 Boxes الألوان للصورة الطولية (Mobile)
+// ═══════════════════════════════════════
+const COLOR_OBJECTS_MOB: Record<string, Box[]> = {
+  Rot: [
+    { x: 42.0, y: 8.0,  w: 15.0, h: 8.0  },
+    { x: 0.0,  y: 82.0, w: 22.0, h: 12.0 },
+    { x: 85.0, y: 68.0, w: 12.0, h: 8.0  },
+    { x: 82.0, y: 88.0, w: 12.0, h: 10.0 },
+    { x: 0.0,  y: 70.0, w: 12.0, h: 15.0 },
+  ],
+  Gelb: [
+    { x: 65.0, y: 3.0,  w: 20.0, h: 10.0 },
+    { x: 78.0, y: 15.0, w: 12.0, h: 8.0  },
+  ],
+  Grün: [
+    { x: 15.0, y: 14.0, w: 12.0, h: 10.0 },
+    { x: 30.0, y: 65.0, w: 15.0, h: 8.0  },
+    { x: 32.0, y: 90.0, w: 20.0, h: 8.0  },
+    { x: 0.0,  y: 30.0, w: 15.0, h: 30.0 },
+    { x: 20.0, y: 55.0, w: 60.0, h: 15.0 },
+  ],
+  Blau: [
+    { x: 30.0, y: 60.0, w: 25.0, h: 25.0 },
+    { x: 20.0, y: 0.0,  w: 60.0, h: 12.0 },
+  ],
+  Lila: [
+    { x: 20.0, y: 2.0,  w: 18.0, h: 10.0 },
+  ],
+  Orange: [
+    { x: 82.0, y: 22.0, w: 12.0, h: 8.0  },
+    { x: 8.0,  y: 40.0, w: 22.0, h: 22.0 },
+    { x: 40.0, y: 78.0, w: 21.0, h: 15.0 },
+    { x: 60.0, y: 85.0, w: 20.0, h: 12.0 },
+  ],
+  Braun: [
+    { x: 5.0,  y: 15.0, w: 15.0, h: 12.0 },
+    { x: 30.0, y: 25.0, w: 15.0, h: 18.0 },
+    { x: 20.0, y: 55.0, w: 20.0, h: 12.0 },
+  ],
+  Weiß: [
+    { x: 60.0, y: 50.0, w: 20.0, h: 18.0 },
+  ],
+  Grau: [
+    { x: 55.0, y: 32.0, w: 20.0, h: 20.0 },
+  ],
+};
+
+function getBoxesForWord(word: string, sectionId: string, isMobile: boolean): Box[] {
+  if (sectionId === 'colors') {
+    return (isMobile ? COLOR_OBJECTS_MOB : COLOR_OBJECTS_PC)[word] ?? [];
+  }
+  return (isMobile ? FOREST_OBJECTS_MOB : FOREST_OBJECTS_PC)[word] ?? [];
 }
 
 const NAT_W = 1920;
@@ -282,7 +359,9 @@ function useGameStats() {
     return { ...s, levelProgress: Math.min(100, s.levelProgress + increment) };
   });
   return { stats, addPoints, incStreak, resetStreak, addGems, useHint, addStar, addLevelProgress };
-}// ═══════════════════════════════════════
+}
+
+// ═══════════════════════════════════════
 // 🌲 ScreenBackground
 // ═══════════════════════════════════════
 function getSectionBackground(sectionId: string, isMobile: boolean): string {
@@ -682,7 +761,9 @@ function FlyingItems({ items }: { items: FlyingItem[] }) {
       })}
     </>
   );
-}// ═══════════════════════════════════════
+}
+
+// ═══════════════════════════════════════
 // BottomHUD
 // ═══════════════════════════════════════
 function FloatingIconButton({ label, color, isMobile, onClick, badge, disabled, iconSrc, iconAlt }: {
@@ -1414,7 +1495,9 @@ function LearnPhase({ wordData, sectionTitle, onDone, onKarlReact, onCombo, onCo
       </motion.div>
     </>
   );
-}// ═══════════════════════════════════════
+}
+
+// ═══════════════════════════════════════
 // 🎤 SpeakingPractice
 // ═══════════════════════════════════════
 function SpeakingPractice({ wordData, isMobile, onSuccess, onSkip }: {
@@ -1746,7 +1829,7 @@ function ForestTest({
 
   const currentWord = sectionWords[currentIdx];
   const isColors = sectionId === 'colors';
-  const boxes = currentWord ? getBoxesForWord(currentWord.word, sectionId) : [];
+  const boxes = currentWord ? getBoxesForWord(currentWord.word, sectionId, isMobile) : [];
 
   useEffect(() => {
     setShowHint(false);
@@ -1920,12 +2003,13 @@ function ForestTest({
           onClick={handleImageClick}
         >
           <img
-            src="/images/forest-scene.webp"
+            src={`/images/forest-scene-${isMobile ? 'mob' : 'pc'}.webp`}
             alt="غابة سحرية"
             onLoad={() => setImgLoaded(true)}
             onError={(e) => { 
               const t = e.target as HTMLImageElement; 
-              if (!t.src.includes('?v2')) t.src = '/images/forest-scene.webp?v2'; 
+              const newSrc = `/images/forest-scene-${isMobile ? 'mob' : 'pc'}.webp?v2`;
+              if (!t.src.includes('?v2')) t.src = newSrc; 
             }}
             style={{
               width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center',
@@ -2401,7 +2485,6 @@ export default function GermanForestPage() {
   };
 
   const handleTestPass = () => {
-    // ✅ لو الـ section عنده grammarItems → روح grammar
     if (section.grammarItems && section.grammarItems.length > 0) {
       setPhase('grammar');
       savePosition(sectionIdx, wordIdx, 'grammar');
@@ -2411,9 +2494,7 @@ export default function GermanForestPage() {
     }
   };
 
-  // ✅ Handler جديد للـ Grammar phase
   const handleGrammarComplete = (correctCount: number) => {
-    // bonus لو جاوب كل حاجة صح
     if (correctCount === section.grammarItems.length) {
       addPoints(20);
       handleKarlReact('celebrate');
@@ -2551,7 +2632,6 @@ export default function GermanForestPage() {
             />
           )}
 
-          {/* ✅ Phase جديدة: Grammar */}
           {phase === 'grammar' && (
             <GrammarMiniPhase
               key={`grammar-${sectionIdx}`}
