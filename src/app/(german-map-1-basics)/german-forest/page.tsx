@@ -851,7 +851,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
               iconSrc="/treasuer/energy.webp" iconAlt="energy" />
             <FloatingIconButton onClick={onHint} label="تلميح" color="#FFD700" isMobile={isMobile}
               badge={stats.hints} disabled={stats.hints === 0}
-              iconSrc="/treasuer/HINT.webp" iconAlt="hint" />
+              iconSrc="/treasuer/hint.svg" iconAlt="hint" />
           </div>
         </div>
       </div>
