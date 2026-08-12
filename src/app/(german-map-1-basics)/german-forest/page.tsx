@@ -14,6 +14,7 @@ import GhostInput from '@/app/components/lesson/GhostInput';
 import ConfettiBurst from '@/app/components/lesson/ConfettiBurst';
 import SpecialCharsKeyboard, { getRequiredSpecialChars } from '@/app/components/lesson/SpecialCharsKeyboard';
 import GrammarMiniPhase from '@/app/components/lesson/GrammarMiniPhase';
+import BoxDrawer from '@/app/components/lesson/BoxDrawer';
 
 // 🎯 الأنواع والرسائل المشتركة
 import type { KarlMood } from '@/lib/types/lesson';
@@ -222,6 +223,8 @@ function getBoxesForWord(word: string, sectionId: string, isMobile: boolean): Bo
 
 const NAT_W = 1920;
 const NAT_H = 1080;
+const NAT_W_MOB = 1080;
+const NAT_H_MOB = 1920;
 const TOTAL_ANSWERS_PER_LESSON = FOREST_SECTIONS.reduce((a, s) => 
   a + (s.words.length * 3) + (s.grammarItems?.length ?? 0), 0);
 
@@ -323,6 +326,41 @@ function useIsMobile(breakpoint: number = 1024): boolean {
   return isMobile;
 }
 
+// 🎯 Hook جديد: يحدد استخدام الصورة الطولية بناءً على نسبة الأبعاد
+function usePortraitLayout(): boolean {
+  const [isPortrait, setIsPortrait] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const ratio = window.innerWidth / window.innerHeight;
+      // لو النسبة أقل من 1.3 يبقى الشاشة طولية أو مربعة → استخدم الصورة الطولية
+      setIsPortrait(ratio < 1.3);
+    };
+    check();
+    window.addEventListener('resize', check);
+    window.addEventListener('orientationchange', check);
+    return () => {
+      window.removeEventListener('resize', check);
+      window.removeEventListener('orientationchange', check);
+    };
+  }, []);
+  return isPortrait;
+}
+
+function useScreenOrientation() {
+  const [isPortrait, setIsPortrait] = useState(false);
+  useEffect(() => {
+    const check = () => setIsPortrait(window.innerHeight > window.innerWidth);
+    check();
+    window.addEventListener('resize', check);
+    window.addEventListener('orientationchange', check);
+    return () => {
+      window.removeEventListener('resize', check);
+      window.removeEventListener('orientationchange', check);
+    };
+  }, []);
+  return isPortrait;
+}
+
 function useKeyboardOpen(): boolean {
   const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
@@ -378,6 +416,7 @@ function ScreenBackground({ section, activeColor, isMobile, phase }: {
   phase?: Phase;
 }) {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number }>>([]);
+  const isPortrait = usePortraitLayout();
 
   useEffect(() => {
     if (isMobile) return;
@@ -389,7 +428,7 @@ function ScreenBackground({ section, activeColor, isMobile, phase }: {
   }, [isMobile, section.id]);
 
   const overlayOpacity = phase === 'test' ? 0.55 : 0.35;
-  const bgImage = getSectionBackground(section.id, isMobile);
+  const bgImage = getSectionBackground(section.id, isPortrait);
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
@@ -1844,10 +1883,49 @@ function ForestTest({
   const [confettiPos, setConfettiPos] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // 🔍 Pinch to Zoom states
+  const [scale, setScale] = useState(1);
+  const [translateX, setTranslateX] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
+  const lastDistanceRef = useRef(0);
+  const lastTouchRef = useRef<{ x: number; y: number } | null>(null);
+  const isPinchingRef = useRef(false);
+  const isPanningRef = useRef(false);
 
+  // 📐 قياس عرض الصورة الفعلي عشان الكارت يبقى بنفس العرض
+  const [imageWidth, setImageWidth] = useState<number>(0);
+
+  const isPortrait = usePortraitLayout();
+  const usePortraitImage = isPortrait;
+  const natW = usePortraitImage ? NAT_W_MOB : NAT_W;
+  const natH = usePortraitImage ? NAT_H_MOB : NAT_H;
+
+  // 📐 مراقبة تغيير حجم الحاوية لحساب عرض الصورة الفعلي
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const updateWidth = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const containerW = rect.width;
+      const containerH = rect.height;
+      const imgScale = Math.min(containerW / natW, containerH / natH);
+      const renderedW = natW * imgScale;
+      setImageWidth(renderedW);
+    };
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(containerRef.current);
+    window.addEventListener('resize', updateWidth);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateWidth);
+    };
+  }, [natW, natH]);
+  
   const currentWord = sectionWords[currentIdx];
   const isColors = sectionId === 'colors';
-  const boxes = currentWord ? getBoxesForWord(currentWord.word, sectionId, isMobile) : [];
+  const boxes = currentWord ? getBoxesForWord(currentWord.word, sectionId, usePortraitImage) : [];
 
   useEffect(() => {
     setShowHint(false);
@@ -1858,17 +1936,79 @@ function ForestTest({
     return () => { if (hintTimerRef.current) clearTimeout(hintTimerRef.current); };
   }, [currentIdx, finished]);
 
+  // 🤏 Touch handlers للـ Pinch to Zoom والـ Pan
+  const getDistance = (touches: React.TouchList) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      isPinchingRef.current = true;
+      isPanningRef.current = false;
+      lastDistanceRef.current = getDistance(e.touches);
+    } else if (e.touches.length === 1 && scale > 1) {
+      isPanningRef.current = true;
+      isPinchingRef.current = false;
+      lastTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && isPinchingRef.current) {
+      e.preventDefault();
+      const distance = getDistance(e.touches);
+      const delta = distance - lastDistanceRef.current;
+      const newScale = Math.max(1, Math.min(3, scale + delta * 0.01));
+      setScale(newScale);
+      if (newScale === 1) {
+        setTranslateX(0);
+        setTranslateY(0);
+      }
+      lastDistanceRef.current = distance;
+    } else if (e.touches.length === 1 && isPanningRef.current && lastTouchRef.current && scale > 1) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - lastTouchRef.current.x;
+      const dy = e.touches[0].clientY - lastTouchRef.current.y;
+      
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const maxTranslateX = (rect.width * (scale - 1)) / 2;
+        const maxTranslateY = (rect.height * (scale - 1)) / 2;
+        
+        setTranslateX(prev => Math.max(-maxTranslateX, Math.min(maxTranslateX, prev + dx)));
+        setTranslateY(prev => Math.max(-maxTranslateY, Math.min(maxTranslateY, prev + dy)));
+      }
+      
+      lastTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+  };
+
+  const handleTouchEnd = () => {
+    isPinchingRef.current = false;
+    isPanningRef.current = false;
+    lastTouchRef.current = null;
+  };
+
+  // Reset zoom when word changes
+  useEffect(() => {
+    setScale(1);
+    setTranslateX(0);
+    setTranslateY(0);
+  }, [currentIdx]);
+
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (showFeedback || finished || boxes.length === 0 || !currentWord) return;
     if (!containerRef.current) return;
-
+    if (isPinchingRef.current || isPanningRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const containerW = rect.width;
     const containerH = rect.height;
 
-    const scale = Math.min(containerW / NAT_W, containerH / NAT_H);
-    const renderedW = NAT_W * scale;
-    const renderedH = NAT_H * scale;
+    const imgScale = Math.min(containerW / natW, containerH / natH);
+    const renderedW = natW * imgScale;
+    const renderedH = natH * imgScale;
     const offsetX = (containerW - renderedW) / 2;
     const offsetY = (containerH - renderedH) / 2;
 
@@ -1927,7 +2067,8 @@ function ForestTest({
       <motion.div 
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
-        className={`flex w-full items-center max-w-7xl mx-auto ${isMobile ? 'flex-col-reverse gap-2' : 'flex-row gap-4'}`}
+        className={`flex w-full mx-auto ${isMobile ? 'flex-col gap-2 max-w-full h-full items-stretch' : 'flex-row gap-4 max-w-7xl items-center'}`}
+        style={isMobile ? { height: '100%' } : {}}
       >
         <AnimatePresence mode="wait">
           {!finished && (
@@ -1936,54 +2077,104 @@ function ForestTest({
               initial={{ opacity: 0, y: -10, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.96 }}
-              className={`flex-shrink-0 rounded-2xl border-2 overflow-hidden backdrop-blur-md ${isMobile ? 'w-full' : 'w-72'}`}
+              className="flex-shrink-0 overflow-hidden backdrop-blur-md rounded-2xl border-2 mx-auto"
               style={{
                 background: `linear-gradient(135deg, ${currentWord.color}33, ${currentWord.color}11)`,
                 borderColor: `${currentWord.color}66`,
                 boxShadow: `0 8px 30px ${currentWord.color}44, 0 0 40px ${currentWord.color}22`,
+                marginTop: isMobile ? '4px' : undefined,
+                maxHeight: '22vh',
+                width: imageWidth > 0 
+                  ? `${Math.max(imageWidth * (isMobile ? 0.75 : 0.45), 260)}px` 
+                  : (isMobile ? '75%' : '45%'),
+                maxWidth: '95vw',
+                transition: 'width 0.2s ease-out',
               }}
             >
-              <div className={`flex items-center gap-3 ${isMobile ? 'p-2.5' : 'p-4'}`}>
-                <div className={`rounded-2xl flex items-center justify-center flex-shrink-0 border-2 shadow-lg ${isMobile ? 'w-12 h-12 text-2xl' : 'w-16 h-16 text-3xl'}`}
+              <div 
+                className="flex items-center"
+                style={isMobile ? {
+                  gap: 'clamp(8px, 2.5vw, 16px)',
+                  padding: 'clamp(6px, 1.8vw, 14px)',
+                } : { gap: '12px', padding: '16px' }}
+              >
+                <div 
+                  className="rounded-2xl flex items-center justify-center flex-shrink-0 border-2 shadow-lg"
                   style={{
                     background: `linear-gradient(135deg, ${currentWord.gradient[0]}, ${currentWord.gradient[1]})`,
                     borderColor: 'rgba(255,255,255,0.3)',
                     boxShadow: `0 6px 20px ${currentWord.color}77`,
-                  }}>
+                    width: isMobile ? 'clamp(36px, 11vw, 64px)' : '64px',
+                    height: isMobile ? 'clamp(36px, 11vw, 64px)' : '64px',
+                    fontSize: isMobile ? 'clamp(18px, 6vw, 32px)' : '30px',
+                  }}
+                >
                   {currentWord.emoji}
                 </div>
                 <div className="flex-1 text-right min-w-0">
-                  <p className={`text-white/60 font-bold mb-0.5 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                  <p 
+                    className="text-white/60 font-bold"
+                    style={{
+                      fontSize: isMobile ? 'clamp(9px, 2.6vw, 14px)' : '12px',
+                      marginBottom: '2px',
+                    }}
+                  >
                     {isColors ? 'ابحث عن أي حاجة باللون:' : 'ابحث في الصورة عن:'}
                   </p>
-                  <p className={`font-black text-white leading-tight truncate ${isMobile ? 'text-base' : 'text-xl'}`}>
+                  <p 
+                    className="font-black text-white leading-tight truncate"
+                    style={{
+                      fontSize: isMobile ? 'clamp(14px, 4.5vw, 22px)' : '20px',
+                    }}
+                  >
                     {currentWord.word}
                   </p>
-                  <p className={`font-bold truncate ${isMobile ? 'text-xs' : 'text-sm'}`} 
-                    style={{ color: currentWord.color }}>
+                  <p 
+                    className="font-bold truncate"
+                    style={{ 
+                      color: currentWord.color,
+                      fontSize: isMobile ? 'clamp(10px, 3vw, 16px)' : '14px',
+                    }}
+                  >
                     {currentWord.wordAr}
                   </p>
                 </div>
-                <button onClick={() => speakWord(currentWord.word)}
-                  className={`rounded-xl flex items-center justify-center flex-shrink-0 border-2 transition-all active:scale-90 ${isMobile ? 'w-10 h-10' : 'w-11 h-11'}`}
+                <button 
+                  onClick={() => speakWord(currentWord.word)}
+                  className="rounded-xl flex items-center justify-center flex-shrink-0 border-2 transition-all active:scale-90"
                   style={{
                     borderColor: `${currentWord.color}77`,
                     background: `${currentWord.color}33`,
                     color: 'white',
                     boxShadow: `0 4px 12px ${currentWord.color}44`,
-                  }}>
-                  <Volume2 size={isMobile ? 16 : 18} />
+                    width: isMobile ? 'clamp(30px, 9vw, 48px)' : '44px',
+                    height: isMobile ? 'clamp(30px, 9vw, 48px)' : '44px',
+                  }}
+                >
+                  <Volume2 style={{ 
+                    width: isMobile ? 'clamp(14px, 4vw, 20px)' : '18px', 
+                    height: isMobile ? 'clamp(14px, 4vw, 20px)' : '18px' 
+                  }} />
                 </button>
               </div>
               
-              <div className={`flex gap-1 ${isMobile ? 'px-2.5 pb-2' : 'px-4 pb-3'}`}>
+              <div 
+                className="flex gap-1"
+                style={isMobile ? {
+                  padding: '0 clamp(6px, 1.8vw, 14px) clamp(4px, 1.2vw, 10px)',
+                } : { padding: '0 16px 12px' }}
+              >
                 {sectionWords.map((w, i) => (
-                  <div key={w.word} className="flex-1 h-1.5 rounded-full transition-all"
+                  <div 
+                    key={w.word} 
+                    className="flex-1 rounded-full transition-all"
                     style={{
+                      height: isMobile ? 'clamp(3px, 0.8vw, 6px)' : '6px',
                       background: foundWords.includes(w.word) 
                         ? `linear-gradient(90deg, ${w.gradient[0]}, ${w.gradient[1]})` 
                         : i === currentIdx ? `${w.color}55` : 'rgba(255,255,255,0.08)',
-                    }} />
+                    }} 
+                  />
                 ))}
               </div>
 
@@ -1994,10 +2185,25 @@ function ForestTest({
               )}
 
               {wrong > 0 && (
-                <div className={`${isMobile ? 'px-2.5 pb-2' : 'px-4 pb-3'}`}>
-                  <div className="flex items-center justify-center gap-1 px-2 py-0.5 rounded-full mx-auto w-fit"
-                    style={{ background: 'rgba(255,68,68,0.25)', border: '1px solid rgba(255,68,68,0.5)' }}>
-                    <span className={`font-black text-red-200 ${isMobile ? 'text-[9px]' : 'text-[10px]'}`}>
+                <div 
+                  style={isMobile ? {
+                    padding: '0 clamp(6px, 1.8vw, 14px) clamp(4px, 1.2vw, 10px)',
+                  } : { padding: '0 16px 12px' }}
+                >
+                  <div 
+                    className="flex items-center justify-center gap-1 rounded-full mx-auto w-fit"
+                    style={{ 
+                      background: 'rgba(255,68,68,0.25)', 
+                      border: '1px solid rgba(255,68,68,0.5)',
+                      padding: isMobile ? 'clamp(1px, 0.3vw, 3px) clamp(6px, 1.8vw, 10px)' : '2px 8px',
+                    }}
+                  >
+                    <span 
+                      className="font-black text-red-200"
+                      style={{
+                        fontSize: isMobile ? 'clamp(9px, 2.5vw, 12px)' : '10px',
+                      }}
+                    >
                       {wrong}/5 محاولات
                     </span>
                   </div>
@@ -2009,29 +2215,58 @@ function ForestTest({
 
         <div
           ref={containerRef}
-          className="relative w-full rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl select-none"
+          className={`relative overflow-hidden shadow-2xl select-none rounded-2xl border-2 border-white/10 ${isMobile ? 'flex-1 mx-2' : 'w-full'}`}
           style={{
-            aspectRatio: isMobile ? '9/16' : `${NAT_W}/${NAT_H}`,
+            aspectRatio: `${natW}/${natH}`,
             cursor: finished ? 'default' : 'pointer',
             background: '#0a1a0a',
-            maxHeight: isMobile ? '55vh' : 'calc(100vh - 240px)',
-            maxWidth: isMobile ? '100%' : 'calc((100vh - 240px) * 1.777)',
+            maxHeight: isMobile ? 'calc(100vh - 260px)' : 'calc(100vh - 240px)',
+            maxWidth: usePortraitImage 
+              ? `calc((100vh - ${isMobile ? '260px' : '240px'}) * ${natW / natH})` 
+              : `calc((100vh - 240px) * ${natW / natH})`,
             margin: '0 auto',
+            width: isMobile ? 'auto' : '100%',
+            height: isMobile ? '100%' : 'auto',
+            touchAction: isMobile ? 'none' : 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 0,
           }}
           onClick={handleImageClick}
+          onTouchStart={isMobile ? handleTouchStart : undefined}
+          onTouchMove={isMobile ? handleTouchMove : undefined}
+          onTouchEnd={isMobile ? handleTouchEnd : undefined}
         >
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              transform: `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)`,
+              transformOrigin: 'center center',
+              transition: isPinchingRef.current || isPanningRef.current ? 'none' : 'transform 0.2s ease-out',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
           <img
-            src={`/images/forest-scene-${isMobile ? 'mob' : 'pc'}.webp`}
+            src={`/images/forest-scene-${usePortraitImage ? 'mob' : 'pc'}.webp`}
             alt="غابة سحرية"
             onLoad={() => setImgLoaded(true)}
             onError={(e) => { 
               const t = e.target as HTMLImageElement; 
-              const newSrc = `/images/forest-scene-${isMobile ? 'mob' : 'pc'}.webp?v2`;
+              const newSrc = `/images/forest-scene-${usePortraitImage ? 'mob' : 'pc'}.webp?v2`;
               if (!t.src.includes('?v2')) t.src = newSrc; 
             }}
             style={{
-              width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center',
-              pointerEvents: 'none', display: 'block', 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'contain', 
+              objectPosition: 'center',
+              pointerEvents: 'none', 
+              display: 'block', 
               opacity: imgLoaded ? 1 : 0, 
               transition: 'opacity 0.3s ease',
             }}
@@ -2168,6 +2403,7 @@ function ForestTest({
               </div>
             </motion.div>
           )}
+          </div>
         </div>
       </motion.div>
     </>
@@ -2339,6 +2575,7 @@ export default function GermanForestPage() {
   const [totalStars, setTotalStars] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [correctInSection, setCorrectInSection] = useState(0);
+  const [showBoxDrawer, setShowBoxDrawer] = useState(false);
   const LESSON_ID = 'german-forest';
 
   const { stats, addPoints, incStreak, resetStreak, addGems, useHint, addStar, addLevelProgress } = useGameStats();
@@ -2569,9 +2806,8 @@ export default function GermanForestPage() {
   const totalStepsInSection = section.words.length;
   const activeColor = wordData?.color ?? section.accentColor;
   
-  const mobilePaddingTop = phase === 'test' ? '105px' : '110px';
-  const mobilePaddingBottom = phase === 'test' ? '85px' : '95px';
-
+  const mobilePaddingTop = phase === 'test' ? '75px' : '110px';
+  const mobilePaddingBottom = phase === 'test' ? '95px' : '95px';
   return (
     <div className="text-white relative overflow-hidden" 
       style={{ fontFamily: "'Tajawal', sans-serif", height: '100vh', maxHeight: '100vh' }} 
@@ -2688,6 +2924,31 @@ export default function GermanForestPage() {
           onMap={handleHomeClick} 
           isMobile={isMobile} 
         />
+      )}
+
+      {/* 🎨 Box Drawer Tool - Development Only */}
+      {process.env.NODE_ENV === 'development' && (
+        <>
+          <button
+            onClick={() => setShowBoxDrawer(true)}
+            className="fixed bottom-24 left-4 z-[9998] px-4 py-2 bg-purple-600 text-white rounded-full font-bold text-sm shadow-2xl border-2 border-white"
+          >
+            🎨 Box Drawer
+          </button>
+          
+          {showBoxDrawer && (
+            <BoxDrawer
+              imageSrc={`/images/forest-scene-${isMobile ? 'mob' : 'pc'}.webp`}
+              naturalWidth={isMobile ? NAT_W_MOB : NAT_W}
+              naturalHeight={isMobile ? NAT_H_MOB : NAT_H}
+              existingBoxes={section?.id === 'colors' 
+                ? (isMobile ? COLOR_OBJECTS_MOB : COLOR_OBJECTS_PC)
+                : (isMobile ? FOREST_OBJECTS_MOB : FOREST_OBJECTS_PC)
+              }
+              onClose={() => setShowBoxDrawer(false)}
+            />
+          )}
+        </>
       )}
     </div>
   );
