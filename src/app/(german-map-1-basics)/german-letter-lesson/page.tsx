@@ -902,7 +902,7 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
 }
 
 // ═══════════════════════════════════════
-// 🎤 SpeakingPractice - النسخة المحسّنة (v3)
+// 🎤 SpeakingPractice - v4 (تساهل أكبر + بدون عداد)
 // ═══════════════════════════════════════
 function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   letterData: Letter; isMobile: boolean;
@@ -915,25 +915,21 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   const [attempts, setAttempts] = useState(0);
   const [supported, setSupported] = useState(true);
   const [volumeLevel, setVolumeLevel] = useState(0);
-  const [countdown, setCountdown] = useState<number | null>(null);
 
   const recognitionRef = useRef<any>(null);
   const micButtonRef = useRef<HTMLButtonElement>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const autoStopTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const hasResultRef = useRef(false);
-  const statusRef = useRef<string>('idle');
   const bestScoreRef = useRef(0);
   const bestTranscriptRef = useRef('');
   const heardSpeechRef = useRef(false);
   const resolvedRef = useRef(false);
   const manualStopRef = useRef(false);
-  const startTimeRef = useRef<number>(0);
+  const heardAnythingRef = useRef(false);
 
   const target = letterData.word;
   const targetAr = letterData.wordAr;
@@ -942,521 +938,376 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     typeof navigator !== 'undefined' &&
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // ✅ عتبات أقل بكتير عالموبايل عشان يقبل نطق مش بيرفكت
-  const SUCCESS_THRESHOLD = isMobileDevice ? 0.08 : 0.15;
-  const INTERIM_ACCEPT_THRESHOLD = isMobileDevice ? 0.35 : 0.6;
-
-  // ✅ أوقات أقصر - 5 ثواني بس
-  const LISTENING_DURATION = isMobileDevice ? 5000 : 5000;
-  const SAFETY_TIMEOUT = isMobileDevice ? 7000 : 7000;
-  const SPEECH_THRESHOLD = isMobileDevice ? 3 : 5;
-
-  useEffect(() => {
-    statusRef.current = status;
-  }, [status]);
-
-  const clearAllTimers = () => {
-    if (safetyTimeoutRef.current) {
-      clearTimeout(safetyTimeoutRef.current);
-      safetyTimeoutRef.current = null;
-    }
-    if (silenceTimeoutRef.current) {
-      clearTimeout(silenceTimeoutRef.current);
-      silenceTimeoutRef.current = null;
-    }
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current);
-      countdownIntervalRef.current = null;
-    }
-    setCountdown(null);
-  };
-
-  const cleanup = () => {
-    clearAllTimers();
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
-      streamRef.current = null;
-    }
-    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-      audioContextRef.current.close().catch(() => {});
-      audioContextRef.current = null;
-    }
-    analyserRef.current = null;
-    setVolumeLevel(0);
-  };
-
-  const requestStop = () => {
-    clearAllTimers();
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
-    }
-  };
-
-  const forceStop = () => {
-    cleanup();
-    setIsListening(false);
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
-    }
-  };
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setSupported(false);
-      return;
-    }
+    if (!SpeechRecognition) { setSupported(false); return; }
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'de-DE';
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 20; // ✅ زودنا البدائل
-
+    recognition.maxAlternatives = 25;
     recognitionRef.current = recognition;
 
     return () => {
       cleanup();
-      if (recognitionRef.current) {
-        try { recognitionRef.current.abort(); } catch {}
-      }
+      if (recognitionRef.current) { try { recognitionRef.current.abort(); } catch {} }
     };
   }, []);
 
   useEffect(() => {
-    setTranscript('');
-    setInterimText('');
-    setStatus('idle');
-    setAttempts(0);
-    setIsListening(false);
-    setCountdown(null);
-
-    hasResultRef.current = false;
-    bestScoreRef.current = 0;
-    bestTranscriptRef.current = '';
-    heardSpeechRef.current = false;
-    resolvedRef.current = false;
-    manualStopRef.current = false;
-
+    setTranscript(''); setInterimText(''); setStatus('idle');
+    setAttempts(0); setIsListening(false);
+    bestScoreRef.current = 0; bestTranscriptRef.current = '';
+    heardSpeechRef.current = false; resolvedRef.current = false;
+    manualStopRef.current = false; heardAnythingRef.current = false;
     cleanup();
-
-    if (recognitionRef.current) {
-      try { recognitionRef.current.abort(); } catch {}
-    }
+    if (recognitionRef.current) { try { recognitionRef.current.abort(); } catch {} }
   }, [target]);
 
-  // ✅ محسّن: تقييم أكثر تساهلاً
-  const scoreTranscript = (rawText: string) => {
-    const text = rawText.toLowerCase().trim();
+  const clearAllTimers = () => {
+    if (safetyTimeoutRef.current) { clearTimeout(safetyTimeoutRef.current); safetyTimeoutRef.current = null; }
+    if (autoStopTimeoutRef.current) { clearTimeout(autoStopTimeoutRef.current); autoStopTimeoutRef.current = null; }
+  };
+
+  const cleanup = () => {
+    clearAllTimers();
+    if (animationFrameRef.current) { cancelAnimationFrame(animationFrameRef.current); animationFrameRef.current = null; }
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close().catch(() => {}); audioContextRef.current = null;
+    }
+    analyserRef.current = null; setVolumeLevel(0);
+  };
+
+  const requestStop = () => {
+    clearAllTimers();
+    if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch {} }
+  };
+
+  const forceStop = () => {
+    cleanup(); setIsListening(false);
+    if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch {} }
+  };
+
+  // ═══════════════════════════════════════
+  // ✅ نظام التقييم الجديد - متساهل جداً
+  // ═══════════════════════════════════════
+  const scoreTranscript = (rawText: string): { score: number; match: string } => {
+    const text = rawText.toLowerCase().trim().replace(/[.,!?;:'"\-_()]/g, '');
     if (!text) return { score: 0, match: '' };
 
-    const targetLower = target.toLowerCase();
+    const tgt = target.toLowerCase().trim();
 
-    // ✅ تطابق مباشر
-    if (text === targetLower) return { score: 1.0, match: text };
+    // ═══ 1. تطابق مباشر ═══
+    if (text === tgt) return { score: 1.0, match: text };
 
-    // ✅ الكلمة موجودة في النص
-    if (text.includes(targetLower) || targetLower.includes(text)) {
-      return { score: 0.95, match: text };
-    }
+    // ═══ 2. تطابق بدون Umlauts ═══
+    const flattenUmlauts = (s: string) => s
+      .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss')
+      .replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u');
 
-    // ✅ أول حرفين متطابقين + طول قريب = كويس كفاية
-    if (text.length >= 2 && targetLower.length >= 2) {
-      if (text[0] === targetLower[0]) {
-        // أول حرف صح
-        const lengthRatio = Math.min(text.length, targetLower.length) / Math.max(text.length, targetLower.length);
-        if (lengthRatio > 0.5) return { score: 0.7, match: text };
-        return { score: 0.5, match: text };
-      }
-    }
+    const flatText = flattenUmlauts(text);
+    const flatTarget = flattenUmlauts(tgt);
+    if (flatText === flatTarget) return { score: 1.0, match: text };
 
-    // ✅ Similarity score عادي
-    const fullScore = similarityScore(text, targetLower);
+    // ═══ 3. الكلمة موجودة جوه النص ═══
+    if (text.includes(tgt) || flatText.includes(flatTarget)) return { score: 0.98, match: text };
+    if (tgt.includes(text) || flatTarget.includes(flatText)) return { score: 0.95, match: text };
 
-    // ✅ جرب كل كلمة لوحدها
+    // ═══ 4. فحص كل كلمة لوحدها ═══
     const words = text.split(/\s+/).filter(Boolean);
     let bestWordScore = 0;
     let bestWordMatch = text;
 
     for (const word of words) {
-      // تطابق مباشر مع كلمة
-      if (word === targetLower) return { score: 1.0, match: word };
-      if (word.includes(targetLower) || targetLower.includes(word)) {
-        return { score: 0.95, match: word };
+      if (word === tgt || flattenUmlauts(word) === flatTarget) return { score: 1.0, match: word };
+      if (word.includes(tgt) || tgt.includes(word)) return { score: 0.95, match: word };
+      if (flattenUmlauts(word).includes(flatTarget) || flatTarget.includes(flattenUmlauts(word))) {
+        return { score: 0.93, match: word };
       }
 
-      const wordScore = similarityScore(word, targetLower);
-      if (wordScore > bestWordScore) {
-        bestWordScore = wordScore;
-        bestWordMatch = word;
-      }
-
-      // ✅ أول حرف من الكلمة = أول حرف من الهدف
-      if (word[0] === targetLower[0] && word.length >= 2) {
-        const adjustedScore = Math.max(wordScore, 0.5);
-        if (adjustedScore > bestWordScore) {
-          bestWordScore = adjustedScore;
-          bestWordMatch = word;
-        }
+      // أول حرف متطابق
+      if (word[0] === tgt[0] || flattenUmlauts(word)[0] === flatTarget[0]) {
+        const dist = levenshteinDistance(flattenUmlauts(word), flatTarget);
+        const maxLen = Math.max(word.length, tgt.length);
+        const rawScore = 1 - (dist / maxLen);
+        // ✅ بونص كبير لو أول حرف صح
+        const boostedScore = Math.min(1, rawScore * 1.8 + 0.15);
+        if (boostedScore > bestWordScore) { bestWordScore = boostedScore; bestWordMatch = word; }
+      } else {
+        const dist = levenshteinDistance(flattenUmlauts(word), flatTarget);
+        const maxLen = Math.max(word.length, tgt.length);
+        const rawScore = 1 - (dist / maxLen);
+        const boostedScore = Math.min(1, rawScore * 1.5);
+        if (boostedScore > bestWordScore) { bestWordScore = boostedScore; bestWordMatch = word; }
       }
     }
 
-    // ✅ جرب بدون أول/آخر كلمة
-    let edgeTrimScore = 0;
-    let edgeTrimMatch = text;
+    // ═══ 5. النص كله كقطعة واحدة ═══
+    const fullDist = levenshteinDistance(flatText, flatTarget);
+    const fullMaxLen = Math.max(flatText.length, flatTarget.length);
+    const fullRawScore = 1 - (fullDist / fullMaxLen);
 
-    if (words.length > 1) {
-      const withoutFirst = words.slice(1).join(' ');
-      const withoutLast = words.slice(0, -1).join(' ');
-
-      const wfScore = similarityScore(withoutFirst, targetLower);
-      const wlScore = similarityScore(withoutLast, targetLower);
-
-      if (wfScore > edgeTrimScore) { edgeTrimScore = wfScore; edgeTrimMatch = withoutFirst; }
-      if (wlScore > edgeTrimScore) { edgeTrimScore = wlScore; edgeTrimMatch = withoutLast; }
+    // ✅ بونص لو أول حرف صح
+    let fullBoosted = fullRawScore;
+    if (flatText[0] === flatTarget[0]) {
+      fullBoosted = Math.min(1, fullRawScore * 1.8 + 0.15);
+    } else {
+      fullBoosted = Math.min(1, fullRawScore * 1.5);
     }
 
-    // ✅ نفس الحروف بترتيب مختلف (anagram-like)
-    const sortedText = text.split('').sort().join('');
-    const sortedTarget = targetLower.split('').sort().join('');
-    let anagramBonus = 0;
-    if (sortedText === sortedTarget) anagramBonus = 0.85;
+    // ═══ 6. فحص أحرف مشتركة (Jaccard-like) ═══
+    const textChars = new Set(flatText.split(''));
+    const targetChars = new Set(flatTarget.split(''));
+    let commonChars = 0;
+    for (const c of textChars) { if (targetChars.has(c)) commonChars++; }
+    const jaccardScore = commonChars / Math.max(textChars.size, targetChars.size);
+    const jaccardBoosted = Math.min(1, jaccardScore * 1.5);
 
-    const finalScore = Math.max(fullScore, bestWordScore, edgeTrimScore, anagramBonus);
+    // ═══ 7. فحص الحروف بالترتيب (subsequence) ═══
+    let subseqMatches = 0;
+    let tgtIdx = 0;
+    for (let i = 0; i < flatText.length && tgtIdx < flatTarget.length; i++) {
+      if (flatText[i] === flatTarget[tgtIdx]) { subseqMatches++; tgtIdx++; }
+    }
+    const subseqScore = subseqMatches / flatTarget.length;
+    const subseqBoosted = Math.min(1, subseqScore * 1.4);
 
-    let bestMatch = text;
-    if (bestWordScore >= fullScore && bestWordScore >= edgeTrimScore) bestMatch = bestWordMatch;
-    else if (edgeTrimScore >= fullScore && edgeTrimScore >= bestWordScore) bestMatch = edgeTrimMatch;
+    const finalScore = Math.max(bestWordScore, fullBoosted, jaccardBoosted, subseqBoosted);
+    const match = bestWordScore >= fullBoosted ? bestWordMatch : text;
 
-    return { score: finalScore, match: bestMatch };
+    return { score: finalScore, match };
   };
 
   const finishSuccess = (matchText?: string) => {
     if (resolvedRef.current) return;
-
     resolvedRef.current = true;
-    hasResultRef.current = true;
 
     const finalText = (matchText || bestTranscriptRef.current || '').trim();
-    setTranscript(finalText);
-    setInterimText('');
-    setStatus('success');
-    setCountdown(null);
-    playCoinSound();
+    setTranscript(finalText); setInterimText(''); setStatus('success');
+    playCoinSound(); forceStop();
 
-    forceStop();
-
-    let cx = window.innerWidth / 2;
-    let cy = window.innerHeight / 2;
-
+    let cx = window.innerWidth / 2, cy = window.innerHeight / 2;
     if (micButtonRef.current) {
       const rect = micButtonRef.current.getBoundingClientRect();
-      cx = rect.left + rect.width / 2;
-      cy = rect.top + rect.height / 2;
+      cx = rect.left + rect.width / 2; cy = rect.top + rect.height / 2;
     }
-
     setTimeout(() => onSuccess(cx, cy), 1200);
   };
 
   const finishTryAgain = (matchText?: string) => {
     if (resolvedRef.current) return;
-
     resolvedRef.current = true;
-
     if (matchText?.trim()) setTranscript(matchText.trim());
-    setInterimText('');
-    setStatus('try-again');
-    setCountdown(null);
-    playBuzzSound();
-    setAttempts(a => a + 1);
-
-    forceStop();
+    setInterimText(''); setStatus('try-again');
+    playBuzzSound(); setAttempts(a => a + 1); forceStop();
   };
+
+  // ═══════════════════════════════════════
+  // ✅ عتبات متساهلة جداً
+  // ═══════════════════════════════════════
+  const ACCEPT_THRESHOLD = isMobileDevice ? 0.25 : 0.3;
+  const INSTANT_ACCEPT = isMobileDevice ? 0.5 : 0.6;
+  const AUTO_STOP_MS = 5000;
+  const SAFETY_MS = 8000;
 
   const handleStart = async () => {
     if (!recognitionRef.current || isListening) return;
 
-    setTranscript('');
-    setInterimText('');
-    setStatus('listening');
-    setIsListening(true);
+    setTranscript(''); setInterimText(''); setStatus('listening'); setIsListening(true);
+    bestScoreRef.current = 0; bestTranscriptRef.current = '';
+    heardSpeechRef.current = false; resolvedRef.current = false;
+    manualStopRef.current = false; heardAnythingRef.current = false;
 
-    hasResultRef.current = false;
-    bestScoreRef.current = 0;
-    bestTranscriptRef.current = '';
-    heardSpeechRef.current = false;
-    resolvedRef.current = false;
-    manualStopRef.current = false;
-    startTimeRef.current = Date.now();
-
-    // ✅ عداد تنازلي 5 ثواني
-    const totalSeconds = Math.ceil(LISTENING_DURATION / 1000);
-    setCountdown(totalSeconds);
-    countdownIntervalRef.current = setInterval(() => {
-      setCountdown(prev => {
-        if (prev === null || prev <= 1) {
-          if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-          return null;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    // ✅ على الموبايل: ما نفتحش getUserMedia
+    // ═══ Mic + Volume (Desktop only) ═══
     if (!isMobileDevice) {
-      let stream: MediaStream;
-
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-            channelCount: 1,
-          }
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 }
         });
         streamRef.current = stream;
-      } catch (e) {
-        console.error('❌ Mic permission denied:', e);
-        setIsListening(false);
-        setStatus('error');
-        clearAllTimers();
-        return;
-      }
-
-      try {
         const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
-        const audioContext = new AudioCtx();
-        audioContextRef.current = audioContext;
-
+        const audioContext = new AudioCtx(); audioContextRef.current = audioContext;
         const source = audioContext.createMediaStreamSource(stream);
         const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.8;
-        source.connect(analyser);
-        analyserRef.current = analyser;
-
+        analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.8;
+        source.connect(analyser); analyserRef.current = analyser;
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
         const detectVolume = () => {
           if (!analyserRef.current) return;
-
           analyserRef.current.getByteFrequencyData(dataArray);
-          const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-          const normalized = Math.min(100, (average / 128) * 100);
-          setVolumeLevel(normalized);
-
-          if (average > SPEECH_THRESHOLD) {
-            heardSpeechRef.current = true;
-          }
-
+          const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+          setVolumeLevel(Math.min(100, (avg / 128) * 100));
+          if (avg > 5) heardSpeechRef.current = true;
           animationFrameRef.current = requestAnimationFrame(detectVolume);
         };
-
         detectVolume();
       } catch (e) {
-        console.warn('⚠️ Audio analysis failed:', e);
+        console.error('❌ Mic denied:', e);
+        setIsListening(false); setStatus('error'); return;
       }
     } else {
-      // ✅ على الموبايل: fake volume animation
-      let fakeVolumeDirection = 1;
-      let fakeVolume = 30;
-      const fakeVolumeInterval = () => {
-        fakeVolume += fakeVolumeDirection * (Math.random() * 15);
-        if (fakeVolume > 80) fakeVolumeDirection = -1;
-        if (fakeVolume < 20) fakeVolumeDirection = 1;
-        setVolumeLevel(fakeVolume);
-        animationFrameRef.current = requestAnimationFrame(fakeVolumeInterval);
+      // Fake volume on mobile
+      let dir = 1, vol = 30;
+      const fakeVol = () => {
+        vol += dir * (Math.random() * 15);
+        if (vol > 80) dir = -1; if (vol < 20) dir = 1;
+        setVolumeLevel(vol);
+        animationFrameRef.current = requestAnimationFrame(fakeVol);
       };
-      fakeVolumeInterval();
+      fakeVol();
     }
 
-    // ✅ إيقاف تلقائي بعد 5 ثواني بالظبط
-    silenceTimeoutRef.current = setTimeout(() => {
-      console.log('⏱️ 5 seconds up - stopping recognition');
+    // ✅ إيقاف تلقائي بعد 5 ثواني بدون عداد ظاهر
+    autoStopTimeoutRef.current = setTimeout(() => {
+      console.log('⏱️ Auto-stop after 5s');
       if (!resolvedRef.current) requestStop();
-    }, LISTENING_DURATION);
+    }, AUTO_STOP_MS);
 
-    // ✅ Safety timeout
+    // Safety
     safetyTimeoutRef.current = setTimeout(() => {
-      console.warn('⏰ Safety timeout - force stop');
       if (!resolvedRef.current) {
-        forceStop();
-        setIsListening(false);
-        if (bestScoreRef.current >= SUCCESS_THRESHOLD && bestTranscriptRef.current) {
+        forceStop(); setIsListening(false);
+        if (bestScoreRef.current >= ACCEPT_THRESHOLD && bestTranscriptRef.current) {
           finishSuccess(bestTranscriptRef.current);
         } else {
           finishTryAgain(bestTranscriptRef.current || undefined);
         }
       }
-    }, SAFETY_TIMEOUT);
+    }, SAFETY_MS);
 
-    recognitionRef.current.onstart = () => {
-      console.log('🎙️ Recognition started');
-    };
-
+    // ═══ Recognition Events ═══
     recognitionRef.current.onresult = (event: any) => {
-      const lastResult = event.results[event.results.length - 1];
-      if (!lastResult) return;
+      if (resolvedRef.current) return;
 
-      let localBestScore = 0;
-      let localBestMatch = '';
+      // ✅ فحص كل النتائج - مش بس الأخيرة
+      for (let r = 0; r < event.results.length; r++) {
+        const result = event.results[r];
+        for (let a = 0; a < result.length; a++) {
+          const rawText = result[a]?.transcript || '';
+          if (!rawText.trim()) continue;
 
-      // ✅ فحص كل البدائل
-      for (let i = 0; i < lastResult.length; i++) {
-        const rawText = lastResult[i]?.transcript || '';
-        const text = rawText.toLowerCase().trim();
-        if (!text) continue;
+          heardAnythingRef.current = true;
+          heardSpeechRef.current = true;
 
-        heardSpeechRef.current = true;
+          const { score, match } = scoreTranscript(rawText);
+          console.log(`🎯 [${r}][${a}] "${rawText}" → ${score.toFixed(2)} (target: ${target})`);
 
-        const { score, match } = scoreTranscript(text);
-        console.log(`🎯 Alt[${i}] "${text}" → Score: ${score.toFixed(2)} (target: ${target})`);
+          if (score > bestScoreRef.current) {
+            bestScoreRef.current = score;
+            bestTranscriptRef.current = match || rawText;
+          }
 
-        if (score > localBestScore) {
-          localBestScore = score;
-          localBestMatch = match;
+          // ✅ قبول فوري
+          if (score >= INSTANT_ACCEPT) {
+            finishSuccess(match || rawText);
+            return;
+          }
         }
+      }
 
+      // عرض آخر نص
+      const lastResult = event.results[event.results.length - 1];
+      const displayText = lastResult?.[0]?.transcript || '';
+      if (lastResult?.isFinal) {
+        setTranscript(displayText); setInterimText('');
+      } else {
+        setInterimText(displayText);
+      }
+
+      // ✅ فحص النص الكامل من كل النتائج
+      let fullText = '';
+      for (let r = 0; r < event.results.length; r++) {
+        if (event.results[r]?.[0]) fullText += ' ' + event.results[r][0].transcript;
+      }
+      fullText = fullText.trim();
+      if (fullText) {
+        const { score, match } = scoreTranscript(fullText);
         if (score > bestScoreRef.current) {
           bestScoreRef.current = score;
-          bestTranscriptRef.current = match;
+          bestTranscriptRef.current = match || fullText;
         }
-      }
-
-      // ✅ كمان نفحص كل النتائج السابقة مع بعض
-      let allTranscript = '';
-      for (let r = 0; r < event.results.length; r++) {
-        if (event.results[r][0]) {
-          allTranscript += ' ' + event.results[r][0].transcript;
+        if (score >= INSTANT_ACCEPT) {
+          finishSuccess(match || fullText);
+          return;
         }
-      }
-      allTranscript = allTranscript.trim();
-      if (allTranscript) {
-        const { score: allScore, match: allMatch } = scoreTranscript(allTranscript);
-        if (allScore > bestScoreRef.current) {
-          bestScoreRef.current = allScore;
-          bestTranscriptRef.current = allMatch;
-        }
-        if (allScore > localBestScore) {
-          localBestScore = allScore;
-          localBestMatch = allMatch;
-        }
-      }
-
-      if (!localBestMatch) return;
-
-      if (!lastResult.isFinal) {
-        setInterimText(localBestMatch);
-
-        // ✅ قبول فوري لو النتيجة كويسة كفاية حتى interim
-        if (!resolvedRef.current && localBestScore >= INTERIM_ACCEPT_THRESHOLD) {
-          finishSuccess(localBestMatch);
-        }
-        return;
-      }
-
-      hasResultRef.current = true;
-      setTranscript(localBestMatch);
-      setInterimText('');
-
-      // ✅ قبول فوري لو النتيجة فوق العتبة
-      if (!resolvedRef.current && localBestScore >= SUCCESS_THRESHOLD) {
-        finishSuccess(localBestMatch);
       }
     };
 
     recognitionRef.current.onerror = (event: any) => {
-      console.error('❌ Recognition error:', event.error);
+      if (resolvedRef.current) return;
+      console.error('❌ Error:', event.error);
+      if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+        resolvedRef.current = true; forceStop(); setStatus('error'); return;
+      }
+      if (event.error === 'aborted') return;
+      finishTryAgain(bestTranscriptRef.current || undefined);
+    };
 
+    recognitionRef.current.onend = () => {
+      console.log('🛑 Ended. Best:', bestScoreRef.current.toFixed(2), bestTranscriptRef.current);
+      cleanup(); setIsListening(false);
       if (resolvedRef.current) return;
 
-      if (event.error === 'not-allowed' || event.error === 'permission-denied') {
-        resolvedRef.current = true;
-        forceStop();
-        setStatus('error');
+      // ✅ آخر فرصة - عتبة منخفضة جداً
+      if (bestTranscriptRef.current && bestScoreRef.current >= ACCEPT_THRESHOLD) {
+        finishSuccess(bestTranscriptRef.current);
         return;
       }
 
-      if (event.error === 'aborted') return;
-
-      if (event.error === 'no-speech') {
-        finishTryAgain(bestTranscriptRef.current || undefined);
+      // ✅ لو سمع أي كلام وكان فيه تشابه ولو بسيط
+      if (heardAnythingRef.current && bestScoreRef.current > 0.1) {
+        finishSuccess(bestTranscriptRef.current);
         return;
+      }
+
+      if (manualStopRef.current) {
+        if (bestTranscriptRef.current && bestScoreRef.current > 0.05) {
+          finishSuccess(bestTranscriptRef.current);
+          return;
+        }
+        setStatus('idle'); return;
       }
 
       finishTryAgain(bestTranscriptRef.current || undefined);
     };
 
-    recognitionRef.current.onend = () => {
-      console.log('🛑 Recognition ended');
-      cleanup();
-      setIsListening(false);
-
-      if (resolvedRef.current) return;
-
-      const bestMatch = bestTranscriptRef.current.trim();
-      const bestScore = bestScoreRef.current;
-
-      // ✅ آخر فرصة للقبول
-      if (bestMatch && bestScore >= SUCCESS_THRESHOLD) {
-        finishSuccess(bestMatch);
-        return;
-      }
-
-      if (manualStopRef.current) {
-        // ✅ حتى لو وقف يدوي، لو في نتيجة قريبة نقبلها
-        if (bestMatch && bestScore > 0.05) {
-          finishSuccess(bestMatch);
-          return;
-        }
-        setStatus('idle');
-        return;
-      }
-
-      finishTryAgain(bestMatch || undefined);
-    };
-
     try {
       recognitionRef.current.start();
     } catch (e) {
-      console.error('❌ Failed to start:', e);
-      cleanup();
-      setIsListening(false);
-      setStatus('error');
+      console.error('❌ Start failed:', e);
+      cleanup(); setIsListening(false); setStatus('error');
     }
   };
 
   const handleManualStop = () => {
-    console.log('👆 Manual stop by user');
-
-    // ✅ لو في أي نتيجة حتى لو ضعيفة، نقبلها على طول
-    if (bestScoreRef.current > 0.05 && bestTranscriptRef.current) {
+    // ✅ لو سمع أي حاجة خالص = نجاح
+    if (heardAnythingRef.current && bestTranscriptRef.current) {
       finishSuccess(bestTranscriptRef.current);
       return;
     }
-
     manualStopRef.current = true;
     requestStop();
   };
+
+  // ═══════════════════════════════════════
+  // 🎨 UI
+  // ═══════════════════════════════════════
 
   if (!supported) {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md mx-auto">
         <GlassCard className="p-6 text-center" accentColor={letterData.color} isMobile={isMobile}>
           <div className="text-5xl mb-3">😅</div>
-          <h3 className="text-lg font-black text-white mb-2">المتصفح بتاعك مش بيدعم النطق</h3>
-          <p className="text-white/60 text-sm mb-4">جرب تستخدم Chrome أو Edge</p>
+          <h3 className="text-lg font-black text-white mb-2">المتصفح مش بيدعم النطق</h3>
+          <p className="text-white/60 text-sm mb-4">جرب Chrome أو Edge</p>
           <button onClick={onSkip} className="px-8 py-3 rounded-2xl font-black text-white"
-            style={{ background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})` }}>تخطي ⏭️</button>
+            style={{ background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})` }}>
+            تخطي ⏭️
+          </button>
         </GlassCard>
       </motion.div>
     );
@@ -1465,342 +1316,211 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   // ✅ زر التخطي يظهر من أول محاولة فاشلة
   const showSkipButton = attempts >= 1 || status === 'error';
 
+  const MicButton = () => (
+    <div className="relative">
+      <motion.button ref={micButtonRef}
+        whileHover={!isListening ? { scale: 1.05 } : {}}
+        whileTap={{ scale: 0.95 }}
+        onClick={isListening ? handleManualStop : handleStart}
+        disabled={status === 'success'}
+        className={`relative rounded-full flex items-center justify-center transition-all flex-shrink-0 ${isMobile ? 'w-14 h-14' : 'w-16 h-16'}`}
+        style={{
+          background: status === 'success' ? 'linear-gradient(135deg, #58CC02, #096A02)' :
+            isListening ? 'linear-gradient(135deg, #FF4444, #C70039)' :
+            `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
+          boxShadow: isListening
+            ? `0 0 ${20 + volumeLevel * 0.4}px rgba(255,68,68,${0.5 + volumeLevel / 200})`
+            : `0 8px 25px ${letterData.color}66`,
+        }}>
+        {isListening && (
+          <>
+            {[0, 0.3, 0.6].map((delay, i) => (
+              <motion.div key={i} className="absolute inset-0 rounded-full"
+                style={{ border: `${isMobile ? 2 : 3}px solid #FF4444` }}
+                initial={{ scale: 1, opacity: 0.8 }}
+                animate={{ scale: 1.6, opacity: 0 }}
+                transition={{ duration: 1.5, delay, repeat: Infinity, ease: 'easeOut' }} />
+            ))}
+            <div className="absolute inset-0 rounded-full border-2"
+              style={{
+                borderColor: `rgba(255,255,255,${0.3 + volumeLevel / 200})`,
+                transform: `scale(${1 + volumeLevel / 150})`,
+                transition: 'all 0.1s'
+              }} />
+          </>
+        )}
+        {status === 'success'
+          ? <Check size={isMobile ? 24 : 28} className="text-white" strokeWidth={3} />
+          : <Mic size={isMobile ? 22 : 26} className="text-white" />
+        }
+      </motion.button>
+    </div>
+  );
+
+  const StatusMessage = () => (
+    <AnimatePresence mode="wait">
+      {status === 'listening' && (
+        <motion.div key="listening" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="flex items-center gap-1.5">
+          <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 0.8, repeat: Infinity }}
+            className="text-red-400 text-sm">●</motion.span>
+          <span className={`font-black text-red-400 ${isMobile ? 'text-[11px]' : 'text-xs'}`}>بسمعك... اتكلم</span>
+        </motion.div>
+      )}
+      {status === 'success' && (
+        <motion.p key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+          className={`font-black text-green-400 ${isMobile ? 'text-sm' : 'text-base'}`}>
+          ✅ ممتاز! 🌟
+        </motion.p>
+      )}
+      {status === 'try-again' && (
+        <motion.div key="try-again" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-1">
+          <p className={`font-black text-yellow-400 ${isMobile ? 'text-[11px]' : 'text-xs'}`}>
+            مسمعتكش كويس 😊
+          </p>
+          <p className={`font-bold text-white/50 ${isMobile ? 'text-[9px]' : 'text-[10px]'}`}>
+            جرب تاني أو اضغط تخطي
+          </p>
+        </motion.div>
+      )}
+      {status === 'error' && (
+        <motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className={`font-black text-red-400 ${isMobile ? 'text-[11px]' : 'text-xs'}`}>
+          ❌ سمّح للموقع باستخدام المايك
+        </motion.p>
+      )}
+      {status === 'idle' && !isListening && (
+        <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className={`font-bold text-white/40 ${isMobile ? 'text-[9px]' : 'text-[10px]'}`}>
+          {attempts > 0 ? 'اضغط المايك وجرب تاني' : 'اضغط على المايك وابدأ'}
+        </motion.p>
+      )}
+    </AnimatePresence>
+  );
+
+  const TranscriptDisplay = () => (
+    <AnimatePresence mode="wait">
+      {interimText && isListening && (
+        <motion.div key="interim" initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} exit={{ opacity: 0 }}
+          className="text-center">
+          <p className={`text-white/60 font-bold italic ${isMobile ? 'text-[10px]' : 'text-xs'}`}
+            style={{ direction: 'ltr' }}>"{interimText}..."</p>
+        </motion.div>
+      )}
+      {transcript && !isListening && status !== 'idle' && (
+        <motion.div key="transcript" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }} className="text-center">
+          <p className={`text-white/40 font-bold ${isMobile ? 'text-[9px]' : 'text-[10px]'}`}>سمعت:</p>
+          <p className={`font-black text-white ${isMobile ? 'text-xs' : 'text-sm'}`}
+            style={{ direction: 'ltr' }}>"{transcript}"</p>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const SkipButtons = () => (
+    <>
+      {/* ✅ زر تخطي كبير بعد أول محاولة فاشلة */}
+      <AnimatePresence>
+        {showSkipButton && status !== 'success' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }} className="flex flex-col items-center gap-1.5 w-full">
+            <button onClick={onSkip}
+              className={`flex items-center gap-1.5 rounded-xl font-black text-white border-2 transition-all w-full justify-center
+                ${isMobile ? 'px-4 py-2 text-[11px]' : 'px-5 py-2.5 text-sm'}`}
+              style={{
+                background: 'linear-gradient(135deg, rgba(76,201,240,0.25), rgba(114,9,183,0.25))',
+                borderColor: 'rgba(76,201,240,0.5)',
+                boxShadow: '0 4px 15px rgba(76,201,240,0.2)'
+              }}>
+              <SkipForward size={isMobile ? 13 : 16} /> تخطي وكمّل ⏭️
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ✅ زر تخطي ناعم دايماً موجود (بعد 2 ثانية) */}
+      {!showSkipButton && status !== 'success' && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} transition={{ delay: 2 }}
+          className="flex justify-center">
+          <button onClick={onSkip}
+            className={`text-white/40 hover:text-white/70 font-bold underline transition-colors
+              ${isMobile ? 'text-[9px]' : 'text-xs'}`}>
+            تخطي
+          </button>
+        </motion.div>
+      )}
+    </>
+  );
+
   return (
     <motion.div key={`speak-word-${target}`}
       initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }}
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
       className="w-full flex items-center justify-center">
-      {isMobile ? (
-        <GlassCard className="w-full max-w-[340px] mx-auto p-3" accentColor={letterData.color} isMobile={true} useBgImage={true}>
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex items-center gap-2">
-              <motion.div initial={{ scale: 0 }} animate={{ scale: [0, 1.2, 1] }} transition={{ duration: 0.5 }} className="text-2xl">🎤</motion.div>
-              <div className="text-center">
-                <h3 className="font-black text-white text-sm leading-tight">انطق الكلمة</h3>
-                <p className="text-white/60 font-bold text-[9px]">اضغط المايك واتكلم بوضوح</p>
-              </div>
+
+      <GlassCard
+        className={`mx-auto ${isMobile ? 'w-full max-w-[340px] p-3' : 'w-full max-w-md p-5'}`}
+        accentColor={letterData.color} isMobile={isMobile} useBgImage={isMobile}>
+        <div className={`flex flex-col items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
+
+          {/* العنوان */}
+          <div className="flex items-center gap-2">
+            <motion.div initial={{ scale: 0 }} animate={{ scale: [0, 1.2, 1] }}
+              transition={{ duration: 0.5 }}
+              className={isMobile ? 'text-2xl' : 'text-3xl'}>🎤</motion.div>
+            <div className="text-center">
+              <h3 className={`font-black text-white leading-tight ${isMobile ? 'text-sm' : 'text-lg'}`}>
+                انطق الكلمة
+              </h3>
+              <p className={`text-white/60 font-bold ${isMobile ? 'text-[9px]' : 'text-xs'}`}>
+                اضغط المايك وقول الكلمة
+              </p>
             </div>
-
-            {/* الكلمة المطلوبة */}
-            <div className="w-full rounded-xl border-2 text-center backdrop-blur-md p-2"
-              style={{ background: `linear-gradient(135deg, ${letterData.color}22, ${letterData.color}08)`, borderColor: `${letterData.color}55` }}>
-              <div className="flex items-center justify-center gap-2 mb-0.5">
-                <span className="text-xl">{letterData.emoji}</span>
-                <p className="font-black text-white text-lg" style={{ textShadow: `0 0 15px ${letterData.color}88`, direction: 'ltr' }}>{target}</p>
-              </div>
-              <p className="font-bold text-[10px]" style={{ color: letterData.color }}>{targetAr}</p>
-              <button onClick={() => speakWord(target)}
-                className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-lg border border-white/20 bg-white/5 text-white/70 hover:bg-white/10 transition-all font-bold text-[9px]">
-                <Volume2 size={10} /> اسمع النطق الصح
-              </button>
-            </div>
-
-            {/* زر المايك مع العداد التنازلي */}
-            <div className="relative">
-              <motion.button ref={micButtonRef}
-                whileHover={!isListening ? { scale: 1.05 } : {}}
-                whileTap={{ scale: 0.95 }}
-                onClick={isListening ? handleManualStop : handleStart}
-                disabled={status === 'success'}
-                className="relative rounded-full flex items-center justify-center transition-all flex-shrink-0 w-14 h-14"
-                style={{
-                  background: status === 'success' ? 'linear-gradient(135deg, #58CC02, #096A02)' :
-                    isListening ? 'linear-gradient(135deg, #FF4444, #C70039)' :
-                    `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
-                  boxShadow: isListening ? `0 0 ${20 + volumeLevel * 0.4}px rgba(255,68,68,${0.5 + volumeLevel / 200})` : `0 8px 25px ${letterData.color}66`,
-                }}>
-                {isListening && (
-                  <>
-                    {[0, 0.3, 0.6].map((delay, i) => (
-                      <motion.div key={i} className="absolute inset-0 rounded-full border-2" style={{ borderColor: '#FF4444' }}
-                        initial={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.6, opacity: 0 }}
-                        transition={{ duration: 1.5, delay, repeat: Infinity, ease: 'easeOut' }} />
-                    ))}
-                    <div className="absolute inset-0 rounded-full border-2"
-                      style={{
-                        borderColor: `rgba(255,255,255,${0.3 + volumeLevel / 200})`,
-                        transform: `scale(${1 + volumeLevel / 150})`,
-                        transition: 'all 0.1s'
-                      }} />
-                  </>
-                )}
-                {status === 'success' ? <Check size={24} className="text-white" strokeWidth={3} /> : <Mic size={22} className="text-white" />}
-              </motion.button>
-
-              {/* ✅ عداد تنازلي */}
-              <AnimatePresence>
-                {countdown !== null && isListening && (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{
-                      background: countdown <= 2 ? '#FF4444' : 'rgba(15,10,45,0.9)',
-                      border: '2px solid rgba(255,255,255,0.4)',
-                      boxShadow: countdown <= 2 ? '0 0 10px rgba(255,68,68,0.6)' : '0 2px 8px rgba(0,0,0,0.5)'
-                    }}>
-                    <motion.span
-                      key={countdown}
-                      initial={{ scale: 1.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="font-black text-[10px] text-white">
-                      {countdown}
-                    </motion.span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {isListening && (
-              <p className="text-[9px] text-white/50 font-bold">اضغط تاني للإيقاف</p>
-            )}
-
-            {/* النص المسموع */}
-            <AnimatePresence mode="wait">
-              {interimText && isListening && (
-                <motion.div key="interim" initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} exit={{ opacity: 0 }} className="text-center">
-                  <p className="text-white/60 font-bold text-[10px] italic" style={{ direction: 'ltr' }}>"{interimText}..."</p>
-                </motion.div>
-              )}
-              {transcript && !isListening && (
-                <motion.div key="transcript" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-center">
-                  <p className="text-white/40 font-bold text-[9px]">سمعتك بتقول:</p>
-                  <p className="font-black text-white text-xs" style={{ direction: 'ltr' }}>"{transcript}"</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* حالة النتيجة */}
-            <AnimatePresence mode="wait">
-              {status === 'listening' && (
-                <motion.div key="listening" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="flex items-center gap-1.5">
-                  <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 0.8, repeat: Infinity }}
-                    className="text-red-400 text-sm">●</motion.span>
-                  <span className="font-black text-red-400 text-[11px]">بسمعك...</span>
-                  {countdown !== null && (
-                    <span className="font-bold text-white/40 text-[9px]">({countdown} ث)</span>
-                  )}
-                </motion.div>
-              )}
-              {status === 'success' && (
-                <motion.p key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-                  className="font-black text-green-400 text-sm">✅ نطق ممتاز! 🌟</motion.p>
-              )}
-              {status === 'try-again' && (
-                <motion.div key="try-again" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="text-center">
-                  <p className="font-black text-yellow-400 text-[11px]">😊 حاول تاني أو اضغط تخطي</p>
-                </motion.div>
-              )}
-              {status === 'error' && (
-                <motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="font-black text-red-400 text-[11px]">❌ لازم تسمح للموقع باستخدام المايك</motion.p>
-              )}
-              {status === 'idle' && !isListening && attempts === 0 && (
-                <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="font-bold text-white/40 text-[9px]">اضغط على المايك وابدأ تتكلم</motion.p>
-              )}
-            </AnimatePresence>
-
-            {/* ✅ زر التخطي - يظهر من أول محاولة */}
-            <AnimatePresence>
-              {showSkipButton && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex justify-center w-full">
-                  <button onClick={onSkip}
-                    className="flex items-center gap-1.5 px-5 py-2 rounded-xl font-black text-white border-2 transition-all text-[11px] w-full justify-center"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(76,201,240,0.2), rgba(114,9,183,0.2))',
-                      borderColor: 'rgba(76,201,240,0.4)',
-                      boxShadow: '0 4px 15px rgba(76,201,240,0.2)'
-                    }}>
-                    <SkipForward size={13} /> تخطي وكمّل ⏭️
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* ✅ زر تخطي ناعم حتى قبل أي محاولة (بعد 3 ثواني) */}
-            {!showSkipButton && status === 'idle' && attempts === 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                transition={{ delay: 3 }}
-                className="flex justify-center">
-                <button onClick={onSkip}
-                  className="text-white/40 hover:text-white/70 font-bold text-[9px] underline transition-colors">
-                  تخطي هذا التمرين
-                </button>
-              </motion.div>
-            )}
           </div>
-        </GlassCard>
-      ) : (
-        /* ═══ Desktop Version ═══ */
-        <GlassCard className="w-full max-w-md mx-auto p-5" accentColor={letterData.color} isMobile={false}>
-          <div className="flex flex-col items-center gap-3">
-            <div className="flex items-center gap-3">
-              <motion.div initial={{ scale: 0 }} animate={{ scale: [0, 1.2, 1] }} transition={{ duration: 0.5 }} className="text-3xl">🎤</motion.div>
-              <div className="text-center">
-                <h3 className="font-black text-white text-lg leading-tight">انطق الكلمة</h3>
-                <p className="text-white/60 font-bold text-xs mt-0.5">اضغط على المايك واتكلم بوضوح</p>
-              </div>
+
+          {/* الكلمة المطلوبة */}
+          <div className={`w-full rounded-xl border-2 text-center backdrop-blur-md ${isMobile ? 'p-2' : 'p-3'}`}
+            style={{
+              background: `linear-gradient(135deg, ${letterData.color}22, ${letterData.color}08)`,
+              borderColor: `${letterData.color}55`
+            }}>
+            <div className="flex items-center justify-center gap-2 mb-0.5">
+              <span className={isMobile ? 'text-xl' : 'text-2xl'}>{letterData.emoji}</span>
+              <p className={`font-black text-white ${isMobile ? 'text-lg' : 'text-2xl'}`}
+                style={{ textShadow: `0 0 15px ${letterData.color}88`, direction: 'ltr' }}>
+                {target}
+              </p>
             </div>
-
-            <div className="w-full rounded-2xl border-2 text-center backdrop-blur-md p-3"
-              style={{ background: `linear-gradient(135deg, ${letterData.color}22, ${letterData.color}08)`, borderColor: `${letterData.color}55` }}>
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <span className="text-2xl">{letterData.emoji}</span>
-                <p className="font-black text-white text-2xl" style={{ textShadow: `0 0 20px ${letterData.color}88`, direction: 'ltr' }}>{target}</p>
-              </div>
-              <p className="font-bold text-xs" style={{ color: letterData.color }}>{targetAr}</p>
-              <button onClick={() => speakWord(target)}
-                className="inline-flex items-center gap-1.5 mt-1.5 px-3 py-1 rounded-xl border border-white/20 bg-white/5 text-white/70 hover:bg-white/10 transition-all font-bold text-[11px]">
-                <Volume2 size={12} /> اسمع النطق الصح
-              </button>
-            </div>
-
-            <div className="relative">
-              <motion.button ref={micButtonRef}
-                whileHover={!isListening ? { scale: 1.05 } : {}}
-                whileTap={{ scale: 0.95 }}
-                onClick={isListening ? handleManualStop : handleStart}
-                disabled={status === 'success'}
-                className="relative rounded-full flex items-center justify-center transition-all flex-shrink-0 w-16 h-16"
-                style={{
-                  background: status === 'success' ? 'linear-gradient(135deg, #58CC02, #096A02)' :
-                    isListening ? 'linear-gradient(135deg, #FF4444, #C70039)' :
-                    `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
-                  boxShadow: isListening ? `0 0 ${30 + volumeLevel * 0.5}px rgba(255,68,68,${0.5 + volumeLevel / 200})` : `0 8px 30px ${letterData.color}66`,
-                }}>
-                {isListening && (
-                  <>
-                    {[0, 0.3, 0.6].map((delay, i) => (
-                      <motion.div key={i} className="absolute inset-0 rounded-full border-4" style={{ borderColor: '#FF4444' }}
-                        initial={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.6, opacity: 0 }}
-                        transition={{ duration: 1.5, delay, repeat: Infinity, ease: 'easeOut' }} />
-                    ))}
-                    <div className="absolute inset-0 rounded-full border-2"
-                      style={{
-                        borderColor: `rgba(255,255,255,${0.3 + volumeLevel / 200})`,
-                        transform: `scale(${1 + volumeLevel / 150})`,
-                        transition: 'all 0.1s'
-                      }} />
-                  </>
-                )}
-                {status === 'success' ? <Check size={28} className="text-white" strokeWidth={3} /> : <Mic size={26} className="text-white" />}
-              </motion.button>
-
-              {/* عداد تنازلي - ديسكتوب */}
-              <AnimatePresence>
-                {countdown !== null && isListening && (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center"
-                    style={{
-                      background: countdown <= 2 ? '#FF4444' : 'rgba(15,10,45,0.9)',
-                      border: '2px solid rgba(255,255,255,0.4)',
-                      boxShadow: countdown <= 2 ? '0 0 12px rgba(255,68,68,0.6)' : '0 2px 8px rgba(0,0,0,0.5)'
-                    }}>
-                    <motion.span
-                      key={countdown}
-                      initial={{ scale: 1.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="font-black text-[11px] text-white">
-                      {countdown}
-                    </motion.span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {isListening && (
-              <p className="text-[10px] text-white/50 font-bold">اضغط تاني للإيقاف</p>
-            )}
-
-            <AnimatePresence mode="wait">
-              {interimText && isListening && (
-                <motion.div key="interim" initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} exit={{ opacity: 0 }} className="text-center">
-                  <p className="text-white/60 font-bold text-xs italic" style={{ direction: 'ltr' }}>"{interimText}..."</p>
-                </motion.div>
-              )}
-              {transcript && !isListening && (
-                <motion.div key="transcript" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-center">
-                  <p className="text-white/40 font-bold text-[10px]">سمعتك بتقول:</p>
-                  <p className="font-black text-white text-sm" style={{ direction: 'ltr' }}>"{transcript}"</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence mode="wait">
-              {status === 'listening' && (
-                <motion.div key="listening" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="flex items-center gap-1.5">
-                  <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 0.8, repeat: Infinity }}
-                    className="text-red-400 text-sm">●</motion.span>
-                  <span className="font-black text-red-400 text-xs">بسمعك...</span>
-                  {countdown !== null && (
-                    <span className="font-bold text-white/40 text-[10px]">({countdown} ث)</span>
-                  )}
-                </motion.div>
-              )}
-              {status === 'success' && (
-                <motion.p key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-                  className="font-black text-green-400 text-base">✅ نطق ممتاز! 🌟</motion.p>
-              )}
-              {status === 'try-again' && (
-                <motion.p key="try-again" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="font-black text-yellow-400 text-xs">😊 حاول تاني أو اضغط تخطي</motion.p>
-              )}
-              {status === 'error' && (
-                <motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="font-black text-red-400 text-xs">❌ لازم تسمح للموقع باستخدام المايك</motion.p>
-              )}
-              {status === 'idle' && !isListening && attempts === 0 && (
-                <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="font-bold text-white/40 text-[10px]">اضغط على المايك وابدأ تتكلم</motion.p>
-              )}
-            </AnimatePresence>
-
-            {/* زر التخطي - ديسكتوب */}
-            <AnimatePresence>
-              {showSkipButton && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex justify-center w-full">
-                  <button onClick={onSkip}
-                    className="flex items-center gap-2 px-5 py-2 rounded-2xl font-black text-white border-2 transition-all text-sm"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(76,201,240,0.2), rgba(114,9,183,0.2))',
-                      borderColor: 'rgba(76,201,240,0.4)',
-                      boxShadow: '0 6px 20px rgba(76,201,240,0.2)'
-                    }}>
-                    <SkipForward size={16} /> تخطي وكمّل ⏭️
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {!showSkipButton && status === 'idle' && attempts === 0 && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} transition={{ delay: 3 }}
-                className="flex justify-center">
-                <button onClick={onSkip} className="text-white/50 hover:text-white/80 font-bold text-xs underline">
-                  تخطي هذا التمرين
-                </button>
-              </motion.div>
-            )}
+            <p className={`font-bold ${isMobile ? 'text-[10px]' : 'text-xs'}`}
+              style={{ color: letterData.color }}>{targetAr}</p>
+            <button onClick={() => speakWord(target)}
+              className={`inline-flex items-center gap-1 mt-1 rounded-lg border border-white/20 
+                bg-white/5 text-white/70 hover:bg-white/10 transition-all font-bold
+                ${isMobile ? 'px-2 py-0.5 text-[9px]' : 'px-3 py-1 text-[11px]'}`}>
+              <Volume2 size={isMobile ? 10 : 12} /> اسمع النطق
+            </button>
           </div>
-        </GlassCard>
-      )}
+
+          {/* زر المايك */}
+          <MicButton />
+
+          {isListening && (
+            <p className={`text-white/50 font-bold ${isMobile ? 'text-[9px]' : 'text-[10px]'}`}>
+              اضغط تاني لما تخلص
+            </p>
+          )}
+
+          {/* النص المسموع */}
+          <TranscriptDisplay />
+
+          {/* حالة النتيجة */}
+          <StatusMessage />
+
+          {/* أزرار التخطي */}
+          <SkipButtons />
+        </div>
+      </GlassCard>
     </motion.div>
   );
 }
