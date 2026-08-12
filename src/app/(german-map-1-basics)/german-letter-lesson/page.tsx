@@ -902,7 +902,7 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
 }
 
 // ═══════════════════════════════════════
-// 🎤 SpeakingPractice - النسخة المحسّنة (v2)
+// 🎤 SpeakingPractice - النسخة المحسّنة (v3)
 // ═══════════════════════════════════════
 function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   letterData: Letter; isMobile: boolean;
@@ -915,10 +915,13 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   const [attempts, setAttempts] = useState(0);
   const [supported, setSupported] = useState(true);
   const [volumeLevel, setVolumeLevel] = useState(0);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   const recognitionRef = useRef<any>(null);
   const micButtonRef = useRef<HTMLButtonElement>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -930,6 +933,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   const heardSpeechRef = useRef(false);
   const resolvedRef = useRef(false);
   const manualStopRef = useRef(false);
+  const startTimeRef = useRef<number>(0);
 
   const target = letterData.word;
   const targetAr = letterData.wordAr;
@@ -938,22 +942,37 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     typeof navigator !== 'undefined' &&
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  const SUCCESS_THRESHOLD = isMobileDevice ? 0.15 : 0.2;
-  const INTERIM_ACCEPT_THRESHOLD = isMobileDevice ? 0.6 : 0.7;
-  const SILENCE_AFTER_SPEECH = isMobileDevice ? 4000 : 2500;
-  const NO_SPEECH_TIMEOUT = isMobileDevice ? 8000 : 5000;
-  const SAFETY_TIMEOUT = isMobileDevice ? 12000 : 8000;
+  // ✅ عتبات أقل بكتير عالموبايل عشان يقبل نطق مش بيرفكت
+  const SUCCESS_THRESHOLD = isMobileDevice ? 0.08 : 0.15;
+  const INTERIM_ACCEPT_THRESHOLD = isMobileDevice ? 0.35 : 0.6;
+
+  // ✅ أوقات أقصر - 5 ثواني بس
+  const LISTENING_DURATION = isMobileDevice ? 5000 : 5000;
+  const SAFETY_TIMEOUT = isMobileDevice ? 7000 : 7000;
   const SPEECH_THRESHOLD = isMobileDevice ? 3 : 5;
 
   useEffect(() => {
     statusRef.current = status;
   }, [status]);
 
-  const cleanup = () => {
+  const clearAllTimers = () => {
     if (safetyTimeoutRef.current) {
       clearTimeout(safetyTimeoutRef.current);
       safetyTimeoutRef.current = null;
     }
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdown(null);
+  };
+
+  const cleanup = () => {
+    clearAllTimers();
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
@@ -971,10 +990,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   };
 
   const requestStop = () => {
-    if (safetyTimeoutRef.current) {
-      clearTimeout(safetyTimeoutRef.current);
-      safetyTimeoutRef.current = null;
-    }
+    clearAllTimers();
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch {}
     }
@@ -1003,7 +1019,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     recognition.lang = 'de-DE';
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 15;
+    recognition.maxAlternatives = 20; // ✅ زودنا البدائل
 
     recognitionRef.current = recognition;
 
@@ -1021,6 +1037,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     setStatus('idle');
     setAttempts(0);
     setIsListening(false);
+    setCountdown(null);
 
     hasResultRef.current = false;
     bestScoreRef.current = 0;
@@ -1036,24 +1053,63 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     }
   }, [target]);
 
+  // ✅ محسّن: تقييم أكثر تساهلاً
   const scoreTranscript = (rawText: string) => {
     const text = rawText.toLowerCase().trim();
     if (!text) return { score: 0, match: '' };
 
-    const fullScore = similarityScore(text, target.toLowerCase());
+    const targetLower = target.toLowerCase();
 
+    // ✅ تطابق مباشر
+    if (text === targetLower) return { score: 1.0, match: text };
+
+    // ✅ الكلمة موجودة في النص
+    if (text.includes(targetLower) || targetLower.includes(text)) {
+      return { score: 0.95, match: text };
+    }
+
+    // ✅ أول حرفين متطابقين + طول قريب = كويس كفاية
+    if (text.length >= 2 && targetLower.length >= 2) {
+      if (text[0] === targetLower[0]) {
+        // أول حرف صح
+        const lengthRatio = Math.min(text.length, targetLower.length) / Math.max(text.length, targetLower.length);
+        if (lengthRatio > 0.5) return { score: 0.7, match: text };
+        return { score: 0.5, match: text };
+      }
+    }
+
+    // ✅ Similarity score عادي
+    const fullScore = similarityScore(text, targetLower);
+
+    // ✅ جرب كل كلمة لوحدها
     const words = text.split(/\s+/).filter(Boolean);
     let bestWordScore = 0;
     let bestWordMatch = text;
 
     for (const word of words) {
-      const wordScore = similarityScore(word, target.toLowerCase());
+      // تطابق مباشر مع كلمة
+      if (word === targetLower) return { score: 1.0, match: word };
+      if (word.includes(targetLower) || targetLower.includes(word)) {
+        return { score: 0.95, match: word };
+      }
+
+      const wordScore = similarityScore(word, targetLower);
       if (wordScore > bestWordScore) {
         bestWordScore = wordScore;
         bestWordMatch = word;
       }
+
+      // ✅ أول حرف من الكلمة = أول حرف من الهدف
+      if (word[0] === targetLower[0] && word.length >= 2) {
+        const adjustedScore = Math.max(wordScore, 0.5);
+        if (adjustedScore > bestWordScore) {
+          bestWordScore = adjustedScore;
+          bestWordMatch = word;
+        }
+      }
     }
 
+    // ✅ جرب بدون أول/آخر كلمة
     let edgeTrimScore = 0;
     let edgeTrimMatch = text;
 
@@ -1061,20 +1117,20 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       const withoutFirst = words.slice(1).join(' ');
       const withoutLast = words.slice(0, -1).join(' ');
 
-      const wfScore = similarityScore(withoutFirst, target.toLowerCase());
-      const wlScore = similarityScore(withoutLast, target.toLowerCase());
+      const wfScore = similarityScore(withoutFirst, targetLower);
+      const wlScore = similarityScore(withoutLast, targetLower);
 
-      if (wfScore > edgeTrimScore) {
-        edgeTrimScore = wfScore;
-        edgeTrimMatch = withoutFirst;
-      }
-      if (wlScore > edgeTrimScore) {
-        edgeTrimScore = wlScore;
-        edgeTrimMatch = withoutLast;
-      }
+      if (wfScore > edgeTrimScore) { edgeTrimScore = wfScore; edgeTrimMatch = withoutFirst; }
+      if (wlScore > edgeTrimScore) { edgeTrimScore = wlScore; edgeTrimMatch = withoutLast; }
     }
 
-    const finalScore = Math.max(fullScore, bestWordScore, edgeTrimScore);
+    // ✅ نفس الحروف بترتيب مختلف (anagram-like)
+    const sortedText = text.split('').sort().join('');
+    const sortedTarget = targetLower.split('').sort().join('');
+    let anagramBonus = 0;
+    if (sortedText === sortedTarget) anagramBonus = 0.85;
+
+    const finalScore = Math.max(fullScore, bestWordScore, edgeTrimScore, anagramBonus);
 
     let bestMatch = text;
     if (bestWordScore >= fullScore && bestWordScore >= edgeTrimScore) bestMatch = bestWordMatch;
@@ -1093,6 +1149,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     setTranscript(finalText);
     setInterimText('');
     setStatus('success');
+    setCountdown(null);
     playCoinSound();
 
     forceStop();
@@ -1117,6 +1174,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     if (matchText?.trim()) setTranscript(matchText.trim());
     setInterimText('');
     setStatus('try-again');
+    setCountdown(null);
     playBuzzSound();
     setAttempts(a => a + 1);
 
@@ -1137,10 +1195,22 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     heardSpeechRef.current = false;
     resolvedRef.current = false;
     manualStopRef.current = false;
+    startTimeRef.current = Date.now();
 
-    // ✅ على الموبايل: ما نفتحش getUserMedia ولا AudioContext نهائياً
-    // عشان ما يحصلش تعارض مع SpeechRecognition
-    // الـ SpeechRecognition هيطلب المايك بنفسه
+    // ✅ عداد تنازلي 5 ثواني
+    const totalSeconds = Math.ceil(LISTENING_DURATION / 1000);
+    setCountdown(totalSeconds);
+    countdownIntervalRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev === null || prev <= 1) {
+          if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // ✅ على الموبايل: ما نفتحش getUserMedia
     if (!isMobileDevice) {
       let stream: MediaStream;
 
@@ -1158,6 +1228,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         console.error('❌ Mic permission denied:', e);
         setIsListening(false);
         setStatus('error');
+        clearAllTimers();
         return;
       }
 
@@ -1174,8 +1245,6 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         analyserRef.current = analyser;
 
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        let silenceStart = Date.now();
-        let hasSpoken = false;
 
         const detectVolume = () => {
           if (!analyserRef.current) return;
@@ -1186,21 +1255,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
           setVolumeLevel(normalized);
 
           if (average > SPEECH_THRESHOLD) {
-            hasSpoken = true;
             heardSpeechRef.current = true;
-            silenceStart = Date.now();
-          }
-
-          if (hasSpoken && Date.now() - silenceStart > SILENCE_AFTER_SPEECH) {
-            console.log('🤫 Silence detected after speech - stopping');
-            requestStop();
-            return;
-          }
-
-          if (!hasSpoken && Date.now() - silenceStart > NO_SPEECH_TIMEOUT) {
-            console.log('🚫 No speech detected - stopping');
-            requestStop();
-            return;
           }
 
           animationFrameRef.current = requestAnimationFrame(detectVolume);
@@ -1211,7 +1266,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         console.warn('⚠️ Audio analysis failed:', e);
       }
     } else {
-      // ✅ على الموبايل: بس نعمل fake volume animation عشان الـ UI يبان حي
+      // ✅ على الموبايل: fake volume animation
       let fakeVolumeDirection = 1;
       let fakeVolume = 30;
       const fakeVolumeInterval = () => {
@@ -1224,9 +1279,24 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       fakeVolumeInterval();
     }
 
-    safetyTimeoutRef.current = setTimeout(() => {
-      console.warn('⏰ Safety timeout - stop recognition');
+    // ✅ إيقاف تلقائي بعد 5 ثواني بالظبط
+    silenceTimeoutRef.current = setTimeout(() => {
+      console.log('⏱️ 5 seconds up - stopping recognition');
       if (!resolvedRef.current) requestStop();
+    }, LISTENING_DURATION);
+
+    // ✅ Safety timeout
+    safetyTimeoutRef.current = setTimeout(() => {
+      console.warn('⏰ Safety timeout - force stop');
+      if (!resolvedRef.current) {
+        forceStop();
+        setIsListening(false);
+        if (bestScoreRef.current >= SUCCESS_THRESHOLD && bestTranscriptRef.current) {
+          finishSuccess(bestTranscriptRef.current);
+        } else {
+          finishTryAgain(bestTranscriptRef.current || undefined);
+        }
+      }
     }, SAFETY_TIMEOUT);
 
     recognitionRef.current.onstart = () => {
@@ -1240,6 +1310,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       let localBestScore = 0;
       let localBestMatch = '';
 
+      // ✅ فحص كل البدائل
       for (let i = 0; i < lastResult.length; i++) {
         const rawText = lastResult[i]?.transcript || '';
         const text = rawText.toLowerCase().trim();
@@ -1248,7 +1319,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         heardSpeechRef.current = true;
 
         const { score, match } = scoreTranscript(text);
-        console.log(`🎯 "${text}" → Score: ${score.toFixed(2)} (target: ${target})`);
+        console.log(`🎯 Alt[${i}] "${text}" → Score: ${score.toFixed(2)} (target: ${target})`);
 
         if (score > localBestScore) {
           localBestScore = score;
@@ -1261,11 +1332,32 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         }
       }
 
+      // ✅ كمان نفحص كل النتائج السابقة مع بعض
+      let allTranscript = '';
+      for (let r = 0; r < event.results.length; r++) {
+        if (event.results[r][0]) {
+          allTranscript += ' ' + event.results[r][0].transcript;
+        }
+      }
+      allTranscript = allTranscript.trim();
+      if (allTranscript) {
+        const { score: allScore, match: allMatch } = scoreTranscript(allTranscript);
+        if (allScore > bestScoreRef.current) {
+          bestScoreRef.current = allScore;
+          bestTranscriptRef.current = allMatch;
+        }
+        if (allScore > localBestScore) {
+          localBestScore = allScore;
+          localBestMatch = allMatch;
+        }
+      }
+
       if (!localBestMatch) return;
 
       if (!lastResult.isFinal) {
         setInterimText(localBestMatch);
 
+        // ✅ قبول فوري لو النتيجة كويسة كفاية حتى interim
         if (!resolvedRef.current && localBestScore >= INTERIM_ACCEPT_THRESHOLD) {
           finishSuccess(localBestMatch);
         }
@@ -1276,6 +1368,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       setTranscript(localBestMatch);
       setInterimText('');
 
+      // ✅ قبول فوري لو النتيجة فوق العتبة
       if (!resolvedRef.current && localBestScore >= SUCCESS_THRESHOLD) {
         finishSuccess(localBestMatch);
       }
@@ -1293,9 +1386,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         return;
       }
 
-      if (event.error === 'aborted') {
-        return;
-      }
+      if (event.error === 'aborted') return;
 
       if (event.error === 'no-speech') {
         finishTryAgain(bestTranscriptRef.current || undefined);
@@ -1315,12 +1406,18 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       const bestMatch = bestTranscriptRef.current.trim();
       const bestScore = bestScoreRef.current;
 
+      // ✅ آخر فرصة للقبول
       if (bestMatch && bestScore >= SUCCESS_THRESHOLD) {
         finishSuccess(bestMatch);
         return;
       }
 
       if (manualStopRef.current) {
+        // ✅ حتى لو وقف يدوي، لو في نتيجة قريبة نقبلها
+        if (bestMatch && bestScore > 0.05) {
+          finishSuccess(bestMatch);
+          return;
+        }
         setStatus('idle');
         return;
       }
@@ -1340,6 +1437,13 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
 
   const handleManualStop = () => {
     console.log('👆 Manual stop by user');
+
+    // ✅ لو في أي نتيجة حتى لو ضعيفة، نقبلها على طول
+    if (bestScoreRef.current > 0.05 && bestTranscriptRef.current) {
+      finishSuccess(bestTranscriptRef.current);
+      return;
+    }
+
     manualStopRef.current = true;
     requestStop();
   };
@@ -1358,8 +1462,8 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     );
   }
 
-  const showSkipButton = attempts >= 2 || status === 'error';
-  const showSoftSkip = attempts === 1;
+  // ✅ زر التخطي يظهر من أول محاولة فاشلة
+  const showSkipButton = attempts >= 1 || status === 'error';
 
   return (
     <motion.div key={`speak-word-${target}`}
@@ -1376,6 +1480,8 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
                 <p className="text-white/60 font-bold text-[9px]">اضغط المايك واتكلم بوضوح</p>
               </div>
             </div>
+
+            {/* الكلمة المطلوبة */}
             <div className="w-full rounded-xl border-2 text-center backdrop-blur-md p-2"
               style={{ background: `linear-gradient(135deg, ${letterData.color}22, ${letterData.color}08)`, borderColor: `${letterData.color}55` }}>
               <div className="flex items-center justify-center gap-2 mb-0.5">
@@ -1388,38 +1494,69 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
                 <Volume2 size={10} /> اسمع النطق الصح
               </button>
             </div>
-            <motion.button ref={micButtonRef}
-              whileHover={!isListening ? { scale: 1.05 } : {}}
-              whileTap={{ scale: 0.95 }}
-              onClick={isListening ? handleManualStop : handleStart}
-              disabled={status === 'success'}
-              className="relative rounded-full flex items-center justify-center transition-all flex-shrink-0 w-14 h-14"
-              style={{
-                background: status === 'success' ? 'linear-gradient(135deg, #58CC02, #096A02)' :
-                  isListening ? 'linear-gradient(135deg, #FF4444, #C70039)' :
-                  `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
-                boxShadow: isListening ? `0 0 ${20 + volumeLevel * 0.4}px rgba(255,68,68,${0.5 + volumeLevel / 200})` : `0 8px 25px ${letterData.color}66`,
-              }}>
-              {isListening && (
-                <>
-                  {[0, 0.3, 0.6].map((delay, i) => (
-                    <motion.div key={i} className="absolute inset-0 rounded-full border-2" style={{ borderColor: '#FF4444' }}
-                      initial={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.6, opacity: 0 }}
-                      transition={{ duration: 1.5, delay, repeat: Infinity, ease: 'easeOut' }} />
-                  ))}
-                  <div className="absolute inset-0 rounded-full border-2"
-                    style={{ 
-                      borderColor: `rgba(255,255,255,${0.3 + volumeLevel / 200})`,
-                      transform: `scale(${1 + volumeLevel / 150})`,
-                      transition: 'all 0.1s'
-                    }} />
-                </>
-              )}
-              {status === 'success' ? <Check size={24} className="text-white" strokeWidth={3} /> : <Mic size={22} className="text-white" />}
-            </motion.button>
+
+            {/* زر المايك مع العداد التنازلي */}
+            <div className="relative">
+              <motion.button ref={micButtonRef}
+                whileHover={!isListening ? { scale: 1.05 } : {}}
+                whileTap={{ scale: 0.95 }}
+                onClick={isListening ? handleManualStop : handleStart}
+                disabled={status === 'success'}
+                className="relative rounded-full flex items-center justify-center transition-all flex-shrink-0 w-14 h-14"
+                style={{
+                  background: status === 'success' ? 'linear-gradient(135deg, #58CC02, #096A02)' :
+                    isListening ? 'linear-gradient(135deg, #FF4444, #C70039)' :
+                    `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
+                  boxShadow: isListening ? `0 0 ${20 + volumeLevel * 0.4}px rgba(255,68,68,${0.5 + volumeLevel / 200})` : `0 8px 25px ${letterData.color}66`,
+                }}>
+                {isListening && (
+                  <>
+                    {[0, 0.3, 0.6].map((delay, i) => (
+                      <motion.div key={i} className="absolute inset-0 rounded-full border-2" style={{ borderColor: '#FF4444' }}
+                        initial={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.6, opacity: 0 }}
+                        transition={{ duration: 1.5, delay, repeat: Infinity, ease: 'easeOut' }} />
+                    ))}
+                    <div className="absolute inset-0 rounded-full border-2"
+                      style={{
+                        borderColor: `rgba(255,255,255,${0.3 + volumeLevel / 200})`,
+                        transform: `scale(${1 + volumeLevel / 150})`,
+                        transition: 'all 0.1s'
+                      }} />
+                  </>
+                )}
+                {status === 'success' ? <Check size={24} className="text-white" strokeWidth={3} /> : <Mic size={22} className="text-white" />}
+              </motion.button>
+
+              {/* ✅ عداد تنازلي */}
+              <AnimatePresence>
+                {countdown !== null && isListening && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                    style={{
+                      background: countdown <= 2 ? '#FF4444' : 'rgba(15,10,45,0.9)',
+                      border: '2px solid rgba(255,255,255,0.4)',
+                      boxShadow: countdown <= 2 ? '0 0 10px rgba(255,68,68,0.6)' : '0 2px 8px rgba(0,0,0,0.5)'
+                    }}>
+                    <motion.span
+                      key={countdown}
+                      initial={{ scale: 1.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="font-black text-[10px] text-white">
+                      {countdown}
+                    </motion.span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             {isListening && (
               <p className="text-[9px] text-white/50 font-bold">اضغط تاني للإيقاف</p>
             )}
+
+            {/* النص المسموع */}
             <AnimatePresence mode="wait">
               {interimText && isListening && (
                 <motion.div key="interim" initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} exit={{ opacity: 0 }} className="text-center">
@@ -1433,28 +1570,70 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* حالة النتيجة */}
             <AnimatePresence mode="wait">
-              {status === 'listening' && (<motion.p key="listening" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="font-black text-red-400 text-[11px]">🎙️ بسمعك... اتكلم بوضوح</motion.p>)}
-              {status === 'success' && (<motion.p key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="font-black text-green-400 text-sm">✅ نطق ممتاز! 🌟</motion.p>)}
-              {status === 'try-again' && (<motion.p key="try-again" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-yellow-400 text-[11px]">😊 مش سمعتك كويس، حاول تاني</motion.p>)}
-              {status === 'error' && (<motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-red-400 text-[11px]">❌ لازم تسمح للموقع باستخدام المايك</motion.p>)}
-              {status === 'idle' && !isListening && (<motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-bold text-white/40 text-[9px]">اضغط على المايك وابدأ تتكلم</motion.p>)}
+              {status === 'listening' && (
+                <motion.div key="listening" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="flex items-center gap-1.5">
+                  <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 0.8, repeat: Infinity }}
+                    className="text-red-400 text-sm">●</motion.span>
+                  <span className="font-black text-red-400 text-[11px]">بسمعك...</span>
+                  {countdown !== null && (
+                    <span className="font-bold text-white/40 text-[9px]">({countdown} ث)</span>
+                  )}
+                </motion.div>
+              )}
+              {status === 'success' && (
+                <motion.p key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+                  className="font-black text-green-400 text-sm">✅ نطق ممتاز! 🌟</motion.p>
+              )}
+              {status === 'try-again' && (
+                <motion.div key="try-again" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className="text-center">
+                  <p className="font-black text-yellow-400 text-[11px]">😊 حاول تاني أو اضغط تخطي</p>
+                </motion.div>
+              )}
+              {status === 'error' && (
+                <motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className="font-black text-red-400 text-[11px]">❌ لازم تسمح للموقع باستخدام المايك</motion.p>
+              )}
+              {status === 'idle' && !isListening && attempts === 0 && (
+                <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className="font-bold text-white/40 text-[9px]">اضغط على المايك وابدأ تتكلم</motion.p>
+              )}
             </AnimatePresence>
-            {showSkipButton && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center">
-                <button onClick={onSkip} className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl font-black text-white border-2 transition-all text-[11px]"
-                  style={{
-                    background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
-                    borderColor: 'rgba(255,255,255,0.3)',
-                    boxShadow: '0 4px 15px rgba(76,201,240,0.4)'
-                  }}>
-                  <SkipForward size={13} /> تخطي وكمل ⏭️
-                </button>
-              </motion.div>
-            )}
-            {showSoftSkip && !showSkipButton && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} className="flex justify-center">
-                <button onClick={onSkip} className="text-white/50 hover:text-white/80 font-bold text-[10px] underline">
+
+            {/* ✅ زر التخطي - يظهر من أول محاولة */}
+            <AnimatePresence>
+              {showSkipButton && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex justify-center w-full">
+                  <button onClick={onSkip}
+                    className="flex items-center gap-1.5 px-5 py-2 rounded-xl font-black text-white border-2 transition-all text-[11px] w-full justify-center"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(76,201,240,0.2), rgba(114,9,183,0.2))',
+                      borderColor: 'rgba(76,201,240,0.4)',
+                      boxShadow: '0 4px 15px rgba(76,201,240,0.2)'
+                    }}>
+                    <SkipForward size={13} /> تخطي وكمّل ⏭️
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ✅ زر تخطي ناعم حتى قبل أي محاولة (بعد 3 ثواني) */}
+            {!showSkipButton && status === 'idle' && attempts === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                transition={{ delay: 3 }}
+                className="flex justify-center">
+                <button onClick={onSkip}
+                  className="text-white/40 hover:text-white/70 font-bold text-[9px] underline transition-colors">
                   تخطي هذا التمرين
                 </button>
               </motion.div>
@@ -1462,6 +1641,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
           </div>
         </GlassCard>
       ) : (
+        /* ═══ Desktop Version ═══ */
         <GlassCard className="w-full max-w-md mx-auto p-5" accentColor={letterData.color} isMobile={false}>
           <div className="flex flex-col items-center gap-3">
             <div className="flex items-center gap-3">
@@ -1471,6 +1651,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
                 <p className="text-white/60 font-bold text-xs mt-0.5">اضغط على المايك واتكلم بوضوح</p>
               </div>
             </div>
+
             <div className="w-full rounded-2xl border-2 text-center backdrop-blur-md p-3"
               style={{ background: `linear-gradient(135deg, ${letterData.color}22, ${letterData.color}08)`, borderColor: `${letterData.color}55` }}>
               <div className="flex items-center justify-center gap-2 mb-1">
@@ -1483,38 +1664,67 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
                 <Volume2 size={12} /> اسمع النطق الصح
               </button>
             </div>
-            <motion.button ref={micButtonRef}
-              whileHover={!isListening ? { scale: 1.05 } : {}}
-              whileTap={{ scale: 0.95 }}
-              onClick={isListening ? handleManualStop : handleStart}
-              disabled={status === 'success'}
-              className="relative rounded-full flex items-center justify-center transition-all flex-shrink-0 w-16 h-16"
-              style={{
-                background: status === 'success' ? 'linear-gradient(135deg, #58CC02, #096A02)' :
-                  isListening ? 'linear-gradient(135deg, #FF4444, #C70039)' :
-                  `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
-                boxShadow: isListening ? `0 0 ${30 + volumeLevel * 0.5}px rgba(255,68,68,${0.5 + volumeLevel / 200})` : `0 8px 30px ${letterData.color}66`,
-              }}>
-              {isListening && (
-                <>
-                  {[0, 0.3, 0.6].map((delay, i) => (
-                    <motion.div key={i} className="absolute inset-0 rounded-full border-4" style={{ borderColor: '#FF4444' }}
-                      initial={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.6, opacity: 0 }}
-                      transition={{ duration: 1.5, delay, repeat: Infinity, ease: 'easeOut' }} />
-                  ))}
-                  <div className="absolute inset-0 rounded-full border-2"
+
+            <div className="relative">
+              <motion.button ref={micButtonRef}
+                whileHover={!isListening ? { scale: 1.05 } : {}}
+                whileTap={{ scale: 0.95 }}
+                onClick={isListening ? handleManualStop : handleStart}
+                disabled={status === 'success'}
+                className="relative rounded-full flex items-center justify-center transition-all flex-shrink-0 w-16 h-16"
+                style={{
+                  background: status === 'success' ? 'linear-gradient(135deg, #58CC02, #096A02)' :
+                    isListening ? 'linear-gradient(135deg, #FF4444, #C70039)' :
+                    `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})`,
+                  boxShadow: isListening ? `0 0 ${30 + volumeLevel * 0.5}px rgba(255,68,68,${0.5 + volumeLevel / 200})` : `0 8px 30px ${letterData.color}66`,
+                }}>
+                {isListening && (
+                  <>
+                    {[0, 0.3, 0.6].map((delay, i) => (
+                      <motion.div key={i} className="absolute inset-0 rounded-full border-4" style={{ borderColor: '#FF4444' }}
+                        initial={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.6, opacity: 0 }}
+                        transition={{ duration: 1.5, delay, repeat: Infinity, ease: 'easeOut' }} />
+                    ))}
+                    <div className="absolute inset-0 rounded-full border-2"
+                      style={{
+                        borderColor: `rgba(255,255,255,${0.3 + volumeLevel / 200})`,
+                        transform: `scale(${1 + volumeLevel / 150})`,
+                        transition: 'all 0.1s'
+                      }} />
+                  </>
+                )}
+                {status === 'success' ? <Check size={28} className="text-white" strokeWidth={3} /> : <Mic size={26} className="text-white" />}
+              </motion.button>
+
+              {/* عداد تنازلي - ديسكتوب */}
+              <AnimatePresence>
+                {countdown !== null && isListening && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center"
                     style={{
-                      borderColor: `rgba(255,255,255,${0.3 + volumeLevel / 200})`,
-                      transform: `scale(${1 + volumeLevel / 150})`,
-                      transition: 'all 0.1s'
-                    }} />
-                </>
-              )}
-              {status === 'success' ? <Check size={28} className="text-white" strokeWidth={3} /> : <Mic size={26} className="text-white" />}
-            </motion.button>
+                      background: countdown <= 2 ? '#FF4444' : 'rgba(15,10,45,0.9)',
+                      border: '2px solid rgba(255,255,255,0.4)',
+                      boxShadow: countdown <= 2 ? '0 0 12px rgba(255,68,68,0.6)' : '0 2px 8px rgba(0,0,0,0.5)'
+                    }}>
+                    <motion.span
+                      key={countdown}
+                      initial={{ scale: 1.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="font-black text-[11px] text-white">
+                      {countdown}
+                    </motion.span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             {isListening && (
               <p className="text-[10px] text-white/50 font-bold">اضغط تاني للإيقاف</p>
             )}
+
             <AnimatePresence mode="wait">
               {interimText && isListening && (
                 <motion.div key="interim" initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} exit={{ opacity: 0 }} className="text-center">
@@ -1528,27 +1738,61 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
                 </motion.div>
               )}
             </AnimatePresence>
+
             <AnimatePresence mode="wait">
-              {status === 'listening' && (<motion.p key="listening" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="font-black text-red-400 text-xs">🎙️ بسمعك... اتكلم بوضوح</motion.p>)}
-              {status === 'success' && (<motion.p key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="font-black text-green-400 text-base">✅ نطق ممتاز! 🌟</motion.p>)}
-              {status === 'try-again' && (<motion.p key="try-again" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-yellow-400 text-xs">😊 مش سمعتك كويس، حاول تاني</motion.p>)}
-              {status === 'error' && (<motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-red-400 text-xs">❌ لازم تسمح للموقع باستخدام المايك</motion.p>)}
-              {status === 'idle' && !isListening && (<motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-bold text-white/40 text-[10px]">اضغط على المايك وابدأ تتكلم</motion.p>)}
+              {status === 'listening' && (
+                <motion.div key="listening" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="flex items-center gap-1.5">
+                  <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 0.8, repeat: Infinity }}
+                    className="text-red-400 text-sm">●</motion.span>
+                  <span className="font-black text-red-400 text-xs">بسمعك...</span>
+                  {countdown !== null && (
+                    <span className="font-bold text-white/40 text-[10px]">({countdown} ث)</span>
+                  )}
+                </motion.div>
+              )}
+              {status === 'success' && (
+                <motion.p key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+                  className="font-black text-green-400 text-base">✅ نطق ممتاز! 🌟</motion.p>
+              )}
+              {status === 'try-again' && (
+                <motion.p key="try-again" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className="font-black text-yellow-400 text-xs">😊 حاول تاني أو اضغط تخطي</motion.p>
+              )}
+              {status === 'error' && (
+                <motion.p key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className="font-black text-red-400 text-xs">❌ لازم تسمح للموقع باستخدام المايك</motion.p>
+              )}
+              {status === 'idle' && !isListening && attempts === 0 && (
+                <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className="font-bold text-white/40 text-[10px]">اضغط على المايك وابدأ تتكلم</motion.p>
+              )}
             </AnimatePresence>
-            {showSkipButton && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center">
-                <button onClick={onSkip} className="flex items-center gap-2 px-5 py-2 rounded-2xl font-black text-white border-2 transition-all text-sm"
-                  style={{
-                    background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
-                    borderColor: 'rgba(255,255,255,0.3)',
-                    boxShadow: '0 6px 20px rgba(76,201,240,0.4)'
-                  }}>
-                  <SkipForward size={16} /> تخطي وكمل ⏭️
-                </button>
-              </motion.div>
-            )}
-            {showSoftSkip && !showSkipButton && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} className="flex justify-center">
+
+            {/* زر التخطي - ديسكتوب */}
+            <AnimatePresence>
+              {showSkipButton && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex justify-center w-full">
+                  <button onClick={onSkip}
+                    className="flex items-center gap-2 px-5 py-2 rounded-2xl font-black text-white border-2 transition-all text-sm"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(76,201,240,0.2), rgba(114,9,183,0.2))',
+                      borderColor: 'rgba(76,201,240,0.4)',
+                      boxShadow: '0 6px 20px rgba(76,201,240,0.2)'
+                    }}>
+                    <SkipForward size={16} /> تخطي وكمّل ⏭️
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {!showSkipButton && status === 'idle' && attempts === 0 && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} transition={{ delay: 3 }}
+                className="flex justify-center">
                 <button onClick={onSkip} className="text-white/50 hover:text-white/80 font-bold text-xs underline">
                   تخطي هذا التمرين
                 </button>
