@@ -13,7 +13,6 @@ import KarlEagle from '@/app/components/lesson/KarlEagle';
 import GhostInput from '@/app/components/lesson/GhostInput';
 import ConfettiBurst from '@/app/components/lesson/ConfettiBurst';
 import SpecialCharsKeyboard, { getRequiredSpecialChars } from '@/app/components/lesson/SpecialCharsKeyboard';
-import GrammarMiniPhase from '@/app/components/lesson/GrammarMiniPhase';
 import BoxDrawer from '@/app/components/lesson/BoxDrawer';
 
 // 🎯 الأنواع والرسائل المشتركة
@@ -35,7 +34,7 @@ import {
 // ═══════════════════════════════════════
 // Types
 // ═══════════════════════════════════════
-type Phase = 'learn' | 'speak' | 'test' | 'grammar' | 'section-success' | 'section-fail' | 'all-done';
+type Phase = 'learn' | 'speak' | 'test' | 'section-success' | 'section-fail' | 'all-done';
 type FlyingItem = { 
   id: number; startX: number; startY: number; endX: number; endY: number;
   type: 'star' | 'energy' | 'gem';
@@ -57,7 +56,7 @@ const NAT_H = 1080;
 const NAT_W_MOB = 1080;
 const NAT_H_MOB = 1920;
 const TOTAL_ANSWERS_PER_LESSON = FOREST_SECTIONS.reduce((a, s) => 
-  a + (s.words.length * 3) + (s.grammarItems?.length ?? 0), 0);
+  a + (s.words.length * 3), 0);
 
 // ═══════════════════════════════════════
 // Utility Functions
@@ -2596,20 +2595,6 @@ export default function GermanForestPage() {
   };
 
   const handleTestPass = () => {
-    if (section.grammarItems && section.grammarItems.length > 0) {
-      setPhase('grammar');
-      savePosition(sectionIdx, wordIdx, 'grammar');
-    } else {
-      setPhase('section-success');
-      savePosition(sectionIdx, wordIdx, 'section-success');
-    }
-  };
-
-  const handleGrammarComplete = (correctCount: number) => {
-    if (correctCount === section.grammarItems.length) {
-      addPoints(20);
-      handleKarlReact('celebrate');
-    }
     setPhase('section-success');
     savePosition(sectionIdx, wordIdx, 'section-success');
   };
@@ -2739,17 +2724,6 @@ export default function GermanForestPage() {
               onKarlReact={handleKarlReact}
               onCombo={handleCombo}
               isMobile={isMobile}
-            />
-          )}
-
-          {phase === 'grammar' && (
-            <GrammarMiniPhase
-              key={`grammar-${sectionIdx}`}
-              section={section}
-              isMobile={isMobile}
-              onComplete={handleGrammarComplete}
-              onCorrect={handleCorrect}
-              onKarlReact={handleKarlReact}
             />
           )}
 
