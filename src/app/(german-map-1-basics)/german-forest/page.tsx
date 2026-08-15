@@ -26,11 +26,15 @@ import { speakWord } from '@/lib/audio/speech';
 
 // 📦 البيانات
 import { FOREST_SECTIONS, type ForestSection, type ForestWord } from '@/data/german/forest';
+import {
+  type Polygon, type Box,
+  getPolygonsForWord, getForestImage, hitTest,
+  polygonToSvgPoints, getPolygonBounds,
+} from '@/data/german/forest-objects';
 
 // ═══════════════════════════════════════
 // Types
 // ═══════════════════════════════════════
-type Box = { x: number; y: number; w: number; h: number };
 type Phase = 'learn' | 'speak' | 'test' | 'grammar' | 'section-success' | 'section-fail' | 'all-done';
 type FlyingItem = { 
   id: number; startX: number; startY: number; endX: number; endY: number;
@@ -46,179 +50,6 @@ interface SpeechRecognitionEvent {
     };
     length: number;
   };
-}
-
-// ═══════════════════════════════════════
-// 🎯 Boxes للصورة العريضة (Desktop/PC)
-// ═══════════════════════════════════════
-const FOREST_OBJECTS_PC: Record<string, Box[]> = {
-  // 🦊 الحيوانات (7)
-  Eule:    [{ x: 4.0,  y: 15.0, w: 8.0,  h: 22.0 }],
-  Reh:     [{ x: 27.0, y: 22.0, w: 9.0,  h: 32.0 }],
-  Fuchs:   [{ x: 15.0, y: 42.0, w: 15.0, h: 42.0 }],
-  Wolf:    [{ x: 58.0, y: 30.0, w: 12.0, h: 40.0 }],
-  Igel:    [{ x: 32.0, y: 55.0, w: 10.0, h: 25.0 }],
-  Hase:    [{ x: 55.0, y: 55.0, w: 10.0, h: 30.0 }],
-  Frosch:  [{ x: 40.0, y: 80.0, w: 9.0,  h: 15.0 }],
-
-  // 🍎 الفواكه (7)
-  Traube:   [{ x: 15.0, y: 3.0,  w: 10.0, h: 18.0 }],
-  Kirsche:  [{ x: 34.0, y: 2.0,  w: 8.0,  h: 15.0 }],
-  Banane:   [{ x: 55.0, y: 2.0,  w: 10.0, h: 18.0 }],
-  Birne:    [{ x: 75.0, y: 6.0,  w: 8.0,  h: 18.0 }],
-  Zitrone:  [{ x: 88.0, y: 22.0, w: 7.0,  h: 14.0 }],
-  Orange:   [{ x: 92.0, y: 5.0,  w: 7.0,  h: 15.0 }],
-  Erdbeere: [{ x: 1.0,  y: 78.0, w: 12.0, h: 20.0 }],
-
-  // 🥕 الخضروات (6)
-  Karotte: [
-    { x: 72.0, y: 60.0, w: 5.0, h: 22.0 },
-    { x: 77.0, y: 60.0, w: 5.0, h: 22.0 },
-    { x: 82.0, y: 60.0, w: 5.0, h: 22.0 },
-  ],
-  Tomate:  [{ x: 82.0, y: 62.0, w: 8.0,  h: 12.0 }],
-  Kürbis:  [{ x: 88.0, y: 78.0, w: 12.0, h: 20.0 }],
-  Pilz:    [{ x: 0.0,  y: 65.0, w: 8.0,  h: 20.0 }],
-  Paprika: [{ x: 88.0, y: 70.0, w: 7.0,  h: 12.0 }],
-  Gurke:   [{ x: 68.0, y: 82.0, w: 12.0, h: 10.0 }],
-};
-
-// ═══════════════════════════════════════
-// 🎯 Boxes للصورة الطولية (Mobile)
-// ═══════════════════════════════════════
-const FOREST_OBJECTS_MOB: Record<string, Box[]> = {
-  // 🦊 الحيوانات (7)
-  Eule:    [{ x: 5.0,  y: 15.0, w: 15.0, h: 12.0 }],
-  Reh:     [{ x: 30.0, y: 25.0, w: 15.0, h: 18.0 }],
-  Fuchs:   [{ x: 8.0,  y: 40.0, w: 22.0, h: 22.0 }],
-  Wolf:    [{ x: 55.0, y: 32.0, w: 20.0, h: 20.0 }],
-  Igel:    [{ x: 20.0, y: 55.0, w: 20.0, h: 12.0 }],
-  Hase:    [{ x: 60.0, y: 50.0, w: 20.0, h: 18.0 }],
-  Frosch:  [{ x: 30.0, y: 65.0, w: 15.0, h: 8.0  }],
-
-  // 🍎 الفواكه (7)
-  Traube:   [{ x: 20.0, y: 2.0,  w: 18.0, h: 10.0 }],
-  Kirsche:  [{ x: 42.0, y: 8.0,  w: 15.0, h: 8.0  }],
-  Banane:   [{ x: 65.0, y: 3.0,  w: 20.0, h: 10.0 }],
-  Birne:    [{ x: 15.0, y: 14.0, w: 12.0, h: 10.0 }],
-  Zitrone:  [{ x: 78.0, y: 15.0, w: 12.0, h: 8.0  }],
-  Orange:   [{ x: 82.0, y: 22.0, w: 12.0, h: 8.0  }],
-  Erdbeere: [{ x: 0.0,  y: 82.0, w: 22.0, h: 12.0 }],
-
-  // 🥕 الخضروات (6)
-  Karotte: [
-    { x: 40.0, y: 78.0, w: 7.0, h: 12.0 },
-    { x: 47.0, y: 78.0, w: 7.0, h: 12.0 },
-    { x: 54.0, y: 78.0, w: 7.0, h: 12.0 },
-  ],
-  Tomate:  [{ x: 85.0, y: 68.0, w: 12.0, h: 8.0  }],
-  Kürbis:  [{ x: 60.0, y: 85.0, w: 20.0, h: 12.0 }],
-  Pilz:    [{ x: 0.0,  y: 70.0, w: 12.0, h: 15.0 }],
-  Paprika: [{ x: 82.0, y: 88.0, w: 12.0, h: 10.0 }],
-  Gurke:   [{ x: 32.0, y: 90.0, w: 20.0, h: 8.0  }],
-};
-
-// ═══════════════════════════════════════
-// 🎨 Boxes الألوان للصورة العريضة (PC)
-// ═══════════════════════════════════════
-const COLOR_OBJECTS_PC: Record<string, Box[]> = {
-  Rot: [
-    { x: 34.0, y: 2.0,  w: 8.0,  h: 15.0 },
-    { x: 1.0,  y: 78.0, w: 12.0, h: 20.0 },
-    { x: 82.0, y: 62.0, w: 8.0,  h: 12.0 },
-    { x: 88.0, y: 70.0, w: 7.0,  h: 12.0 },
-    { x: 0.0,  y: 65.0, w: 8.0,  h: 20.0 },
-  ],
-  Gelb: [
-    { x: 55.0, y: 2.0,  w: 10.0, h: 18.0 },
-    { x: 88.0, y: 22.0, w: 7.0,  h: 14.0 },
-  ],
-  Grün: [
-    { x: 75.0, y: 6.0,  w: 8.0,  h: 18.0 },
-    { x: 40.0, y: 80.0, w: 9.0,  h: 15.0 },
-    { x: 68.0, y: 82.0, w: 12.0, h: 10.0 },
-    { x: 0.0,  y: 45.0, w: 20.0, h: 25.0 },
-    { x: 40.0, y: 88.0, w: 20.0, h: 12.0 },
-  ],
-  Blau: [
-    { x: 30.0, y: 70.0, w: 25.0, h: 20.0 },
-    { x: 40.0, y: 0.0,  w: 20.0, h: 8.0  },
-  ],
-  Lila: [
-    { x: 15.0, y: 3.0,  w: 10.0, h: 18.0 },
-  ],
-  Orange: [
-    { x: 92.0, y: 5.0,  w: 7.0,  h: 15.0 },
-    { x: 15.0, y: 42.0, w: 15.0, h: 42.0 },
-    { x: 72.0, y: 60.0, w: 15.0, h: 22.0 },
-    { x: 88.0, y: 78.0, w: 12.0, h: 20.0 },
-  ],
-  Braun: [
-    { x: 4.0,  y: 15.0, w: 8.0,  h: 22.0 },
-    { x: 27.0, y: 22.0, w: 9.0,  h: 32.0 },
-    { x: 32.0, y: 55.0, w: 10.0, h: 25.0 },
-  ],
-  Weiß: [
-    { x: 55.0, y: 55.0, w: 10.0, h: 30.0 },
-  ],
-  Grau: [
-    { x: 58.0, y: 30.0, w: 12.0, h: 40.0 },
-  ],
-};
-
-// ═══════════════════════════════════════
-// 🎨 Boxes الألوان للصورة الطولية (Mobile)
-// ═══════════════════════════════════════
-const COLOR_OBJECTS_MOB: Record<string, Box[]> = {
-  Rot: [
-    { x: 42.0, y: 8.0,  w: 15.0, h: 8.0  },
-    { x: 0.0,  y: 82.0, w: 22.0, h: 12.0 },
-    { x: 85.0, y: 68.0, w: 12.0, h: 8.0  },
-    { x: 82.0, y: 88.0, w: 12.0, h: 10.0 },
-    { x: 0.0,  y: 70.0, w: 12.0, h: 15.0 },
-  ],
-  Gelb: [
-    { x: 65.0, y: 3.0,  w: 20.0, h: 10.0 },
-    { x: 78.0, y: 15.0, w: 12.0, h: 8.0  },
-  ],
-  Grün: [
-    { x: 15.0, y: 14.0, w: 12.0, h: 10.0 },
-    { x: 30.0, y: 65.0, w: 15.0, h: 8.0  },
-    { x: 32.0, y: 90.0, w: 20.0, h: 8.0  },
-    { x: 0.0,  y: 30.0, w: 15.0, h: 30.0 },
-    { x: 20.0, y: 55.0, w: 60.0, h: 15.0 },
-  ],
-  Blau: [
-    { x: 30.0, y: 60.0, w: 25.0, h: 25.0 },
-    { x: 20.0, y: 0.0,  w: 60.0, h: 12.0 },
-  ],
-  Lila: [
-    { x: 20.0, y: 2.0,  w: 18.0, h: 10.0 },
-  ],
-  Orange: [
-    { x: 82.0, y: 22.0, w: 12.0, h: 8.0  },
-    { x: 8.0,  y: 40.0, w: 22.0, h: 22.0 },
-    { x: 40.0, y: 78.0, w: 21.0, h: 15.0 },
-    { x: 60.0, y: 85.0, w: 20.0, h: 12.0 },
-  ],
-  Braun: [
-    { x: 5.0,  y: 15.0, w: 15.0, h: 12.0 },
-    { x: 30.0, y: 25.0, w: 15.0, h: 18.0 },
-    { x: 20.0, y: 55.0, w: 20.0, h: 12.0 },
-  ],
-  Weiß: [
-    { x: 60.0, y: 50.0, w: 20.0, h: 18.0 },
-  ],
-  Grau: [
-    { x: 55.0, y: 32.0, w: 20.0, h: 20.0 },
-  ],
-};
-
-function getBoxesForWord(word: string, sectionId: string, isMobile: boolean): Box[] {
-  if (sectionId === 'colors') {
-    return (isMobile ? COLOR_OBJECTS_MOB : COLOR_OBJECTS_PC)[word] ?? [];
-  }
-  return (isMobile ? FOREST_OBJECTS_MOB : FOREST_OBJECTS_PC)[word] ?? [];
 }
 
 const NAT_W = 1920;
@@ -1925,7 +1756,7 @@ function ForestTest({
   
   const currentWord = sectionWords[currentIdx];
   const isColors = sectionId === 'colors';
-  const boxes = currentWord ? getBoxesForWord(currentWord.word, sectionId, usePortraitImage) : [];
+  const polygons: Polygon[] = currentWord ? getPolygonsForWord(currentWord.word, sectionId, usePortraitImage) : [];
 
   useEffect(() => {
     setShowHint(false);
@@ -1999,7 +1830,7 @@ function ForestTest({
   }, [currentIdx]);
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (showFeedback || finished || boxes.length === 0 || !currentWord) return;
+    if (showFeedback || finished || polygons.length === 0 || !currentWord) return;
     if (!containerRef.current) return;
     if (isPinchingRef.current || isPanningRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -2020,7 +1851,7 @@ function ForestTest({
     const pctX = (clickX / renderedW) * 100;
     const pctY = (clickY / renderedH) * 100;
 
-    const hit = boxes.some(b => pctX >= b.x && pctX <= b.x + b.w && pctY >= b.y && pctY <= b.y + b.h);
+    const hit = hitTest(pctX, pctY, polygons);
 
     const relX = ((clickX + offsetX) / containerW) * 100;
     const relY = ((clickY + offsetY) / containerH) * 100;
@@ -2283,59 +2114,84 @@ function ForestTest({
           )}
 
           <AnimatePresence>
-            {showHint && boxes.length > 0 && boxes.map((b, idx) => (
-              <div key={idx}>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: [0.4, 0.9, 0.4], scale: [1, 1.08, 1] }}
-                  transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
-                  className="absolute rounded-2xl pointer-events-none"
-                  style={{
-                    left: `${b.x - 1}%`, top: `${b.y - 1}%`, 
-                    width: `${b.w + 2}%`, height: `${b.h + 2}%`,
-                    background: `radial-gradient(ellipse at center, ${currentWord.color}66, ${currentWord.color}11 60%, transparent 80%)`,
-                    filter: 'blur(8px)',
-                  }}
-                />
-                <motion.div
+            {showHint && polygons.length > 0 && (
+              <>
+                <motion.svg
+                  key="hint-glow"
                   initial={{ opacity: 0 }}
-                  animate={{ 
-                    opacity: [0.6, 1, 0.6], 
-                    boxShadow: [
-                      `0 0 20px ${currentWord.color}aa, inset 0 0 15px ${currentWord.color}55`, 
-                      `0 0 50px ${currentWord.color}, inset 0 0 30px ${currentWord.color}88`, 
-                      `0 0 20px ${currentWord.color}aa, inset 0 0 15px ${currentWord.color}55`
-                    ] 
-                  }}
-                  transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
-                  className="absolute rounded-xl pointer-events-none"
-                  style={{ 
-                    left: `${b.x}%`, top: `${b.y}%`, 
-                    width: `${b.w}%`, height: `${b.h}%`, 
-                    border: `3px solid ${currentWord.color}`, 
-                    background: `${currentWord.color}25` 
-                  }}
-                />
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: [0, -8, 0] }}
-                  transition={{ 
-                    opacity: { duration: 0.3 }, 
-                    y: { duration: 0.8, repeat: Infinity, ease: 'easeInOut' } 
-                  }}
+                  animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute pointer-events-none text-3xl"
-                  style={{ 
-                    left: `${b.x + b.w / 2}%`, 
-                    top: `${Math.max(b.y - 6, 0)}%`, 
-                    transform: 'translateX(-50%)', 
-                    filter: `drop-shadow(0 0 8px ${currentWord.color})` 
-                  }}
-                >👇</motion.div>
-              </div>
-            ))}
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  viewBox="0 0 100 100" preserveAspectRatio="none"
+                  style={{ filter: `drop-shadow(0 0 8px ${currentWord.color}) drop-shadow(0 0 16px ${currentWord.color})` }}
+                >
+                  {polygons.map((poly, idx) => (
+                    <motion.polygon
+                      key={`glow-${idx}`}
+                      points={polygonToSvgPoints(poly)}
+                      fill={currentWord.color}
+                      stroke={currentWord.color}
+                      strokeWidth={0.8}
+                      animate={{ fillOpacity: [0.15, 0.5, 0.15], strokeOpacity: [0.6, 1, 0.6] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                  ))}
+                </motion.svg>
+
+                <motion.svg
+                  key="hint-pulse"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  viewBox="0 0 100 100" preserveAspectRatio="none"
+                >
+                  {polygons.map((poly, idx) => {
+                    const b = getPolygonBounds(poly);
+                    const cx = b.x + b.w / 2;
+                    const cy = b.y + b.h / 2;
+                    const r = Math.max(b.w, b.h) / 2;
+                    return (
+                      <g key={`pulse-${idx}`}>
+                        {[0, 0.5, 1].map(delay => (
+                          <motion.circle
+                            key={delay}
+                            cx={cx} cy={cy} fill="none"
+                            stroke={currentWord.color} strokeWidth={0.5}
+                            initial={{ r, opacity: 0.9 }}
+                            animate={{ r: r * 2.5, opacity: 0 }}
+                            transition={{ duration: 1.5, repeat: Infinity, delay, ease: 'easeOut' }}
+                          />
+                        ))}
+                      </g>
+                    );
+                  })}
+                </motion.svg>
+
+                {polygons.map((poly, idx) => {
+                  const b = getPolygonBounds(poly);
+                  return (
+                    <motion.div
+                      key={`arrow-${idx}`}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: [0, -8, 0] }}
+                      transition={{
+                        opacity: { duration: 0.3 },
+                        y: { duration: 0.8, repeat: Infinity, ease: 'easeInOut' },
+                      }}
+                      exit={{ opacity: 0 }}
+                      className="absolute pointer-events-none text-3xl"
+                      style={{
+                        left: `${b.x + b.w / 2}%`,
+                        top: `${Math.max(b.y - 6, 0)}%`,
+                        transform: 'translateX(-50%)',
+                        filter: `drop-shadow(0 0 8px ${currentWord.color})`,
+                      }}
+                    >👇</motion.div>
+                  );
+                })}
+              </>
+            )}
           </AnimatePresence>
 
           <AnimatePresence>
@@ -2936,20 +2792,48 @@ export default function GermanForestPage() {
             🎨 Box Drawer
           </button>
           
-          {showBoxDrawer && (
-            <BoxDrawer
-              imageSrc={`/images/forest-scene-${isMobile ? 'mob' : 'pc'}.webp`}
-              naturalWidth={isMobile ? NAT_W_MOB : NAT_W}
-              naturalHeight={isMobile ? NAT_H_MOB : NAT_H}
-              existingBoxes={section?.id === 'colors' 
-                ? (isMobile ? COLOR_OBJECTS_MOB : COLOR_OBJECTS_PC)
-                : (isMobile ? FOREST_OBJECTS_MOB : FOREST_OBJECTS_PC)
-              }
+          {showBoxDrawer && section && (
+            <BoxDrawerLoader
+              section={section}
               onClose={() => setShowBoxDrawer(false)}
             />
           )}
         </>
       )}
     </div>
+  );
+}
+
+// ═══════════════════════════════════════
+// 🎨 Box Drawer Loader - يحمّل البيانات الصح حسب القسم والشاشة
+// ═══════════════════════════════════════
+function BoxDrawerLoader({ section, onClose }: { section: ForestSection; onClose: () => void }) {
+  const isPortraitImage = usePortraitLayout();
+  const natW = isPortraitImage ? NAT_W_MOB : NAT_W;
+  const natH = isPortraitImage ? NAT_H_MOB : NAT_H;
+  
+  // استيراد ديناميكي عشان نجيب البيانات الحالية
+  const [existing, setExisting] = useState<Record<string, Polygon[]>>({});
+  
+  useEffect(() => {
+    (async () => {
+      const mod = await import('@/data/german/forest-objects');
+      if (section.id === 'colors') {
+        setExisting(isPortraitImage ? mod.COLOR_OBJECTS_MOB : mod.COLOR_OBJECTS_PC);
+      } else {
+        setExisting(isPortraitImage ? mod.FOREST_OBJECTS_MOB : mod.FOREST_OBJECTS_PC);
+      }
+    })();
+  }, [section.id, isPortraitImage]);
+  
+  return (
+    <BoxDrawer
+      imageSrc={`/images/forest-scene-${isPortraitImage ? 'mob' : 'pc'}.webp`}
+      naturalWidth={natW}
+      naturalHeight={natH}
+      sectionId={section.id}
+      existingBoxes={existing}
+      onClose={onClose}
+    />
   );
 }

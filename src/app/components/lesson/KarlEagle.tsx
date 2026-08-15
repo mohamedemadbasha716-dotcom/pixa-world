@@ -76,7 +76,7 @@ export default function KarlEagle({
 
   // 🎯 التموضع (نفس القديم بالظبط لو مبعتش mobilePosition)
   const mobileTop = mobilePosition?.top ?? 90;
-  const mobileRight = mobilePosition?.right ?? 6;
+  const mobileRight = mobilePosition?.right ?? 9;
   const mobileTopWithKeyboard = mobilePosition?.topWithKeyboard ?? 60;
 
   const positionStyle =
