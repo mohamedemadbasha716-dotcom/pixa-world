@@ -291,7 +291,8 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <motion.div whileHover={{ scale: 1.1 }} className="relative w-8 h-8 rounded-full overflow-hidden border-2 flex-shrink-0"
               style={{ borderColor: '#3498DB', boxShadow: '0 0 10px rgba(52,152,219,0.5)', background: 'linear-gradient(135deg, #3498DB, #1A5276)' }}>
-              <img src="/characters/karl-3d.png" alt="character" className="w-full h-full object-cover" />
+              {/* تعديل مسار الكاركتر إلى .webp */}
+              <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
             </motion.div>
             <div className="flex flex-col items-start leading-none gap-0.5">
               <span className="text-[7px] font-bold text-white/80">المستوى</span>
@@ -308,7 +309,8 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
             <motion.div key={`points-${stats.points}`} animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 0.3 }}
               className="flex items-center gap-1 px-1.5 py-1 rounded-lg flex-1 justify-center"
               style={{ background: 'rgba(15,10,45,0.7)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,215,0,0.35)' }}>
-              <img id="star-target" src="/treasuer/star.png" alt="star" className="w-3 h-3 flex-shrink-0" style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
+              {/* تعديل مسار النجمة إلى .webp */}
+              <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-3 h-3 flex-shrink-0" style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
               <span className="font-black text-[10px] text-white truncate">{stats.points}</span>
             </motion.div>
             <motion.div key={`streak-${stats.streak}`} animate={{ scale: stats.streak > 0 ? [1, 1.05, 1] : 1 }} transition={{ duration: 0.3 }}
@@ -346,7 +348,8 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
         <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
           <motion.div whileHover={{ scale: 1.1 }} className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-2 flex-shrink-0"
             style={{ borderColor: '#3498DB', boxShadow: '0 0 15px rgba(52,152,219,0.5), inset 0 1px 0 rgba(255,255,255,0.2)', background: 'linear-gradient(135deg, #3498DB, #1A5276)' }}>
-            <img src="/characters/karl-3d.png" alt="character" className="w-full h-full object-cover" />
+            {/* تعديل مسار الكاركتر إلى .webp */}
+            <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
           </motion.div>
           <div className="flex flex-col items-start">
             <span className="text-[9px] md:text-[10px] font-bold text-white/80 mb-0.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>المستوى</span>
@@ -385,7 +388,8 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
             className="flex items-center gap-1.5 md:gap-2 px-3 md:px-3.5 py-2 md:py-2.5 rounded-2xl"
             style={{ background: 'rgba(15,10,45,0.65)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)', border: '2px solid rgba(255,215,0,0.35)', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
             <span className="font-black text-xs md:text-sm text-white" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{stats.points}</span>
-            <img id="star-target" src="/treasuer/star.png" alt="star" className="w-5 h-5 md:w-6 md:h-6" style={{ filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.8))' }} />
+            {/* تعديل مسار النجمة إلى .webp */}
+            <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-5 h-5 md:w-6 md:h-6" style={{ filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.8))' }} />
           </motion.div>
           <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }} onClick={onHome}
             className="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
@@ -436,8 +440,9 @@ function FlyingItems({ items }: { items: FlyingItem[] }) {
               <div className="relative" style={{ width: 40, height: 40, marginTop: -20, marginLeft: -20 }}>
                 <div className="absolute inset-0 rounded-full blur-xl" style={{ background: color, opacity: 0.8, transform: 'scale(2.5)' }} />
                 <div className="relative flex items-center justify-center w-full h-full">
-                  {item.type === 'star' && (<img src="/treasuer/star.png" alt="star" className="w-10 h-10" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
-                  {item.type === 'energy' && (<img src="/treasuer/energy.png" alt="energy" className="w-10 h-10" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
+                  {/* تعديل مسارات الطيران إلى .webp */}
+                  {item.type === 'star' && (<img src="/treasuer/star.webp" alt="star" className="w-10 h-10" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
+                  {item.type === 'energy' && (<img src="/treasuer/energy.webp" alt="energy" className="w-10 h-10" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
                   {item.type === 'gem' && (<Gem size={36} className="text-purple-200" fill="#9D4EDD" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
                 </div>
               </div>
@@ -475,7 +480,8 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
   stats: GameStats; treasureState: 'closed' | 'half' | 'opend';
   onHint: () => void; onMap: () => void; isMobile: boolean;
 }) {
-  const treasureImg = `/treasuer/${treasureState}.png`;
+  // تعديل مسار الصندوق إلى .webp
+  const treasureImg = `/treasuer/${treasureState}.webp`;
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 px-2 md:px-4 pb-1 md:pb-1.5 pointer-events-none"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 4px)' }}>
@@ -493,8 +499,9 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
             <Sparkles size={8} className="text-cyan-300" />
           </div>
           <div className="flex items-end justify-around gap-2 md:gap-3">
-            <FloatingIconButton onClick={onMap} label="خريطة" color="#3498DB" isMobile={isMobile} iconSrc="/treasuer/map-icon.png" iconAlt="map" />
-            <FloatingIconButton label="نجوم" color="#FFD700" isMobile={isMobile} disabled iconSrc="/treasuer/star.png" iconAlt="star" />
+            {/* تعديل مسارات الأيقونات إلى .webp */}
+            <FloatingIconButton onClick={onMap} label="خريطة" color="#3498DB" isMobile={isMobile} iconSrc="/treasuer/map-icon.webp" iconAlt="map" />
+            <FloatingIconButton label="نجوم" color="#FFD700" isMobile={isMobile} disabled iconSrc="/treasuer/star.webp" iconAlt="star" />
             <motion.div id="treasure-box" whileHover={{ scale: 1.08, y: -2 }}
               animate={treasureState === 'opend' ? { y: [0, -3, 0] } : {}}
               transition={{ duration: 1.5, repeat: treasureState === 'opend' ? Infinity : 0 }}
@@ -509,7 +516,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
               </div>
               <span className="text-[7px] md:text-[9px] font-black text-yellow-400 leading-none" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>صندوق</span>
             </motion.div>
-            <FloatingIconButton label="طاقة" color="#3498DB" isMobile={isMobile} disabled iconSrc="/treasuer/energy.png" iconAlt="energy" />
+            <FloatingIconButton label="طاقة" color="#3498DB" isMobile={isMobile} disabled iconSrc="/treasuer/energy.webp" iconAlt="energy" />
             <FloatingIconButton onClick={onHint} label="تلميح" color="#FFD700" isMobile={isMobile} badge={stats.hints} disabled={stats.hints === 0} iconSrc="/treasuer/HINT.svg" iconAlt="hint" />
           </div>
         </div>
@@ -652,6 +659,12 @@ function ItemChoiceMobile({ item, allItems, onCorrect, onWrong }: {
           style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', border: `2px solid ${item.color}66`, boxShadow: `0 4px 15px ${item.color}44` }}>
           <span className="font-black text-xs text-gray-800">استمع جيداً واختر الصورة</span>
         </motion.div>
+        
+        {/* 🆕 إضافة الكلمة المطلوبة بالعربي */}
+        <div className="bg-white/10 px-4 py-1 rounded-xl border border-white/20">
+          <span className="font-black text-yellow-300 text-base">{item.ar}</span>
+        </div>
+
         <HeroItemDisplay item={item} isMobile showWord />
         <SoundButton onClick={() => speakWord(item.de)} color={item.color} size={45} />
         <div className="flex items-center gap-1.5">
@@ -673,14 +686,18 @@ function ItemChoiceMobile({ item, allItems, onCorrect, onWrong }: {
                     whileHover={{ scale: 1.08, y: -2 }} whileTap={{ scale: 0.95 }}
                     onClick={(e) => handleChoice(choice, e)}
                     disabled={status === 'correct' || isWrong}
-                    className="relative rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden border-2"
+                    className="relative rounded-xl flex flex-col items-center justify-center flex-shrink-0 overflow-hidden border-2 p-1"
                     style={{
-                      width: 75, height: 75,
+                      width: 80, height: 95,
                       background: isWrong ? 'linear-gradient(145deg, #FF4444, #CC0000)' : `linear-gradient(145deg, ${choice.gradient[0]}, ${choice.gradient[1]})`,
                       borderColor: isWrong ? '#FF4444' : `${choice.color}`,
                       boxShadow: isWrong ? '0 5px 18px rgba(255,68,68,0.6)' : `0 5px 18px ${choice.color}55`,
                     }}>
-                    <span style={{ fontSize: '2.2rem', lineHeight: 1 }}>{choice.emoji}</span>
+                    <span style={{ fontSize: '2.5rem', lineHeight: 1 }}>{choice.emoji}</span>
+                    {/* 🆕 إضافة الكلمة بالألماني تحت الإيموجي */}
+                    <span className="text-[10px] font-black text-white mt-1 leading-tight text-center">
+                      {choice.de}
+                    </span>
                   </motion.button>
                 )}
               </AnimatePresence>
@@ -756,9 +773,16 @@ function WordBuilderMobile({ item, onComplete, onWrong }: {
           style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', border: `2px solid ${item.color}66`, boxShadow: `0 4px 15px ${item.color}44` }}>
           <span className="font-black text-xs text-gray-800">رتّب الحروف لتكوّن الكلمة</span>
         </motion.div>
+        
         <HeroItemDisplay item={item} isMobile showWord={false} />
-        <div className="text-center"><div className="font-bold text-xs text-white/80">{item.ar}</div></div>
+        
+        {/* 🆕 إبراز الكلمة بالعربي */}
+        <div className="text-center mt-1 px-4 py-1 rounded-xl bg-white/10 border border-white/20">
+          <div className="font-black text-base text-yellow-300">{item.ar}</div>
+        </div>
+
         <SoundButton onClick={() => speakWord(word)} color={item.color} size={38} />
+        
         <div className="flex items-center justify-center gap-1.5 flex-wrap mt-1" dir="ltr">
           {word.split('').map((letter, idx) => {
             const isFilled = idx < placedIndices.length;
@@ -895,8 +919,13 @@ function ListenPhase({ item, allItems, onDone, onKarlReact, onCombo, onCorrect, 
             <div className="lg:col-span-2 space-y-5">
               <div className="text-center lg:text-right">
                 <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${item.color}aa` }}>Hören · استماع</div>
-                <div className="text-2xl font-black text-white">اختر الصورة الصحيحة</div>
-                <div className="text-sm font-bold text-white/40 mt-1">{item.ar}</div>
+                
+                {/* 🆕 إظهار الكلمة بالعربي لزيادة الوضوح */}
+                <div className="text-2xl font-black text-yellow-300 bg-white/5 inline-block px-4 py-1 rounded-xl mb-2">
+                  {item.ar}
+                </div>
+                
+                <div className="text-sm font-bold text-white/60">اختر الصورة الصحيحة</div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 {choices.map((choice, idx) => {
@@ -912,13 +941,17 @@ function ListenPhase({ item, allItems, onDone, onKarlReact, onCombo, onCorrect, 
                           whileHover={{ scale: 1.05, y: -3 }} whileTap={{ scale: 0.95 }}
                           onClick={(e) => handleDesktopChoice(choice, e)}
                           disabled={status === 'correct' || isWrong}
-                          className="relative rounded-2xl flex items-center justify-center aspect-square overflow-hidden border-2"
+                          className="relative rounded-2xl flex flex-col items-center justify-center min-h-[140px] overflow-hidden border-2 p-2"
                           style={{
                             background: isWrong ? 'linear-gradient(145deg, #FF4444, #CC0000)' : `linear-gradient(145deg, ${choice.gradient[0]}, ${choice.gradient[1]})`,
                             borderColor: isWrong ? '#FF4444' : choice.color,
                             boxShadow: isWrong ? '0 5px 18px rgba(255,68,68,0.6)' : `0 8px 24px ${choice.color}66`,
                           }}>
-                          <span style={{ fontSize: '3rem', lineHeight: 1 }}>{choice.emoji}</span>
+                          <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>{choice.emoji}</span>
+                          {/* 🆕 إظهار الكلمة الألماني تحت الصورة */}
+                          <span className="font-black text-white text-sm mt-3 text-center leading-tight">
+                            {choice.de}
+                          </span>
                         </motion.button>
                       )}
                     </AnimatePresence>
@@ -1012,7 +1045,8 @@ function WritePhase({ item, onDone, onKarlReact, onCombo, onCorrect, isMobile }:
               <div className="text-center lg:text-right">
                 <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${item.color}aa` }}>Wort · بالألمانية</div>
                 <div className="text-2xl font-black text-white">اكتب الكلمة</div>
-                <div className="text-sm font-bold text-white/40 mt-1">{item.ar}</div>
+                {/* 🆕 إبراز الكلمة بالعربي */}
+                <div className="text-xl font-bold text-yellow-300 mt-2 bg-white/5 inline-block px-4 py-1 rounded-xl border border-white/10">{item.ar}</div>
               </div>
               <GhostInput ref={inputRef} value={input}
                 onChange={v => { setInput(v); setStatus('idle'); }} onEnter={handleCheck}
@@ -1409,8 +1443,8 @@ function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: {
   };
 
   const progress = (matched.size / group.length) * 100;
-  const cardWidth = isMobile ? 62 : 95;
-  const cardHeight = isMobile ? 78 : 115;
+  const cardWidth = isMobile ? 65 : 95;
+  const cardHeight = isMobile ? 85 : 115;
 
   const renderCard = (it: TimeItem, side: 'emoji' | 'word') => {
     const isMatched = matched.has(it.id);
@@ -1444,7 +1478,7 @@ function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: {
           : isOver ? { scale: 1.05 } : {}
         }
         transition={{ duration: 0.35 }}
-        className="relative select-none rounded-xl overflow-hidden border-2 flex items-center justify-center"
+        className="relative select-none rounded-xl overflow-hidden border-2 flex flex-col items-center justify-center p-1"
         style={{
           width: cardWidth, height: cardHeight, cursor: 'grab',
           background: `linear-gradient(180deg, ${it.gradient[0]}, ${it.gradient[1]})`,
@@ -1454,11 +1488,17 @@ function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: {
             : isWrong ? '0 4px 12px rgba(239,68,68,0.7)' : `0 3px 10px ${it.color}66`,
         }}>
         {side === 'emoji' ? (
-          <span style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', lineHeight: 1 }}>{it.emoji}</span>
+          <>
+            <span style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', lineHeight: 1 }}>{it.emoji}</span>
+            {/* 🆕 إضافة الكلمة بالألماني تحت الإيموجي للمطابقة */}
+            <span className="text-[9px] md:text-xs font-black text-white mt-1 leading-tight text-center">
+              {it.de}
+            </span>
+          </>
         ) : (
           <div className="text-center px-1">
             <div className="font-black text-white" style={{ fontSize: isMobile ? '0.75rem' : '0.95rem', lineHeight: 1.1, textShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>{it.de}</div>
-            <div className="font-bold text-white/80 text-[8px] mt-0.5">{it.ar}</div>
+            <div className="font-bold text-yellow-300 text-[8px] md:text-[10px] mt-1">{it.ar}</div>
           </div>
         )}
         {isOver && (
@@ -1506,7 +1546,7 @@ function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: {
         <div className="w-full flex flex-col items-center gap-1">
           <span className="text-[9px] md:text-[10px] text-cyan-300/80 font-black tracking-widest uppercase flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" style={{ boxShadow: '0 0 6px #3498DB' }} />
-            الصور
+            الصور (بالألمانية)
           </span>
           <div className="flex items-center justify-center gap-1.5 md:gap-2 flex-wrap" dir="ltr">
             {group.map((it) => renderCard(it, 'emoji'))}
@@ -1718,7 +1758,7 @@ function GermanTimeLessonInner() {
         <div style={{
           transform: isMobile ? 'scale(0.4)' : 'scale(0.55)',
           transformOrigin: 'bottom right',
-          position: 'fixed', bottom: isMobile ? 110 : 130, right: 0, zIndex: 25, pointerEvents: 'none'
+          position: 'fixed', bottom: isMobile ? 90 : 110, right: isMobile ? -10 : 20, zIndex: 25, pointerEvents: 'none'
         }}>
           <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#3498DB" />
         </div>

@@ -480,7 +480,9 @@ const COORDS_MOBILE_MAP_5: Record<string, LandmarkCoords> = {
   'semperoper'           : { centerX: 28,   centerY: 58,   clickArea: { x: 8,   y: 52,  w: 42, h: 14 } },
   'christmas-market'     : { centerX: 72,   centerY: 75,   clickArea: { x: 50,  y: 68,  w: 42, h: 14 } },
   'goethe-institut'      : { centerX: 50,   centerY: 90,   clickArea: { x: 25,  y: 84,  w: 50, h: 14 } },
-};// ═══════════════════════════════════════
+};
+
+// ═══════════════════════════════════════
 // 🗺️ تجميع بيانات الخرايط في object واحد
 // ═══════════════════════════════════════
 const MAPS_DATA = {
@@ -977,7 +979,9 @@ export default function CharacterAndMapPage() {
     return { ...landmark, ...coords };
   });
 
-  const mapImage = isMobileView ? currentMapData.imageMobile : currentMapData.imageDesktop;  useEffect(() => {
+  const mapImage = isMobileView ? currentMapData.imageMobile : currentMapData.imageDesktop;
+
+  useEffect(() => {
     setMounted(true);
     const checkDevice = () => {
       if (typeof window === 'undefined') return;
@@ -1137,9 +1141,16 @@ export default function CharacterAndMapPage() {
     setMapPosition({ x: 0, y: 0 });
   }, [isMobileView, step, currentMap]);
 
+  // ═══════════════════════════════════════
+  // 🔓 فتح كل الأقفال مؤقتاً للتعديل المباشر
+  // ═══════════════════════════════════════
   const isLocked = (lesson: number) => {
-    if (currentMap === 4 || currentMap === 5) return false; // 🔓 خريطة 4 و 5 مفتوحتين
+    return false; // تم فتح جميع الدروس مباشرة لإنهاء التعديلات
+    
+    /* عند الانتهاء، فقط احذف السطر بالأعلى وقم بإلغاء تعليق الكود التالي:
+    if (currentMap === 4 || currentMap === 5) return false;
     return lesson > unlockedLessonInMap;
+    */
   };
   
   const isCurrent = (lesson: number) => lesson === unlockedLessonInMap;
@@ -1536,8 +1547,6 @@ export default function CharacterAndMapPage() {
           </div>
         </div>
       </div>
-
-
 
       <div 
         className="w-full min-h-screen flex items-center justify-center bg-[#07090D] overflow-hidden" 

@@ -294,7 +294,8 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <motion.div whileHover={{ scale: 1.1 }} className="relative w-8 h-8 rounded-full overflow-hidden border-2 flex-shrink-0"
               style={{ borderColor: '#FF9800', boxShadow: '0 0 10px rgba(255,152,0,0.5)', background: 'linear-gradient(135deg, #FF9800, #E65100)' }}>
-              <img src="/characters/karl-3d.png" alt="character" className="w-full h-full object-cover" />
+              {/* تعديل مسار الكاركتر إلى .webp */}
+              <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
             </motion.div>
             <div className="flex flex-col items-start leading-none gap-0.5">
               <span className="text-[7px] font-bold text-white/80">المستوى</span>
@@ -311,7 +312,8 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
             <motion.div key={`points-${stats.points}`} animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 0.3 }}
               className="flex items-center gap-1 px-1.5 py-1 rounded-lg flex-1 justify-center"
               style={{ background: 'rgba(15,10,45,0.7)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,215,0,0.35)' }}>
-              <img id="star-target" src="/treasuer/star.png" alt="star" className="w-3 h-3 flex-shrink-0" style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
+              {/* تعديل مسار النجمة إلى .webp */}
+              <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-3 h-3 flex-shrink-0" style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
               <span className="font-black text-[10px] text-white truncate">{stats.points}</span>
             </motion.div>
             <motion.div key={`streak-${stats.streak}`} animate={{ scale: stats.streak > 0 ? [1, 1.05, 1] : 1 }} transition={{ duration: 0.3 }}
@@ -349,7 +351,8 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
         <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
           <motion.div whileHover={{ scale: 1.1 }} className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-2 flex-shrink-0"
             style={{ borderColor: '#FF9800', boxShadow: '0 0 15px rgba(255,152,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)', background: 'linear-gradient(135deg, #FF9800, #E65100)' }}>
-            <img src="/characters/karl-3d.png" alt="character" className="w-full h-full object-cover" />
+            {/* تعديل مسار الكاركتر إلى .webp */}
+            <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
           </motion.div>
           <div className="flex flex-col items-start">
             <span className="text-[9px] md:text-[10px] font-bold text-white/80 mb-0.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>المستوى</span>
@@ -388,7 +391,8 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
             className="flex items-center gap-1.5 md:gap-2 px-3 md:px-3.5 py-2 md:py-2.5 rounded-2xl"
             style={{ background: 'rgba(15,10,45,0.65)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)', border: '2px solid rgba(255,215,0,0.35)', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
             <span className="font-black text-xs md:text-sm text-white" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{stats.points}</span>
-            <img id="star-target" src="/treasuer/star.png" alt="star" className="w-5 h-5 md:w-6 md:h-6" style={{ filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.8))' }} />
+            {/* تعديل مسار النجمة إلى .webp */}
+            <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-5 h-5 md:w-6 md:h-6" style={{ filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.8))' }} />
           </motion.div>
           <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }} onClick={onHome}
             className="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
@@ -439,8 +443,9 @@ function FlyingItems({ items }: { items: FlyingItem[] }) {
               <div className="relative" style={{ width: 40, height: 40, marginTop: -20, marginLeft: -20 }}>
                 <div className="absolute inset-0 rounded-full blur-xl" style={{ background: color, opacity: 0.8, transform: 'scale(2.5)' }} />
                 <div className="relative flex items-center justify-center w-full h-full">
-                  {item.type === 'star' && (<img src="/treasuer/star.png" alt="star" className="w-10 h-10" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
-                  {item.type === 'energy' && (<img src="/treasuer/energy.png" alt="energy" className="w-10 h-10" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
+                  {/* تعديل مسارات الطيران إلى .webp */}
+                  {item.type === 'star' && (<img src="/treasuer/star.webp" alt="star" className="w-10 h-10" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
+                  {item.type === 'energy' && (<img src="/treasuer/energy.webp" alt="energy" className="w-10 h-10" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
                   {item.type === 'gem' && (<Gem size={36} className="text-purple-200" fill="#9D4EDD" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
                 </div>
               </div>
@@ -478,7 +483,8 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
   stats: GameStats; treasureState: 'closed' | 'half' | 'opend';
   onHint: () => void; onMap: () => void; isMobile: boolean;
 }) {
-  const treasureImg = `/treasuer/${treasureState}.png`;
+  // تعديل مسار الصندوق إلى .webp
+  const treasureImg = `/treasuer/${treasureState}.webp`;
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 px-2 md:px-4 pb-1 md:pb-1.5 pointer-events-none"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 4px)' }}>
@@ -496,8 +502,9 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
             <Sparkles size={8} className="text-orange-300" />
           </div>
           <div className="flex items-end justify-around gap-2 md:gap-3">
-            <FloatingIconButton onClick={onMap} label="خريطة" color="#FF9800" isMobile={isMobile} iconSrc="/treasuer/map-icon.png" iconAlt="map" />
-            <FloatingIconButton label="نجوم" color="#FFD700" isMobile={isMobile} disabled iconSrc="/treasuer/star.png" iconAlt="star" />
+            {/* تعديل مسارات الأيقونات إلى .webp */}
+            <FloatingIconButton onClick={onMap} label="خريطة" color="#FF9800" isMobile={isMobile} iconSrc="/treasuer/map-icon.webp" iconAlt="map" />
+            <FloatingIconButton label="نجوم" color="#FFD700" isMobile={isMobile} disabled iconSrc="/treasuer/star.webp" iconAlt="star" />
             <motion.div id="treasure-box" whileHover={{ scale: 1.08, y: -2 }}
               animate={treasureState === 'opend' ? { y: [0, -3, 0] } : {}}
               transition={{ duration: 1.5, repeat: treasureState === 'opend' ? Infinity : 0 }}
@@ -512,7 +519,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
               </div>
               <span className="text-[7px] md:text-[9px] font-black text-yellow-400 leading-none" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>صندوق</span>
             </motion.div>
-            <FloatingIconButton label="طاقة" color="#FF9800" isMobile={isMobile} disabled iconSrc="/treasuer/energy.png" iconAlt="energy" />
+            <FloatingIconButton label="طاقة" color="#FF9800" isMobile={isMobile} disabled iconSrc="/treasuer/energy.webp" iconAlt="energy" />
             <FloatingIconButton onClick={onHint} label="تلميح" color="#FFD700" isMobile={isMobile} badge={stats.hints} disabled={stats.hints === 0} iconSrc="/treasuer/HINT.svg" iconAlt="hint" />
           </div>
         </div>

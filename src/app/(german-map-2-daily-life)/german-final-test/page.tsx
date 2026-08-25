@@ -379,15 +379,22 @@ function ListenTestPhase({ questions, onComplete, isMobile }: {
 
       <div className="rounded-3xl p-5 md:p-8 text-center"
         style={{
-          background: 'rgba(45,27,78,0.7)',
+          background: 'rgba(45,27,78,0.75)',
           backdropFilter: 'blur(20px)',
           border: '2px solid rgba(255,215,0,0.4)',
           boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
         }}>
         
-        <div className="inline-block px-4 py-1 rounded-full mb-4 font-black text-xs"
+        <div className="inline-block px-4 py-1 rounded-full mb-3 font-black text-xs"
           style={{ background: 'rgba(255,215,0,0.2)', color: '#FFD700', border: '1px solid #FFD70066' }}>
           🎧 استمع جيداً
+        </div>
+
+        {/* 🆕 كارت الكلمة بالعربي التي يسأل عنها الاختبار */}
+        <div className="my-2 px-6 py-2.5 rounded-2xl inline-block"
+          style={{ background: 'rgba(255,215,0,0.15)', border: '2px solid rgba(255,215,0,0.4)' }}>
+          <span className="text-white/70 text-xs font-bold block mb-0.5">الكلمة المطلوبة بالعربية:</span>
+          <span className="font-black text-yellow-300 text-xl md:text-2xl">{currentWord.ar}</span>
         </div>
 
         {/* زرار الصوت الكبير */}
@@ -395,20 +402,20 @@ function ListenTestPhase({ questions, onComplete, isMobile }: {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => speakWord(currentWord.de)}
-          className="mb-6 rounded-full flex items-center justify-center mx-auto"
+          className="my-4 rounded-full flex items-center justify-center mx-auto"
           style={{
-            width: isMobile ? 80 : 120,
-            height: isMobile ? 80 : 120,
+            width: isMobile ? 70 : 100,
+            height: isMobile ? 70 : 100,
             background: 'linear-gradient(135deg, #FFD700, #FFA500)',
             boxShadow: '0 10px 40px rgba(255,215,0,0.6), inset 0 2px 0 rgba(255,255,255,0.4)',
           }}>
-          <Volume2 size={isMobile ? 36 : 48} className="text-white" />
+          <Volume2 size={isMobile ? 32 : 44} className="text-white" />
         </motion.button>
 
-        <p className="text-white/60 text-sm font-bold mb-6">اختر الصورة الصحيحة 👇</p>
+        <p className="text-white/70 text-xs md:text-sm font-bold mb-4">اختر الكارت والكلمة الصحيحة 👇</p>
 
-        {/* الخيارات */}
-        <div className="grid grid-cols-3 gap-2 md:gap-3">
+        {/* الخيارات - كروت تحتها الألمانية بالأداة */}
+        <div className="grid grid-cols-3 gap-2 md:gap-4">
           {choices.map((choice, idx) => {
             const isWrong = wrongId === choice.id;
             const isCorrect = answered && choice.id === currentWord.id;
@@ -422,7 +429,7 @@ function ListenTestPhase({ questions, onComplete, isMobile }: {
                 whileTap={!answered ? { scale: 0.95 } : {}}
                 onClick={() => handleChoice(choice)}
                 disabled={answered}
-                className="aspect-square rounded-2xl flex items-center justify-center border-2 overflow-hidden relative"
+                className="min-h-[110px] md:min-h-[140px] rounded-2xl flex flex-col items-center justify-center border-2 overflow-hidden relative p-2"
                 style={{
                   background: isCorrect ? 'linear-gradient(145deg, #22c55e, #15803d)'
                     : isWrong ? 'linear-gradient(145deg, #FF4444, #CC0000)'
@@ -432,13 +439,20 @@ function ListenTestPhase({ questions, onComplete, isMobile }: {
                     : isWrong ? '0 0 30px rgba(255,68,68,0.6)' 
                     : `0 8px 24px ${choice.color}66`,
                 }}>
-                <span style={{ fontSize: isMobile ? '2.5rem' : '3.5rem', lineHeight: 1 }}>
+                <span style={{ fontSize: isMobile ? '2.2rem' : '3.2rem', lineHeight: 1 }}>
                   {choice.emoji}
                 </span>
+
+                {/* 🆕 الكلمة بالألماني تحت الإيموجي مع الأداة إن وجدت */}
+                <span className="font-black text-white text-xs md:text-sm mt-2 text-center leading-tight">
+                  {choice.article && <span className="text-white/70 text-[10px] md:text-xs font-normal ml-1">{choice.article}</span>}
+                  {choice.de}
+                </span>
+
                 {isCorrect && (
                   <motion.div
                     initial={{ scale: 0 }} animate={{ scale: 1 }}
-                    className="absolute inset-0 flex items-center justify-center bg-green-500/30">
+                    className="absolute inset-0 flex items-center justify-center bg-green-500/40 backdrop-blur-xs">
                     <Check size={48} className="text-white" strokeWidth={4} />
                   </motion.div>
                 )}
@@ -527,45 +541,50 @@ function WriteTestPhase({ questions, onComplete, isMobile }: {
 
       <div className="rounded-3xl p-5 md:p-8 text-center"
         style={{
-          background: 'rgba(45,27,78,0.7)',
+          background: 'rgba(45,27,78,0.75)',
           backdropFilter: 'blur(20px)',
           border: '2px solid rgba(255,215,0,0.4)',
           boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
         }}>
         
-        <div className="inline-block px-4 py-1 rounded-full mb-4 font-black text-xs"
+        <div className="inline-block px-4 py-1 rounded-full mb-3 font-black text-xs"
           style={{ background: 'rgba(255,215,0,0.2)', color: '#FFD700', border: '1px solid #FFD70066' }}>
-          ✍️ اكتب الكلمة
+          ✍️ اكتب الكلمة بالألمانية
         </div>
 
         {/* الصورة الكبيرة */}
         <motion.div 
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 3, repeat: Infinity }}
-          className="mb-3 select-none"
+          className="mb-2 select-none"
           style={{ 
-            fontSize: isMobile ? '6rem' : '9rem', 
+            fontSize: isMobile ? '5rem' : '8rem', 
             lineHeight: 1,
             filter: `drop-shadow(0 10px 30px ${currentWord.color}aa)`,
           }}>
           {currentWord.emoji}
         </motion.div>
 
-        <p className="text-white/70 font-bold mb-4 text-sm md:text-base">
-          {currentWord.ar}
-        </p>
+        {/* 🆕 إبراز الكلمة بالعربي المعبرة عن السؤال */}
+        <div className="my-2 px-6 py-2 rounded-2xl inline-block"
+          style={{ background: 'rgba(255,215,0,0.15)', border: '2px solid rgba(255,215,0,0.3)' }}>
+          <span className="text-white/70 text-xs font-bold block mb-0.5">المعنى بالعربية:</span>
+          <span className="font-black text-yellow-300 text-xl md:text-2xl">{currentWord.ar}</span>
+        </div>
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => speakWord(currentWord.de)}
-          className="mb-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm text-white"
-          style={{
-            background: `linear-gradient(135deg, ${currentWord.color}cc, ${currentWord.color}88)`,
-            boxShadow: `0 4px 15px ${currentWord.color}66`,
-          }}>
-          <Volume2 size={16} /> اسمع الكلمة
-        </motion.button>
+        <div className="block my-2">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => speakWord(currentWord.de)}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs text-white"
+            style={{
+              background: `linear-gradient(135deg, ${currentWord.color}cc, ${currentWord.color}88)`,
+              boxShadow: `0 4px 15px ${currentWord.color}66`,
+            }}>
+            <Volume2 size={14} /> اسمع النطق
+          </motion.button>
+        </div>
 
         <GhostInput 
           ref={inputRef}
@@ -727,8 +746,8 @@ function FinalMatchGame({ words, onComplete, isMobile }: {
   };
 
   const progress = (matched.size / words.length) * 100;
-  const cardW = isMobile ? 52 : 70;
-  const cardH = isMobile ? 64 : 85;
+  const cardW = isMobile ? 70 : 100;
+  const cardH = isMobile ? 85 : 110;
 
   const renderCard = (it: FinalTestItem, side: 'emoji' | 'word') => {
     const isMatched = matched.has(it.id);
@@ -740,7 +759,7 @@ function FinalMatchGame({ words, onComplete, isMobile }: {
     if (isMatched) {
       return (
         <div key={`${side}-${it.id}`} style={{ width: cardW, height: cardH, opacity: 0.2 }}
-          className="rounded-lg border-2 border-dashed border-green-500/40 flex items-center justify-center">
+          className="rounded-xl border-2 border-dashed border-green-500/40 flex items-center justify-center">
           <Check size={16} className="text-green-500/50" strokeWidth={2.5} />
         </div>
       );
@@ -761,7 +780,7 @@ function FinalMatchGame({ words, onComplete, isMobile }: {
           : isSuccess ? { scale: [1, 1.12, 1] }
           : isOver ? { scale: 1.05 } : {}
         }
-        className="relative select-none rounded-lg overflow-hidden border-2 flex items-center justify-center"
+        className="relative select-none rounded-xl overflow-hidden border-2 flex items-center justify-center p-1"
         style={{
           width: cardW, height: cardH, cursor: 'grab',
           background: `linear-gradient(180deg, ${it.gradient[0]}, ${it.gradient[1]})`,
@@ -771,11 +790,21 @@ function FinalMatchGame({ words, onComplete, isMobile }: {
             : isWrong ? '0 4px 12px rgba(239,68,68,0.7)' : `0 3px 10px ${it.color}66`,
         }}>
         {side === 'emoji' ? (
-          <span style={{ fontSize: isMobile ? '1.6rem' : '2.2rem', lineHeight: 1 }}>{it.emoji}</span>
+          <div className="flex flex-col items-center justify-center p-1 text-center">
+            <span style={{ fontSize: isMobile ? '1.4rem' : '1.8rem', lineHeight: 1 }}>{it.emoji}</span>
+            {/* 🆕 إظهار الكلمة بالألماني تحت الإيموجي */}
+            <span className="font-black text-white text-[9px] md:text-[11px] mt-1 leading-tight truncate max-w-full">
+              {it.de}
+            </span>
+          </div>
         ) : (
           <div className="text-center px-1">
-            <div className="font-black text-white" style={{ fontSize: isMobile ? '0.65rem' : '0.85rem', lineHeight: 1.1, textShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>
+            <div className="font-black text-white" style={{ fontSize: isMobile ? '0.75rem' : '0.95rem', lineHeight: 1.1 }}>
               {it.de}
+            </div>
+            {/* 🆕 إظهار الكلمة بالعربي تحت الكلمة الألمانية */}
+            <div className="font-bold text-yellow-300 text-[8px] md:text-[10px] mt-1">
+              {it.ar}
             </div>
           </div>
         )}
@@ -805,7 +834,7 @@ function FinalMatchGame({ words, onComplete, isMobile }: {
 
       <div className="space-y-3">
         <div className="text-center">
-          <span className="text-[10px] text-yellow-300/80 font-black uppercase">📸 الصور</span>
+          <span className="text-[10px] text-yellow-300/80 font-black uppercase">📸 الصور (الألمانية)</span>
           <div className="flex items-center justify-center gap-1.5 flex-wrap mt-1" dir="ltr">
             {words.map(it => renderCard(it, 'emoji'))}
           </div>
@@ -818,7 +847,7 @@ function FinalMatchGame({ words, onComplete, isMobile }: {
         </div>
 
         <div className="text-center">
-          <span className="text-[10px] text-orange-300/80 font-black uppercase">🔤 الكلمات</span>
+          <span className="text-[10px] text-orange-300/80 font-black uppercase">🔤 الكلمات (العربية)</span>
           <div className="flex items-center justify-center gap-1.5 flex-wrap mt-1" dir="ltr">
             {shuffledWords.map(w => renderCard(w, 'word'))}
           </div>
@@ -841,8 +870,6 @@ function CertificateScreen({ results, totalStars, onContinue, isMobile }: {
   const today = new Date().toLocaleDateString('ar-EG', { 
     year: 'numeric', month: 'long', day: 'numeric' 
   });
-  const totalCorrect = results.listen.correct + results.write.correct + results.match.correct;
-  const totalQuestions = results.listen.total + results.write.total + results.match.total;
 
   useEffect(() => {
     setTimeout(() => setShowCert(true), 800);
@@ -1155,13 +1182,15 @@ function GermanFinalTestInner() {
         colors={['#FFD700', '#FFA500', '#FF4500', '#FFFFFF', '#9D4EDD']}
       />
 
-      {/* Karl */}
+      {/* Karl - تم ضبط أبعاده ومكانه لضمان الوضوح وعدم التقطيع */}
       {phase !== 'certificate' && (
-        <div style={{ 
-          transform: isMobile ? 'scale(0.35)' : 'scale(0.5)', 
-          transformOrigin: 'bottom right', 
-          position: 'fixed', bottom: 10, right: 0, zIndex: 25, pointerEvents: 'none' 
-        }}>
+        <div className="fixed pointer-events-none z-[25]"
+             style={{
+               bottom: isMobile ? '20px' : '30px',
+               right: isMobile ? '-10px' : '20px',
+               transform: isMobile ? 'scale(0.45)' : 'scale(0.6)',
+               transformOrigin: 'bottom right'
+             }}>
           <KarlEagle mood={karlMood} message={null} idleGlowColor="#FFD700" />
         </div>
       )}
