@@ -294,10 +294,13 @@ function PricingCard({
         </div>
 
         <motion.button
-          onClick={onClick}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          className="w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2.5 transition-all duration-300"
+          className="w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2.5 transition-all duration-300 cursor-pointer"
           style={isPopular
             ? { background: `linear-gradient(135deg, ${color}, ${color}dd)`, color: '#fff' }
             : { background: `${color}15`, color, border: `2px solid ${color}40` }

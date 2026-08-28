@@ -8,8 +8,8 @@ export default function PlansPage() {
   const router = useRouter();
   const [loadingPaid, setLoadingPaid] = useState(false);
 
-  const handleFreePlan = () => router.push('/signup?plan=free');
-  const handlePaidPlan = () => router.push('/signup?plan=paid');
+  const handleFreePlan = () => router.push('/character-and-map');
+  const handlePaidPlan = () => router.push('/pricing/eg');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a3e] via-[#2d1b4e] to-[#1e1b4b] text-white font-sans overflow-x-hidden relative" dir="rtl">
