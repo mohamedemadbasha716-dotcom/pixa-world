@@ -7,12 +7,17 @@ import { useRouter } from 'next/navigation';
 import { 
   savePlayer, 
   getPlayer, 
+  getUserPlanStatus,
   type LessonProgress 
 } from '@/lib/playerData';
 import {
   getAllSpanishProgress,
   isSpanishMapCompleted,
   ES_MAP_1_LESSONS,
+  ES_MAP_2_LESSONS,
+  ES_MAP_3_LESSONS,
+  ES_MAP_4_LESSONS,
+  ES_MAP_5_LESSONS,
   ES_TOTAL_MAPS,
 } from '@/lib/spanishPlayerData';
 
@@ -446,18 +451,13 @@ const LANDMARKS_MAP_5 = [
   },
 ];
 
-// ═══════════════════════════════════════
-// 🎯 نوع الإحداثيات
-// ═══════════════════════════════════════
 type LandmarkCoords = {
   centerX: number;
   centerY: number;
   clickArea: { x: number; y: number; w: number; h: number };
 };
 
-// ═══════════════════════════════════════
 // 🖥️ إحداثيات الديسكتوب — الخريطة 1
-// ═══════════════════════════════════════
 const COORDS_DESKTOP_MAP_1: Record<string, LandmarkCoords> = {
   'es-muniellos-alphabet'   : { centerX: 27,   centerY: 22,   clickArea: { x: 18,  y: 10,  w: 20,  h: 25 } },
   'es-covadonga-numbers'    : { centerX: 55,   centerY: 22,   clickArea: { x: 46,  y: 12,  w: 20,  h: 22 } },
@@ -469,9 +469,7 @@ const COORDS_DESKTOP_MAP_1: Record<string, LandmarkCoords> = {
   'es-faro-test'            : { centerX: 88,   centerY: 80,   clickArea: { x: 78,  y: 68,  w: 18,  h: 28 } },
 };
 
-// ═══════════════════════════════════════
 // 📱 إحداثيات الموبايل — الخريطة 1
-// ═══════════════════════════════════════
 const COORDS_MOBILE_MAP_1: Record<string, LandmarkCoords> = {
   'es-muniellos-alphabet'   : { centerX: 25,  centerY: 8,   clickArea: { x: 8,   y: 3,   w: 35,  h: 11 } },
   'es-covadonga-numbers'    : { centerX: 72,  centerY: 18,  clickArea: { x: 55,  y: 13,  w: 38,  h: 11 } },
@@ -483,9 +481,7 @@ const COORDS_MOBILE_MAP_1: Record<string, LandmarkCoords> = {
   'es-faro-test'            : { centerX: 72,  centerY: 92,  clickArea: { x: 55,  y: 87,  w: 38,  h: 11 } },
 };
 
-// ═══════════════════════════════════════
 // 🖥️ إحداثيات الديسكتوب — الخريطة 2
-// ═══════════════════════════════════════
 const COORDS_DESKTOP_MAP_2: Record<string, LandmarkCoords> = {
   'es-segovia-body'      : { centerX: 18,   centerY: 28,   clickArea: { x: 8,   y: 15,  w: 22,  h: 30 } },
   'es-traje-clothes'     : { centerX: 18,   centerY: 70,   clickArea: { x: 8,   y: 58,  w: 22,  h: 25 } },
@@ -497,9 +493,7 @@ const COORDS_DESKTOP_MAP_2: Record<string, LandmarkCoords> = {
   'es-consuegra-test'    : { centerX: 90,   centerY: 78,   clickArea: { x: 80,  y: 65,  w: 18,  h: 30 } },
 };
 
-// ═══════════════════════════════════════
 // 📱 إحداثيات الموبايل — الخريطة 2
-// ═══════════════════════════════════════
 const COORDS_MOBILE_MAP_2: Record<string, LandmarkCoords> = {
   'es-segovia-body'      : { centerX: 25,  centerY: 8,    clickArea: { x: 10,  y: 3,   w: 35,  h: 12 } },
   'es-traje-clothes'     : { centerX: 50,  centerY: 22,   clickArea: { x: 30,  y: 17,  w: 40,  h: 12 } },
@@ -511,9 +505,7 @@ const COORDS_MOBILE_MAP_2: Record<string, LandmarkCoords> = {
   'es-consuegra-test'    : { centerX: 60,  centerY: 92,   clickArea: { x: 40,  y: 87,  w: 45,  h: 11 } },
 };
 
-// ═══════════════════════════════════════
 // 🖥️ إحداثيات الديسكتوب — الخريطة 3
-// ═══════════════════════════════════════
 const COORDS_DESKTOP_MAP_3: Record<string, LandmarkCoords> = {
   'es-portvell-time'           : { centerX: 18,  centerY: 22,  clickArea: { x: 8,   y: 10,  w: 20,  h: 28 } },
   'es-santpau-health'          : { centerX: 48,  centerY: 20,  clickArea: { x: 38,  y: 10,  w: 22,  h: 24 } },
@@ -525,9 +517,7 @@ const COORDS_DESKTOP_MAP_3: Record<string, LandmarkCoords> = {
   'es-sagrada-test'            : { centerX: 58,  centerY: 82,  clickArea: { x: 44,  y: 62,  w: 26,  h: 35 } },
 };
 
-// ═══════════════════════════════════════
 // 📱 إحداثيات الموبايل — الخريطة 3
-// ═══════════════════════════════════════
 const COORDS_MOBILE_MAP_3: Record<string, LandmarkCoords> = {
   'es-portvell-time'           : { centerX: 25,  centerY: 9,   clickArea: { x: 10,  y: 3,   w: 32,  h: 12 } },
   'es-santpau-health'          : { centerX: 68,  centerY: 13,  clickArea: { x: 48,  y: 8,   w: 42,  h: 12 } },
@@ -539,9 +529,7 @@ const COORDS_MOBILE_MAP_3: Record<string, LandmarkCoords> = {
   'es-sagrada-test'            : { centerX: 52,  centerY: 86,  clickArea: { x: 30,  y: 76,  w: 45,  h: 22 } },
 };
 
-// ═══════════════════════════════════════
 // 🖥️ إحداثيات الديسكتوب — الخريطة 4
-// ═══════════════════════════════════════
 const COORDS_DESKTOP_MAP_4: Record<string, LandmarkCoords> = {
   'es-sevilla-verbs-regular'    : { centerX: 15,  centerY: 22,  clickArea: { x: 5,   y: 10,  w: 22,  h: 28 } },
   'es-merida-verbs-irregular'   : { centerX: 45,  centerY: 22,  clickArea: { x: 32,  y: 12,  w: 25,  h: 24 } },
@@ -553,9 +541,7 @@ const COORDS_DESKTOP_MAP_4: Record<string, LandmarkCoords> = {
   'es-alhambra-test'            : { centerX: 55,  centerY: 82,  clickArea: { x: 38,  y: 68,  w: 40,  h: 30 } },
 };
 
-// ═══════════════════════════════════════
 // 📱 إحداثيات الموبايل — الخريطة 4
-// ═══════════════════════════════════════
 const COORDS_MOBILE_MAP_4: Record<string, LandmarkCoords> = {
   'es-sevilla-verbs-regular'    : { centerX: 28,  centerY: 8,   clickArea: { x: 10,  y: 3,   w: 38,  h: 12 } },
   'es-merida-verbs-irregular'   : { centerX: 70,  centerY: 18,  clickArea: { x: 50,  y: 13,  w: 45,  h: 12 } },
@@ -567,45 +553,31 @@ const COORDS_MOBILE_MAP_4: Record<string, LandmarkCoords> = {
   'es-alhambra-test'            : { centerX: 55,  centerY: 88,  clickArea: { x: 30,  y: 76,  w: 55,  h: 22 } },
 };
 
-// ═══════════════════════════════════════
-// 🖥️ إحداثيات الديسكتوب — الخريطة 5 (Islas y Capital)
-// (بناءً على الصورة - عدلها بأداة الفرشاة ?brush=1 لدقة أكتر)
-// ═══════════════════════════════════════
+// 🖥️ إحداثيات الديسكتوب — الخريطة 5
 const COORDS_DESKTOP_MAP_5: Record<string, LandmarkCoords> = {
-  'es-puertasol-fiestas'      : { centerX: 15,  centerY: 22,  clickArea: { x: 5,   y: 8,   w: 22,  h: 30 } },  // 🕛 برج الساعة - يسار فوق
-  'es-palma-vacaciones'       : { centerX: 45,  centerY: 20,  clickArea: { x: 32,  y: 10,  w: 26,  h: 25 } },  // 🏖️ الشاطئ - وسط فوق
-  'es-prado-arte'             : { centerX: 85,  centerY: 20,  clickArea: { x: 74,  y: 10,  w: 22,  h: 24 } },  // 🖼️ متحف برادو - يمين فوق
-  'es-bernabeu-deporte'       : { centerX: 15,  centerY: 55,  clickArea: { x: 3,   y: 42,  w: 26,  h: 26 } },  // ⚽ الاستاد - يسار وسط
-  'es-teide-medioambiente'    : { centerX: 48,  centerY: 52,  clickArea: { x: 32,  y: 40,  w: 30,  h: 28 } },  // 🌋 البركان - وسط
-  'es-america-hispano'        : { centerX: 82,  centerY: 55,  clickArea: { x: 70,  y: 42,  w: 22,  h: 26 } },  // 🌍 قصر أمريكا - يمين وسط
-  'es-biblioteca-lectura'     : { centerX: 22,  centerY: 82,  clickArea: { x: 8,   y: 68,  w: 26,  h: 28 } },  // 📚 المكتبة - يسار تحت
-  'es-palacio-final-test'     : { centerX: 65,  centerY: 82,  clickArea: { x: 42,  y: 65,  w: 45,  h: 32 } },  // 👑 القصر الملكي - وسط تحت (الأكبر)
+  'es-puertasol-fiestas'      : { centerX: 15,  centerY: 22,  clickArea: { x: 5,   y: 8,   w: 22,  h: 30 } },
+  'es-palma-vacaciones'       : { centerX: 45,  centerY: 20,  clickArea: { x: 32,  y: 10,  w: 26,  h: 25 } },
+  'es-prado-arte'             : { centerX: 85,  centerY: 20,  clickArea: { x: 74,  y: 10,  w: 22,  h: 24 } },
+  'es-bernabeu-deporte'       : { centerX: 15,  centerY: 55,  clickArea: { x: 3,   y: 42,  w: 26,  h: 26 } },
+  'es-teide-medioambiente'    : { centerX: 48,  centerY: 52,  clickArea: { x: 32,  y: 40,  w: 30,  h: 28 } },
+  'es-america-hispano'        : { centerX: 82,  centerY: 55,  clickArea: { x: 70,  y: 42,  w: 22,  h: 26 } },
+  'es-biblioteca-lectura'     : { centerX: 22,  centerY: 82,  clickArea: { x: 8,   y: 68,  w: 26,  h: 28 } },
+  'es-palacio-final-test'     : { centerX: 65,  centerY: 82,  clickArea: { x: 42,  y: 65,  w: 45,  h: 32 } },
 };
 
-// ═══════════════════════════════════════
-// 📱 إحداثيات الموبايل — الخريطة 5 (Islas y Capital)
-// (بناءً على الصورة - عدلها بأداة الفرشاة ?brush=1 لدقة أكتر)
-// ═══════════════════════════════════════
+// 📱 إحداثيات الموبايل — الخريطة 5
 const COORDS_MOBILE_MAP_5: Record<string, LandmarkCoords> = {
-  'es-puertasol-fiestas'      : { centerX: 28,  centerY: 8,   clickArea: { x: 10,  y: 2,   w: 38,  h: 14 } },  // 🕛 فوق يسار
-  'es-palma-vacaciones'       : { centerX: 68,  centerY: 15,  clickArea: { x: 45,  y: 10,  w: 48,  h: 14 } },  // 🏖️ فوق يمين
-  'es-prado-arte'             : { centerX: 25,  centerY: 30,  clickArea: { x: 8,   y: 25,  w: 42,  h: 12 } },  // 🖼️ يسار
-  'es-bernabeu-deporte'       : { centerX: 70,  centerY: 42,  clickArea: { x: 50,  y: 37,  w: 42,  h: 13 } },  // ⚽ يمين
-  'es-teide-medioambiente'    : { centerX: 25,  centerY: 52,  clickArea: { x: 8,   y: 47,  w: 42,  h: 12 } },  // 🌋 يسار
-  'es-america-hispano'        : { centerX: 70,  centerY: 62,  clickArea: { x: 48,  y: 56,  w: 46,  h: 14 } },  // 🌍 يمين
-  'es-biblioteca-lectura'     : { centerX: 25,  centerY: 76,  clickArea: { x: 8,   y: 70,  w: 42,  h: 13 } },  // 📚 يسار
-  'es-palacio-final-test'     : { centerX: 55,  centerY: 92,  clickArea: { x: 25,  y: 82,  w: 62,  h: 16 } },  // 👑 تحت وسط (الأكبر)
+  'es-puertasol-fiestas'      : { centerX: 28,  centerY: 8,   clickArea: { x: 10,  y: 2,   w: 38,  h: 14 } },
+  'es-palma-vacaciones'       : { centerX: 68,  centerY: 15,  clickArea: { x: 45,  y: 10,  w: 48,  h: 14 } },
+  'es-prado-arte'             : { centerX: 25,  centerY: 30,  clickArea: { x: 8,   y: 25,  w: 42,  h: 12 } },
+  'es-bernabeu-deporte'       : { centerX: 70,  centerY: 42,  clickArea: { x: 50,  y: 37,  w: 42,  h: 13 } },
+  'es-teide-medioambiente'    : { centerX: 25,  centerY: 52,  clickArea: { x: 8,   y: 47,  w: 12,  h: 12 } },
+  'es-america-hispano'        : { centerX: 70,  centerY: 62,  clickArea: { x: 48,  y: 56,  w: 46,  h: 14 } },
+  'es-biblioteca-lectura'     : { centerX: 25,  centerY: 76,  clickArea: { x: 8,   y: 70,  w: 42,  h: 13 } },
+  'es-palacio-final-test'     : { centerX: 55,  centerY: 92,  clickArea: { x: 25,  y: 82,  w: 62,  h: 16 } },
 };
 
-// ═══════════════════════════════════════
-// 🎨 placeholders (لو محتجناها لاحقاً)
-// ═══════════════════════════════════════
-const COORDS_DESKTOP_EMPTY: Record<string, LandmarkCoords> = {};
-const COORDS_MOBILE_EMPTY: Record<string, LandmarkCoords> = {};
-
-// ═══════════════════════════════════════
 // 🗺️ تجميع بيانات الخرايط
-// ═══════════════════════════════════════
 const MAPS_DATA = {
   1: {
     landmarks: LANDMARKS_MAP_1,
@@ -661,15 +633,8 @@ const MAPS_DATA = {
 
 type MapNumber = 1 | 2 | 3 | 4 | 5;
 const TOTAL_MAPS_COUNT = 5;
-
-// ═══════════════════════════════════════
-// 🆕 مفتاح الـ localStorage لحفظ الخريطة الحالية
-// ═══════════════════════════════════════
 const CURRENT_MAP_STORAGE_KEY = 'es_current_map';
 
-// ═══════════════════════════════════════
-// 🔊 أصوات
-// ═══════════════════════════════════════
 function playClickSound() {
   if (typeof window === 'undefined') return;
   try {
@@ -726,320 +691,10 @@ function playSuccessSound() {
   } catch {}
 }
 
-// ═══════════════════════════════════════
-// 🎨 أداة الفرشاة (Map Brush Tool)
-// ═══════════════════════════════════════
-type BrushPoint = { x: number; y: number };
-type LandmarkData = {
-  centerX: number;
-  centerY: number;
-  brushPoints: BrushPoint[];
-  clickArea: { x: number; y: number; w: number; h: number };
-};
-type BrushMode = 'brush' | 'center' | 'erase';
-
-function MapBrushTool({ 
-  isMobileView: initialMobile, 
-  landmarks,
-  mapNumber,
-  mapImage,
-}: { 
-  isMobileView: boolean; 
-  landmarks: typeof LANDMARKS_MAP_1;
-  mapNumber: MapNumber;
-  mapImage: { desktop: string; mobile: string };
-}) {
-  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>(initialMobile ? 'mobile' : 'desktop');
-  const [selectedLandmark, setSelectedLandmark] = useState<string>(landmarks[0]?.id || '');
-  const [mode, setMode] = useState<BrushMode>('brush');
-  const [brushSize, setBrushSize] = useState(3);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [showAll, setShowAll] = useState(true);
-  const [copiedMsg, setCopiedMsg] = useState('');
-  const [dataDesktop, setDataDesktop] = useState<Record<string, LandmarkData>>({});
-  const [dataMobile, setDataMobile] = useState<Record<string, LandmarkData>>({});
-  const mapRef = useRef<HTMLDivElement>(null);
-
-  const currentData = viewMode === 'desktop' ? dataDesktop : dataMobile;
-  const setCurrentData = viewMode === 'desktop' ? setDataDesktop : setDataMobile;
-  const currentImage = viewMode === 'desktop' ? mapImage.desktop : mapImage.mobile;
-
-  const storageKeyDesktop = `spanishBrushTool_map${mapNumber}_desktop_v1`;
-  const storageKeyMobile = `spanishBrushTool_map${mapNumber}_mobile_v1`;
-
-  useEffect(() => {
-    try {
-      const d = localStorage.getItem(storageKeyDesktop);
-      const m = localStorage.getItem(storageKeyMobile);
-      if (d) setDataDesktop(JSON.parse(d));
-      if (m) setDataMobile(JSON.parse(m));
-    } catch {}
-  }, [mapNumber]);
-
-  useEffect(() => {
-    localStorage.setItem(storageKeyDesktop, JSON.stringify(dataDesktop));
-  }, [dataDesktop, storageKeyDesktop]);
-  useEffect(() => {
-    localStorage.setItem(storageKeyMobile, JSON.stringify(dataMobile));
-  }, [dataMobile, storageKeyMobile]);
-
-  const getMapCoords = (e: React.MouseEvent): { x: number; y: number } | null => {
-    if (!mapRef.current) return null;
-    const rect = mapRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
-  };
-
-  const updateLandmarkData = (updater: (prev: LandmarkData) => LandmarkData) => {
-    setCurrentData(prev => {
-      const existing: LandmarkData = prev[selectedLandmark] || {
-        centerX: 50, centerY: 50, brushPoints: [],
-        clickArea: { x: 45, y: 45, w: 10, h: 10 },
-      };
-      const updated = updater(existing);
-      if (updated.brushPoints.length > 0) {
-        const xs = updated.brushPoints.map(p => p.x);
-        const ys = updated.brushPoints.map(p => p.y);
-        const minX = Math.min(...xs) - brushSize / 2;
-        const maxX = Math.max(...xs) + brushSize / 2;
-        const minY = Math.min(...ys) - brushSize / 2;
-        const maxY = Math.max(...ys) + brushSize / 2;
-        updated.clickArea = {
-          x: parseFloat(Math.max(0, minX).toFixed(1)),
-          y: parseFloat(Math.max(0, minY).toFixed(1)),
-          w: parseFloat(Math.min(100 - minX, maxX - minX).toFixed(1)),
-          h: parseFloat(Math.min(100 - minY, maxY - minY).toFixed(1)),
-        };
-      }
-      return { ...prev, [selectedLandmark]: updated };
-    });
-  };
-
-  const handlePointerDown = (e: React.MouseEvent) => {
-    const coords = getMapCoords(e);
-    if (!coords) return;
-    if (mode === 'center') {
-      updateLandmarkData(prev => ({
-        ...prev,
-        centerX: parseFloat(coords.x.toFixed(1)),
-        centerY: parseFloat(coords.y.toFixed(1)),
-      }));
-      return;
-    }
-    setIsDrawing(true);
-    if (mode === 'brush') {
-      updateLandmarkData(prev => ({ ...prev, brushPoints: [...prev.brushPoints, coords] }));
-    } else if (mode === 'erase') {
-      updateLandmarkData(prev => ({
-        ...prev,
-        brushPoints: prev.brushPoints.filter(p => {
-          const dx = p.x - coords.x, dy = p.y - coords.y;
-          return Math.sqrt(dx * dx + dy * dy) > brushSize;
-        }),
-      }));
-    }
-  };
-
-  const handlePointerMove = (e: React.MouseEvent) => {
-    if (!isDrawing) return;
-    const coords = getMapCoords(e);
-    if (!coords) return;
-    if (mode === 'brush') {
-      updateLandmarkData(prev => {
-        const last = prev.brushPoints[prev.brushPoints.length - 1];
-        if (last) {
-          const dx = last.x - coords.x, dy = last.y - coords.y;
-          if (Math.sqrt(dx * dx + dy * dy) < brushSize * 0.3) return prev;
-        }
-        return { ...prev, brushPoints: [...prev.brushPoints, coords] };
-      });
-    } else if (mode === 'erase') {
-      updateLandmarkData(prev => ({
-        ...prev,
-        brushPoints: prev.brushPoints.filter(p => {
-          const dx = p.x - coords.x, dy = p.y - coords.y;
-          return Math.sqrt(dx * dx + dy * dy) > brushSize;
-        }),
-      }));
-    }
-  };
-
-  const handlePointerUp = () => setIsDrawing(false);
-
-  const clearCurrent = () => {
-    if (!confirm(`مسح بيانات ${landmarks.find(l => l.id === selectedLandmark)?.nameAr}؟`)) return;
-    setCurrentData(prev => {
-      const next = { ...prev };
-      delete next[selectedLandmark];
-      return next;
-    });
-  };
-
-  const generateCode = (data: Record<string, LandmarkData>, label: string) => {
-    let code = `const COORDS_${label}_MAP_${mapNumber}: Record<string, LandmarkCoords> = {\n`;
-    landmarks.forEach(l => {
-      const d = data[l.id];
-      if (d) {
-        code += `  '${l.id}': { centerX: ${d.centerX}, centerY: ${d.centerY}, clickArea: { x: ${d.clickArea.x}, y: ${d.clickArea.y}, w: ${d.clickArea.w}, h: ${d.clickArea.h} } },\n`;
-      } else {
-        code += `  // ${l.id} - لم يحدد\n`;
-      }
-    });
-    return code + `};`;
-  };
-
-  const copyCode = (label: 'DESKTOP' | 'MOBILE') => {
-    const data = label === 'DESKTOP' ? dataDesktop : dataMobile;
-    navigator.clipboard.writeText(generateCode(data, label));
-    setCopiedMsg(`تم نسخ كود ${label} (خريطة ${mapNumber}) ✅`);
-    setTimeout(() => setCopiedMsg(''), 2000);
-  };
-
-  const selectedData = currentData[selectedLandmark];
-  const selectedInfo = landmarks.find(l => l.id === selectedLandmark)!;
-
-  if (!selectedInfo) {
-    return (
-      <div className="min-h-screen bg-[#0a0e17] text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">⚠️</div>
-          <p className="font-bold">لا توجد معالم في هذه الخريطة</p>
-          <button onClick={() => window.location.href = '/spanish-character-and-map'}
-            className="mt-4 px-6 py-2 bg-white/10 rounded-lg font-bold">
-            رجوع
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-[#0a0e17] text-white flex flex-col" style={{ fontFamily: "'Tajawal', sans-serif" }}>
-      <div className="bg-gradient-to-r from-red-900 to-yellow-900 px-4 py-3 flex items-center justify-between flex-wrap gap-2">
-        <h1 className="font-black text-lg">🎨 أداة الفرشاة الأسبانية — الخريطة {mapNumber}</h1>
-        <div className="flex gap-2">
-          <button onClick={() => setViewMode('desktop')} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${viewMode === 'desktop' ? 'bg-yellow-400 text-black' : 'bg-white/10'}`}>🖥️ Desktop</button>
-          <button onClick={() => setViewMode('mobile')} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${viewMode === 'mobile' ? 'bg-yellow-400 text-black' : 'bg-white/10'}`}>📱 Mobile</button>
-          <button onClick={() => window.location.href = `/spanish-character-and-map?map=${mapNumber}`} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500/30 hover:bg-red-500/50">✕ خروج</button>
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        <div className="w-72 bg-[#131722] border-l border-white/10 p-4 overflow-y-auto flex flex-col gap-3">
-          <div>
-            <h3 className="text-xs font-black text-white/60 mb-2">🎯 المعلم</h3>
-            <div className="space-y-1">
-              {landmarks.map(l => {
-                const hasData = !!currentData[l.id];
-                return (
-                  <button key={l.id} onClick={() => setSelectedLandmark(l.id)}
-                    className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs font-bold ${selectedLandmark === l.id ? 'bg-white text-black' : 'bg-white/5 hover:bg-white/10'}`}
-                    style={selectedLandmark === l.id ? { borderRight: `4px solid ${l.color}` } : {}}>
-                    <span>{l.emoji} {l.nameAr}</span>
-                    {hasData && <span className="text-green-500">✓</span>}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-black text-white/60 mb-2">🛠️ الأداة</h3>
-            <div className="grid grid-cols-3 gap-1">
-              <button onClick={() => setMode('brush')} className={`py-2 rounded-lg text-[10px] font-bold ${mode === 'brush' ? 'bg-yellow-400 text-black' : 'bg-white/5'}`}>🖌️ فرشاة</button>
-              <button onClick={() => setMode('erase')} className={`py-2 rounded-lg text-[10px] font-bold ${mode === 'erase' ? 'bg-red-500' : 'bg-white/5'}`}>🧹 ممحاة</button>
-              <button onClick={() => setMode('center')} className={`py-2 rounded-lg text-[10px] font-bold ${mode === 'center' ? 'bg-blue-500' : 'bg-white/5'}`}>📍 مركز</button>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-black text-white/60 mb-2">📏 حجم الفرشاة: {brushSize}%</h3>
-            <input type="range" min="1" max="10" step="0.5" value={brushSize} onChange={(e) => setBrushSize(parseFloat(e.target.value))} className="w-full" />
-          </div>
-
-          <button onClick={() => setShowAll(!showAll)} className="w-full py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold">
-            {showAll ? '👁️ إخفاء الباقي' : '👁️ إظهار الكل'}
-          </button>
-
-          {selectedData && (
-            <div className="bg-black/40 rounded-lg p-3 text-xs space-y-1">
-              <div className="font-black text-yellow-400">📊 {selectedInfo.nameAr}</div>
-              <div>المركز: <span className="text-green-400">({selectedData.centerX}, {selectedData.centerY})</span></div>
-              <div className="text-[10px]">المنطقة: <span className="text-blue-400">x:{selectedData.clickArea.x} y:{selectedData.clickArea.y} w:{selectedData.clickArea.w} h:{selectedData.clickArea.h}</span></div>
-              <div>النقاط: <span className="text-purple-400">{selectedData.brushPoints.length}</span></div>
-            </div>
-          )}
-
-          <button onClick={clearCurrent} className="w-full py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold text-xs">🗑️ مسح المعلم الحالي</button>
-
-          <div className="border-t border-white/10 pt-3 space-y-2">
-            <button onClick={() => copyCode('DESKTOP')} className="w-full py-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold text-xs">📋 نسخ كود DESKTOP</button>
-            <button onClick={() => copyCode('MOBILE')} className="w-full py-2 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 text-pink-400 font-bold text-xs">📋 نسخ كود MOBILE</button>
-            {copiedMsg && <div className="text-center text-xs font-bold text-green-400">{copiedMsg}</div>}
-          </div>
-
-          <div className="text-[10px] text-white/40 bg-white/5 rounded-lg p-2 leading-relaxed">
-            💡 1) اختر معلم  2) ارسم بالفرشاة  3) حدد المركز  4) انسخ الكود
-          </div>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center p-4 overflow-auto bg-[#07090D]">
-          <div ref={mapRef}
-            onMouseDown={handlePointerDown}
-            onMouseMove={handlePointerMove}
-            onMouseUp={handlePointerUp}
-            onMouseLeave={handlePointerUp}
-            className="relative select-none"
-            style={{
-              width: viewMode === 'desktop' ? 'min(100%, calc((100vh - 140px) * 16/9))' : 'min(100%, calc((100vh - 140px) * 9/16))',
-              aspectRatio: viewMode === 'desktop' ? '16 / 9' : '9 / 16',
-              cursor: mode === 'brush' ? 'crosshair' : mode === 'erase' ? 'not-allowed' : 'pointer',
-              boxShadow: '0 0 40px rgba(0,0,0,0.5)',
-            }}>
-            <img src={currentImage} alt="map" className="absolute inset-0 w-full h-full pointer-events-none"
-              style={{ objectFit: viewMode === 'mobile' ? 'cover' : 'contain' }} draggable={false} />
-
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-              {landmarks.map(l => {
-                const data = currentData[l.id];
-                if (!data) return null;
-                const isSelected = l.id === selectedLandmark;
-                if (!showAll && !isSelected) return null;
-                return (
-                  <g key={l.id} opacity={isSelected ? 1 : 0.35}>
-                    {data.brushPoints.map((p, i) => (
-                      <circle key={i} cx={p.x} cy={p.y} r={brushSize / 2} fill={l.color} opacity={0.5} />
-                    ))}
-                    <rect x={data.clickArea.x} y={data.clickArea.y} width={data.clickArea.w} height={data.clickArea.h}
-                      fill="none" stroke={l.color} strokeWidth="0.3" strokeDasharray="1,0.5" />
-                    <circle cx={data.centerX} cy={data.centerY} r="0.8" fill="white" stroke={l.color} strokeWidth="0.3" />
-                    <text x={data.clickArea.x + data.clickArea.w / 2} y={data.clickArea.y - 0.5}
-                      fill={l.color} fontSize="1.5" fontWeight="bold" textAnchor="middle"
-                      style={{ paintOrder: 'stroke', stroke: 'black', strokeWidth: '0.3' }}>{l.emoji}</text>
-                  </g>
-                );
-              })}
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-black/60 px-4 py-2 text-xs text-white/60 flex justify-between">
-        <span>الخريطة: <strong className="text-yellow-400">{mapNumber}</strong> • الوضع: <strong className="text-yellow-400">{viewMode === 'desktop' ? '🖥️' : '📱'}</strong> • المعلم: <strong style={{ color: selectedInfo.color }}>{selectedInfo.emoji} {selectedInfo.nameAr}</strong> • الأداة: <strong className="text-green-400">{mode}</strong></span>
-        <span className="text-white/40">💾 حفظ تلقائي</span>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════
-// 🎯 المكون الرئيسي
-// ═══════════════════════════════════════
 export default function SpanishCharacterAndMapPage() {
   const router = useRouter();
 
-  const [step, setStep] = useState<'setup' | 'video' | 'map'>('setup');
+  const [step, setStep] = useState<'setup' | 'map'>('setup');
   const [heroName, setHeroName] = useState('');
   const [selectedHero, setSelectedHero] = useState<string | null>(null);
   const [debugMode, setDebugMode] = useState(false);
@@ -1052,14 +707,11 @@ export default function SpanishCharacterAndMapPage() {
 
   const getInitialMap = (): MapNumber => {
     if (typeof window === 'undefined') return 1;
-    
     const param = new URLSearchParams(window.location.search).get('map');
-    if (param === '1') return 1;
-    if (param === '2') return 2;
-    if (param === '3') return 3;
-    if (param === '4') return 4;
-    if (param === '5') return 5;
-    
+    if (param) {
+      const num = parseInt(param);
+      if (num >= 1 && num <= 5) return num as MapNumber;
+    }
     try {
       const saved = localStorage.getItem(CURRENT_MAP_STORAGE_KEY);
       if (saved) {
@@ -1067,7 +719,6 @@ export default function SpanishCharacterAndMapPage() {
         if (num >= 1 && num <= 5) return num as MapNumber;
       }
     } catch {}
-    
     return 1;
   };
 
@@ -1080,7 +731,6 @@ export default function SpanishCharacterAndMapPage() {
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
   const hasDragged = useRef(false);
-  
   const mapRef = useRef<HTMLDivElement>(null);
 
   const currentMapData = MAPS_DATA[currentMap];
@@ -1093,12 +743,17 @@ export default function SpanishCharacterAndMapPage() {
 
   const mapImage = isMobileView ? currentMapData.imageMobile : currentMapData.imageDesktop;
 
+  // 👑 حالة اشتراك المستخدم
+  const [userStatus, setUserStatus] = useState({ 
+    isPremium: false, 
+    isSuperAdmin: false, 
+    isLoggedIn: false,
+    loaded: false,
+  });
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(CURRENT_MAP_STORAGE_KEY, String(currentMap));
-        console.log(`💾 [ES] تم حفظ الخريطة الحالية: ${currentMap}`);
-      } catch {}
+      localStorage.setItem(CURRENT_MAP_STORAGE_KEY, String(currentMap));
     }
   }, [currentMap]);
 
@@ -1127,16 +782,25 @@ export default function SpanishCharacterAndMapPage() {
       if (player) {
         setHeroName(player.hero_name);
         setSelectedHero(player.hero_type);
-        console.log('✅ تم تحميل اللاعب من Supabase:', player);
+        setStep('map'); // 🚀 فك اللوب: توجيه مباشر للخريطة إذا كان البطل مسجلاً سابقاً
       } else {
         const savedName = localStorage.getItem('heroName');
         const savedHero = localStorage.getItem('heroType');
-        if (savedName) setHeroName(savedName);
-        if (savedHero) setSelectedHero(savedHero);
+        if (savedName && savedHero) {
+          setHeroName(savedName);
+          setSelectedHero(savedHero);
+          setStep('map');
+        }
       }
+    };
+
+    const loadUserStatus = async () => {
+      const status = await getUserPlanStatus();
+      setUserStatus({ ...status, loaded: true });
     };
     
     loadPlayer();
+    loadUserStatus();
 
     const params = new URLSearchParams(window.location.search);
     if (params.get('from') === 'lesson') {
@@ -1144,9 +808,6 @@ export default function SpanishCharacterAndMapPage() {
     }
     if (params.get('debug') === '1') {
       setDebugMode(true);
-    }
-    if (params.get('brush') === '1') {
-      setBrushMode(true);
     }
   }, []);
 
@@ -1165,9 +826,10 @@ export default function SpanishCharacterAndMapPage() {
 
       let currentMapLessons: string[];
       if (currentMap === 1) currentMapLessons = ES_MAP_1_LESSONS;
-      else {
-        currentMapLessons = MAPS_DATA[currentMap].landmarks.map(l => l.id);
-      }
+      else if (currentMap === 2) currentMapLessons = ES_MAP_2_LESSONS;
+      else if (currentMap === 3) currentMapLessons = ES_MAP_3_LESSONS;
+      else if (currentMap === 4) currentMapLessons = ES_MAP_4_LESSONS;
+      else currentMapLessons = ES_MAP_5_LESSONS;
 
       let lastUnlocked = 1;
       for (let i = 0; i < currentMapLessons.length; i++) {
@@ -1182,9 +844,6 @@ export default function SpanishCharacterAndMapPage() {
       }
       
       setUnlockedLessonInMap(Math.min(lastUnlocked, currentMapLessons.length));
-      
-      console.log('🗺️ [ES] التقدم المحمّل:', map);
-      console.log('🔓 [ES] آخر درس مفتوح في الخريطة', currentMap, ':', lastUnlocked);
 
       const params = new URLSearchParams(window.location.search);
       if (params.get('from') === 'lesson') {
@@ -1192,7 +851,6 @@ export default function SpanishCharacterAndMapPage() {
         const seenTransition = localStorage.getItem(`es_seen_map_transition_${currentMap}`);
         
         if (isDone && !seenTransition && currentMap < TOTAL_MAPS_COUNT) {
-          console.log(`🎉 [ES] الخريطة ${currentMap} مكتملة! هيظهر modal الانتقال للخريطة ${currentMap + 1}`);
           setMapCompletedFlag(currentMap);
           setTimeout(() => setShowMapTransition(true), 500);
         }
@@ -1202,17 +860,10 @@ export default function SpanishCharacterAndMapPage() {
     loadProgress();
   }, [currentMap]);
 
-  const [videoStarted, setVideoStarted] = useState(false);
   const [selectedLandmark, setSelectedLandmark] = useState<typeof LANDMARKS[0] | null>(null);
   const [hoveredLandmark, setHoveredLandmark] = useState<typeof LANDMARKS[0] | null>(null);
   const [toroPos, setToroPos] = useState({ x: 49, y: 46 });
   const [showIntro, setShowIntro] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const heroes = [
-    { id: 'boy', name: 'البطل الشجاع', color: '#4CC9F0', img: '/characters/boy-3d.webp' },
-    { id: 'girl', name: 'البطلة العبقرية', color: '#F72585', img: '/characters/girl-3d.webp' },
-  ];
 
   useEffect(() => {
     const current = LANDMARKS.find(l => l.lesson === unlockedLessonInMap);
@@ -1229,7 +880,30 @@ export default function SpanishCharacterAndMapPage() {
     setMapPosition({ x: 0, y: 0 });
   }, [isMobileView, step, currentMap]);
 
-  const isLocked = (lesson: number) => false;
+  const isLocked = (lesson: number) => {
+    if (!userStatus.loaded) return lesson !== 1;
+    if (userStatus.isSuperAdmin) return false;
+
+    if (userStatus.isPremium) {
+      return lesson > unlockedLessonInMap;
+    }
+
+    // 🎁 حساب مجاني: أول درس فقط في أول خريطة
+    if (currentMap === 1 && lesson === 1) return false;
+    return true;
+  };
+
+  // 🔒 التحقق إذا كان الدرس مكتمل وعايز يفتح درس تاني بحساب مجاني
+  const shouldRedirectToPlans = (landmark: typeof LANDMARKS[0]) => {
+    if (userStatus.isSuperAdmin) return false;
+    if (userStatus.isPremium) return false;
+    if (!userStatus.loaded) return false;
+    
+    // لو مش أول درس في أول خريطة → حوله للدفع
+    if (currentMap !== 1 || landmark.lesson !== 1) return true;
+    return false;
+  };
+
   const isCurrent = (lesson: number) => lesson === unlockedLessonInMap;
   const getStars = (id: string) => progressMap[id]?.stars ?? 0;
 
@@ -1249,16 +923,6 @@ export default function SpanishCharacterAndMapPage() {
     }
   };
 
-  const handleVideoEnd = () => setStep('map');
-
-  const handleTapToPlay = () => {
-    setVideoStarted(true);
-    if (videoRef.current) {
-      videoRef.current.muted = false;
-      videoRef.current.play();
-    }
-  };
-
   const handleLandmarkClick = (landmark: typeof LANDMARKS[0]) => {
     if (debugMode || brushMode) return;
     if (hasDragged.current) {
@@ -1267,13 +931,21 @@ export default function SpanishCharacterAndMapPage() {
     }
     if (isLocked(landmark.lesson)) {
       playLockedSound();
+      if (shouldRedirectToPlans(landmark)) {
+        setTimeout(() => router.push('/plans'), 200);
+      }
+      return;
+    }
+    // 🎁 لو حساب مجاني وخلص الدرس الأول وبيحاول يفتح أي درس تاني
+    if (shouldRedirectToPlans(landmark)) {
+      playLockedSound();
+      setTimeout(() => router.push('/plans'), 200);
       return;
     }
     playClickSound();
     setToroPos({ x: landmark.centerX, y: landmark.centerY });
     setTimeout(() => setSelectedLandmark(landmark), 300);
   };
-
   const handleLandmarkStart = () => {
     if (!selectedLandmark) return;
     try {
@@ -1312,7 +984,6 @@ export default function SpanishCharacterAndMapPage() {
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setClickedCoords({ x: parseFloat(x.toFixed(1)), y: parseFloat(y.toFixed(1)) });
-    console.log(`📍 [${isMobileView ? '📱 MOBILE' : '🖥️ DESKTOP'}] [ES MAP ${currentMap}] Clicked at: x=${x.toFixed(1)}%, y=${y.toFixed(1)}%`);
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -1353,22 +1024,16 @@ export default function SpanishCharacterAndMapPage() {
     setMapPosition({ x: 0, y: 0 });
   };
 
+  const heroes = [
+    { id: 'boy', name: 'البطل الشجاع', color: '#4CC9F0', img: '/characters/boy-3d.webp' },
+    { id: 'girl', name: 'البطلة العبقرية', color: '#F72585', img: '/characters/girl-3d.webp' },
+  ];
+
   if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#07090D]">
         <div className="text-white">جاري التحميل...</div>
       </div>
-    );
-  }
-
-  if (brushMode) {
-    return (
-      <MapBrushTool 
-        isMobileView={isMobileView} 
-        landmarks={currentMapData.landmarks}
-        mapNumber={currentMap}
-        mapImage={{ desktop: currentMapData.imageDesktop, mobile: currentMapData.imageMobile }}
-      />
     );
   }
 
@@ -1424,11 +1089,6 @@ export default function SpanishCharacterAndMapPage() {
     );
   }
 
-  if (step === 'video') {
-    handleVideoEnd();
-    return null;
-  }
-
   return (
     <div className="relative w-full min-h-screen overflow-hidden" style={{ background: '#07090D', fontFamily: "'Tajawal', sans-serif" }}>
 
@@ -1443,54 +1103,115 @@ export default function SpanishCharacterAndMapPage() {
         </div>
       )}
 
-      <div className="fixed left-0 right-0 z-30 flex items-center justify-between px-4 py-3"
+      <div 
+        className="fixed left-0 right-0 z-30 flex items-center justify-between"
         style={{ 
           background: 'linear-gradient(to bottom, rgba(7,9,13,0.95), transparent)', 
-          top: debugMode ? '32px' : '0' 
+          top: debugMode ? '32px' : '0',
+          padding: 'clamp(8px, 1.5vw, 16px) clamp(10px, 2vw, 20px)',
+          gap: 'clamp(6px, 1vw, 12px)',
         }}>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setStep('setup')}
-            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl px-3 py-2 text-xs md:text-sm font-bold text-white transition-all">
-            ← تعديل
-          </button>
-
-          {currentMap > 1 && (
-            <motion.button
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              onClick={handleGoToPreviousMap}
-              className="flex items-center gap-1.5 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400/40 rounded-2xl px-3 py-2 text-xs md:text-sm font-bold text-yellow-300 transition-all"
-              title="الخريطة السابقة">
-              <MapIcon size={14} /> سابقة
-            </motion.button>
-          )}
-
-          {currentMap < TOTAL_MAPS_COUNT && (
-            <motion.button
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleShowMapTransition}
-              className="flex items-center gap-1.5 rounded-2xl px-3 py-2 text-xs md:text-sm font-bold text-white transition-all relative overflow-hidden"
-              style={{
-                background: 'linear-gradient(135deg, #DC2626, #FFD700)',
-                boxShadow: '0 4px 15px rgba(220,38,38,0.4)',
-                border: '1px solid rgba(255,215,0,0.5)',
-              }}
-              title={`الانتقال للمرحلة ${currentMap + 1}`}>
-              <motion.div
-                className="absolute inset-0 bg-white/20"
-                animate={{ x: ['-100%', '100%'] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              />
-              <span className="relative">المرحلة {currentMap + 1}</span>
-              <MapIcon size={14} className="relative" />
-            </motion.button>
-          )}
+        {/* 👋 الجهة اليمين: اسم البطل */}
+        <div className="flex items-center" style={{ gap: 'clamp(4px, 0.8vw, 8px)' }}>
+          <div 
+            className="flex items-center bg-black/40 border border-white/10 rounded-2xl"
+            style={{
+              gap: 'clamp(4px, 0.6vw, 8px)',
+              padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.4vw, 14px)',
+            }}
+          >
+            <span className="text-sm">🇪🇸</span>
+            <div 
+              className="font-black text-white whitespace-nowrap"
+              style={{ fontSize: 'clamp(11px, 1.3vw, 14px)' }}
+            >
+              👋 {heroName}
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* 🎯 الوسط: سهمين للتنقل بين الخرايط + مؤشر المرحلة */}
+        <div className="flex items-center" style={{ gap: 'clamp(4px, 0.8vw, 8px)' }}>
+          {/* ⬅️ سهم شمال (المرحلة السابقة) */}
+          <motion.button
+            whileHover={{ scale: currentMap > 1 ? 1.1 : 1 }}
+            whileTap={{ scale: currentMap > 1 ? 0.9 : 1 }}
+            onClick={handleGoToPreviousMap}
+            disabled={currentMap <= 1}
+            className={`flex items-center justify-center rounded-2xl border-2 transition-all ${
+              currentMap > 1
+                ? 'bg-red-500/20 hover:bg-red-500/40 border-red-400/50 text-red-200 cursor-pointer shadow-lg shadow-red-500/20'
+                : 'bg-white/5 border-white/10 text-white/20 cursor-not-allowed'
+            }`}
+            style={{
+              width: 'clamp(32px, 4.5vw, 48px)',
+              height: 'clamp(32px, 4.5vw, 48px)',
+            }}
+            title="المرحلة السابقة">
+            <ChevronRight 
+              strokeWidth={3} 
+              style={{ width: 'clamp(14px, 1.8vw, 20px)', height: 'clamp(14px, 1.8vw, 20px)' }} 
+            />
+          </motion.button>
+
+          {/* 🗺️ مؤشر رقم المرحلة */}
+          <motion.div 
+            key={currentMap}
+            initial={{ scale: 0.8, opacity: 0 }} 
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex items-center bg-gradient-to-r from-red-500/30 to-yellow-500/30 border border-yellow-400/40 rounded-2xl"
+            style={{
+              gap: 'clamp(4px, 0.6vw, 8px)',
+              padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.4vw, 14px)',
+              height: 'clamp(32px, 4.5vw, 48px)',
+            }}
+          >
+            <MapIcon 
+              className="text-yellow-300" 
+              style={{ width: 'clamp(12px, 1.4vw, 16px)', height: 'clamp(12px, 1.4vw, 16px)' }}
+            />
+            <span 
+              className="font-black text-white whitespace-nowrap"
+              style={{ fontSize: 'clamp(11px, 1.3vw, 14px)' }}
+            >
+              {currentMap}/{TOTAL_MAPS_COUNT}
+            </span>
+          </motion.div>
+
+          {/* ➡️ سهم يمين (المرحلة التالية) */}
+          <motion.button
+            whileHover={{ scale: currentMap < TOTAL_MAPS_COUNT ? 1.1 : 1 }}
+            whileTap={{ scale: currentMap < TOTAL_MAPS_COUNT ? 0.9 : 1 }}
+            onClick={() => {
+              if (currentMap < TOTAL_MAPS_COUNT) {
+                playClickSound();
+                setCurrentMap(prev => (prev + 1) as MapNumber);
+              }
+            }}
+            disabled={currentMap >= TOTAL_MAPS_COUNT}
+            className={`flex items-center justify-center rounded-2xl border-2 transition-all ${
+              currentMap < TOTAL_MAPS_COUNT
+                ? 'bg-red-500/20 hover:bg-red-500/40 border-red-400/50 text-red-200 cursor-pointer shadow-lg shadow-red-500/20'
+                : 'bg-white/5 border-white/10 text-white/20 cursor-not-allowed'
+            }`}
+            style={{
+              width: 'clamp(32px, 4.5vw, 48px)',
+              height: 'clamp(32px, 4.5vw, 48px)',
+            }}
+            title="المرحلة التالية">
+            <ChevronRight 
+              strokeWidth={3} 
+              style={{ 
+                width: 'clamp(14px, 1.8vw, 20px)', 
+                height: 'clamp(14px, 1.8vw, 20px)',
+                transform: 'rotate(180deg)' 
+              }} 
+            />
+          </motion.button>
+        </div>
+
+        {/* 📊 الجهة الشمال: زرار الريست + التقدم */}
+        <div className="flex items-center" style={{ gap: 'clamp(4px, 0.8vw, 8px)' }}>
           {!isMobileView && (
             <AnimatePresence>
               {(mapPosition.x !== 0 || mapPosition.y !== 0 || mapScale !== 1) && (
@@ -1499,7 +1220,11 @@ export default function SpanishCharacterAndMapPage() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0, opacity: 0 }}
                   onClick={resetMapView}
-                  className="flex items-center gap-1 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 rounded-2xl px-3 py-2 text-xs font-bold text-yellow-400 transition-all"
+                  className="flex items-center gap-1 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 rounded-2xl font-bold text-yellow-400 transition-all"
+                  style={{
+                    fontSize: 'clamp(10px, 1.1vw, 12px)',
+                    padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.4vw, 14px)',
+                  }}
                   title="إعادة ضبط العرض">
                   🔄
                 </motion.button>
@@ -1507,31 +1232,31 @@ export default function SpanishCharacterAndMapPage() {
             </AnimatePresence>
           )}
 
-          <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
-            <span className="text-sm">🇪🇸</span>
-            <div className="text-xs md:text-sm font-black text-white">👋 {heroName}</div>
-          </div>
-
-          <motion.div 
-            key={currentMap}
-            initial={{ scale: 0, opacity: 0 }} 
-            animate={{ scale: 1, opacity: 1 }}
-            className="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-red-500/30 to-yellow-500/30 border border-yellow-400/40 rounded-2xl px-3 py-2">
-            <MapIcon size={14} className="text-yellow-300" />
-            <span className="text-xs font-black text-white">المرحلة {currentMap}/{TOTAL_MAPS_COUNT}</span>
-          </motion.div>
-        </div>
-
-        <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl px-3 py-2">
-          <div className="text-right">
-            <div className="text-[10px] md:text-xs text-white/50 font-bold">تقدمك</div>
-            <div className="text-xs md:text-sm font-black text-[#FFD700]">
-              {LANDMARKS.length > 0 
-                ? `${LANDMARKS.filter(l => l.lesson < unlockedLessonInMap).length} / ${LANDMARKS.length}`
-                : '0 / 0'}
+          <div 
+            className="flex items-center bg-black/40 border border-white/10 rounded-2xl"
+            style={{
+              gap: 'clamp(4px, 0.6vw, 8px)',
+              padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.4vw, 14px)',
+            }}
+          >
+            <div className="text-right">
+              <div 
+                className="text-white/50 font-bold"
+                style={{ fontSize: 'clamp(8px, 0.9vw, 11px)' }}
+              >
+                تقدمك
+              </div>
+              <div 
+                className="font-black text-[#FFD700] whitespace-nowrap"
+                style={{ fontSize: 'clamp(11px, 1.3vw, 14px)' }}
+              >
+                {LANDMARKS.length > 0 
+                  ? `${LANDMARKS.filter(l => l.lesson < unlockedLessonInMap).length} / ${LANDMARKS.length}`
+                  : '0 / 0'}
+              </div>
             </div>
+            <div style={{ fontSize: 'clamp(14px, 1.6vw, 20px)' }}>🗺️</div>
           </div>
-          <div className="text-lg md:text-xl">🗺️</div>
         </div>
       </div>
 
@@ -1573,24 +1298,6 @@ export default function SpanishCharacterAndMapPage() {
               draggable={false} 
             />
           </AnimatePresence>
-
-          {LANDMARKS.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-              <div className="text-center text-white px-6 max-w-md">
-                <div className="text-6xl mb-4">🚧</div>
-                <h3 className="text-2xl font-black mb-2">قريباً جداً!</h3>
-                <p className="text-white/70 text-sm font-bold mb-6">
-                  المرحلة {currentMap} ({currentMapData.titleAr}) قيد التطوير
-                </p>
-                {currentMap > 1 && (
-                  <button onClick={handleGoToPreviousMap}
-                    className="px-6 py-3 bg-yellow-500 text-black rounded-2xl font-black">
-                    ← العودة للمرحلة السابقة
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
 
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none"
@@ -1640,26 +1347,6 @@ export default function SpanishCharacterAndMapPage() {
               );
             })}
           </svg>
-
-          {debugMode && LANDMARKS.map(l => {
-            if (!l.clickArea) return null;
-            return (
-              <div key={`debug-${l.id}`} className="absolute pointer-events-none border-2 border-dashed flex items-center justify-center"
-                style={{
-                  left: `${l.clickArea.x}%`,
-                  top: `${l.clickArea.y}%`,
-                  width: `${l.clickArea.w}%`,
-                  height: `${l.clickArea.h}%`,
-                  borderColor: l.color,
-                  background: `${l.color}20`,
-                  zIndex: 18,
-                }}>
-                <span className="bg-black/80 text-white text-xs font-black px-2 py-0.5 rounded">
-                  {l.emoji} {l.nameAr}
-                </span>
-              </div>
-            );
-          })}
 
           {LANDMARKS.map((landmark, index) => {
             if (!landmark.clickArea) return null;

@@ -12,21 +12,22 @@ interface PlanDetails {
   currency: string;
 }
 
+// ✨ تفعيل الـ 3 خطط لجميع الدول بخصم 50%
 const PLANS_DATA: Record<string, Record<string, PlanDetails>> = {
   eg: {
-    monthly: { name: 'الاشتراك الشهري', price: 200, currency: 'جنيه مصري' },
-    quarterly: { name: 'الاشتراك الربع سنوي', price: 350, currency: 'جنيه مصري' },
-    yearly: { name: 'الاشتراك السنوي 🏆', price: 500, currency: 'جنيه مصري' },
+    monthly: { name: 'الاشتراك الشهري المميز ⚡', price: 200, currency: 'جنيه مصري' },
+    quarterly: { name: 'الاشتراك الربع سنوي المميز 🎯', price: 350, currency: 'جنيه مصري' },
+    yearly: { name: 'الاشتراك السنوي المميز 🏆', price: 500, currency: 'جنيه مصري' },
   },
   sa: {
-    monthly: { name: 'الاشتراك الشهري', price: 49, currency: 'ريال سعودي' },
-    quarterly: { name: 'الاشتراك الربع سنوي', price: 119, currency: 'ريال سعودي' },
-    yearly: { name: 'الاشتراك السنوي 🏆', price: 349, currency: 'ريال سعودي' },
+    monthly: { name: 'الاشتراك الشهري المميز ⚡', price: 99, currency: 'ريال سعودي' },
+    quarterly: { name: 'الاشتراك الربع سنوي المميز 🎯', price: 199, currency: 'ريال سعودي' },
+    yearly: { name: 'الاشتراك السنوي المميز 🏆', price: 349, currency: 'ريال سعودي' },
   },
   ae: {
-    monthly: { name: 'الاشتراك الشهري', price: 49, currency: 'درهم إماراتي' },
-    quarterly: { name: 'الاشتراك الربع سنوي', price: 129, currency: 'درهم إماراتي' },
-    yearly: { name: 'الاشتراك السنوي 🏆', price: 379, currency: 'درهم إماراتي' },
+    monthly: { name: 'الاشتراك الشهري المميز ⚡', price: 109, currency: 'درهم إماراتي' },
+    quarterly: { name: 'الاشتراك الربع سنوي المميز 🎯', price: 219, currency: 'درهم إماراتي' },
+    yearly: { name: 'الاشتراك السنوي المميز 🏆', price: 379, currency: 'درهم إماراتي' },
   },
 };
 
@@ -35,6 +36,7 @@ function CheckoutContent() {
   const router = useRouter();
 
   const country = searchParams.get('country') || 'eg';
+  // 🚀 قراءة الخطة المختارة من الرابط بشكل ديناميكي
   const plan = searchParams.get('plan') || 'yearly';
 
   const selectedCountryPlans = PLANS_DATA[country] || PLANS_DATA['eg'];
@@ -249,14 +251,14 @@ function CheckoutContent() {
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="font-black text-base text-[#FFD700]">{planInfo.name}</span>
-                  <span className="text-xs bg-[#FFD700]/20 text-[#FFD700] px-2 py-0.5 rounded-full font-black">
-                    مميز ✨
+                  <span className="font-black text-[13px] text-[#FFD700]">{planInfo.name}</span>
+                  <span className="text-[10px] bg-[#FFD700]/20 text-[#FFD700] px-2.5 py-1 rounded-full font-black whitespace-nowrap">
+                    {plan === 'yearly' ? 'سنة كاملة 🏆' : plan === 'quarterly' ? '3 أشهر 🎯' : 'شهر كامل ⚡'}
                   </span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-black/30 border border-white/5 space-y-1 text-center">
-                  <span className="text-xs text-gray-400 font-bold block">مجموع المستحق دفعه:</span>
+                  <span className="text-[11px] text-gray-400 font-bold block">مجموع المستحق دفعه:</span>
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="text-3xl font-black text-white">{planInfo.price}</span>
                     <span className="text-xs text-gray-300 font-bold">{planInfo.currency}</span>
@@ -268,15 +270,25 @@ function CheckoutContent() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2.5 text-xs text-gray-300">
                     <CheckCircle size={14} className="text-[#06D6A0]" />
-                    <span>تفعيل فوري خلال ساعة واحدة</span>
+                    <span>تفعيل فوري آمن ومباشر</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-xs text-gray-300">
                     <CheckCircle size={14} className="text-[#06D6A0]" />
-                    <span>منهج الألمانية كامل ومفتوح</span>
+                    <span>
+                      {plan === 'yearly' 
+                        ? 'منهج الألماني والإسباني وكل اللغات القادمة' 
+                        : plan === 'quarterly' 
+                        ? 'منهج الألماني والإسباني + لغة ثالثة قادمة' 
+                        : 'لغة واحدة من اختيارك بالكامل'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2.5 text-xs text-gray-300">
                     <CheckCircle size={14} className="text-[#06D6A0]" />
-                    <span>لوحات تحكم ولي الأمر كاملة</span>
+                    <span>ألعاب تفاعلية ونطق الناطقين الأصليين</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 text-xs text-gray-300">
+                    <CheckCircle size={14} className="text-[#06D6A0]" />
+                    <span>لوحات تحكم ذكية لولي الأمر للتقييم</span>
                   </div>
                 </div>
               </div>

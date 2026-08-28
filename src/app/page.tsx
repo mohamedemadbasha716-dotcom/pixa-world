@@ -18,7 +18,7 @@ const BOOKS_DATA = [
     students: '2,340',
     flag: '🇩🇪',
     desc: 'لغة الهندسة والابتكار',
-    route: '/plans',
+    route: '/character-and-map',
     available: true,
     langCode: 'de'
   },
@@ -30,7 +30,7 @@ const BOOKS_DATA = [
     students: '3,120',
     flag: '🇪🇸',
     desc: 'لغة نصف العالم الغربي',
-    route: '/plans',
+    route: '/spanish-character-and-map',
     available: true,
     langCode: 'es'
   },
@@ -42,7 +42,7 @@ const BOOKS_DATA = [
     students: '1,890',
     flag: '🇷🇺',
     desc: 'لغة الفضاء والعلوم',
-    route: '/plans',
+    route: '/coming-soon?lang=russian',
     available: false,
     langCode: 'ru'
   },
@@ -54,7 +54,7 @@ const BOOKS_DATA = [
     students: '2,750',
     flag: '🇯🇵',
     desc: 'لغة التكنولوجيا والأنمي',
-    route: '/plans',
+    route: '/coming-soon?lang=japanese',
     available: false,
     langCode: 'ja'
   },
@@ -66,7 +66,7 @@ const BOOKS_DATA = [
     students: '4,100',
     flag: '🇨🇳',
     desc: 'لغة اقتصاد المستقبل',
-    route: '/plans',
+    route: '/coming-soon?lang=chinese',
     available: false,
     langCode: 'zh'
   },
@@ -590,7 +590,7 @@ export default function PixiHomePage() {
               whileHover={{ scale: 1.2, y: -5 }}
               animate={{ y: [0, -5, 0] }}
               transition={{ y: { duration: 2, repeat: Infinity, delay: i * 0.3 } }}
-              onClick={() => window.location.href = '/plans'}
+              onClick={() => window.location.href = book.route}
             >
               <span className="text-2xl md:text-3xl" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.3))' }}>
                 {book.flag}
@@ -634,7 +634,7 @@ export default function PixiHomePage() {
               className="relative group cursor-pointer flex flex-col items-center"
               onHoverStart={() => setActiveBook(book.id)}
               onHoverEnd={() => setActiveBook(null)}
-              onClick={() => window.location.href = '/plans'}
+              onClick={() => window.location.href = book.route}
             >
               <motion.div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
@@ -1327,7 +1327,7 @@ export default function PixiHomePage() {
               {BOOKS_DATA.map((book) => (
                 <a
                   key={book.id}
-                  href="/plans"
+                  href={book.route}
                   className="block text-gray-300 text-sm hover:text-[#FF4D6D] transition-colors font-medium"
                 >
                   {book.flag} {book.title}

@@ -41,17 +41,15 @@ export interface LessonProgress {
 // 🗺️ نظام الخرايط المتعددة (الألماني)
 // ═══════════════════════════════════════
 
-// 🗺️ الخريطة 1: ألمانيا — الأساسيات
 export const MAP_1_LESSONS = [
-  'hamburg',        // 1️⃣ الحروف
-  'cologne',        // 2️⃣ الأرقام
-  'center',         // 3️⃣ الغابة
-  'berlin',         // 4️⃣ العائلة
-  'lake',           // 5️⃣ البحيرة
-  'neuschwanstein', // 6️⃣ القلعة
+  'hamburg',
+  'cologne',
+  'center',
+  'berlin',
+  'lake',
+  'neuschwanstein',
 ];
 
-// 🗺️ الخريطة 2: ألمانيا — الحياة اليومية
 export const MAP_2_LESSONS = [
   'heidelberg-school',
   'karl-house',
@@ -61,7 +59,6 @@ export const MAP_2_LESSONS = [
   'adventurer-castle',
 ];
 
-// 🗺️ الخريطة 3: فرانكفورت — مدن الثقافة
 export const MAP_3_LESSONS = [
   'zeil-street',
   'senckenberg-museum',
@@ -71,7 +68,6 @@ export const MAP_3_LESSONS = [
   'main-tower',
 ];
 
-// 🗺️ الخريطة 4: برلين
 export const MAP_4_LESSONS = [
   'berlin-hauptbahnhof',
   'brandenburg-gate-2',
@@ -81,7 +77,6 @@ export const MAP_4_LESSONS = [
   'fernsehturm',
 ];
 
-// 🗺️ الخريطة 5: مدن الثقافة الألمانية
 export const MAP_5_LESSONS = [
   'heidelberg-uni',
   'anna-amalia-library',
@@ -91,7 +86,6 @@ export const MAP_5_LESSONS = [
   'goethe-institut',
 ];
 
-// 🗺️ كل الدروس مرتبة (للقفل التلقائي عبر الخرايط)
 export const LESSON_ORDER = [
   ...MAP_1_LESSONS,
   ...MAP_2_LESSONS,
@@ -100,10 +94,8 @@ export const LESSON_ORDER = [
   ...MAP_5_LESSONS,
 ];
 
-// 🗺️ عدد الخرايط الكلي
 export const TOTAL_MAPS = 5;
 
-// 🗺️ Helper: جلب دروس خريطة معينة
 export function getMapLessons(mapNumber: number): string[] {
   switch (mapNumber) {
     case 1: return MAP_1_LESSONS;
@@ -350,7 +342,7 @@ export async function isLessonUnlocked(lessonId: string): Promise<boolean> {
 }
 
 // ═══════════════════════════════════════
-// 🎯 جلب رقم الدرس الحالي (أول درس مش متكمل)
+// 🎯 جلب رقم الدرس الحالي
 // ═══════════════════════════════════════
 export async function getCurrentLessonId(): Promise<string> {
   const allProgress = await getAllProgress();
@@ -376,7 +368,7 @@ export async function getTotalStarsFromLessons(): Promise<number> {
 }
 
 // ═══════════════════════════════════════
-// 🗺️ التحقق إذا كانت خريطة معينة مكتملة (كل دروسها)
+// 🗺️ التحقق إذا كانت خريطة معينة مكتملة
 // ═══════════════════════════════════════
 export async function isMapCompleted(mapNumber: number): Promise<boolean> {
   const mapLessons = getMapLessons(mapNumber);
@@ -391,8 +383,7 @@ export async function isMapCompleted(mapNumber: number): Promise<boolean> {
 }
 
 // ═══════════════════════════════════════
-// 🗺️ معرفة الخريطة الحالية اللي اللاعب فيها
-// (أول خريطة فيها درس مش مكتمل)
+// 🗺️ معرفة الخريطة الحالية
 // ═══════════════════════════════════════
 export async function getCurrentMap(): Promise<number> {
   const allProgress = await getAllProgress();
@@ -400,17 +391,15 @@ export async function getCurrentMap(): Promise<number> {
     allProgress.filter(p => p.completed).map(p => p.lesson_id)
   );
 
-  // نشيك على كل خريطة بالترتيب
   for (let mapNum = 1; mapNum <= TOTAL_MAPS; mapNum++) {
     const mapLessons = getMapLessons(mapNum);
     const allMapCompleted = mapLessons.every(id => completedSet.has(id));
     
     if (!allMapCompleted) {
-      return mapNum; // أول خريطة مش مكتملة
+      return mapNum;
     }
   }
 
-  // لو كل الخرايط مكتملة، يرجع آخر خريطة
   return TOTAL_MAPS;
 }
 
@@ -434,12 +423,13 @@ export async function getMapStars(mapNumber: number): Promise<{ earned: number; 
 
 // ═══════════════════════════════════════
 // 🗺️ هل خريطة معينة مفتوحة للّعب؟
-// (لازم اللي قبلها تكون مكتملة)
 // ═══════════════════════════════════════
 export async function isMapUnlocked(mapNumber: number): Promise<boolean> {
   if (mapNumber === 1) return true;
   return await isMapCompleted(mapNumber - 1);
-}// ═══════════════════════════════════════
+}
+
+// ═══════════════════════════════════════
 // 👑 التحقق من نوع اشتراك المستخدم
 // ═══════════════════════════════════════
 export async function getUserPlanStatus(): Promise<{ 
@@ -454,8 +444,9 @@ export async function getUserPlanStatus(): Promise<{
       return { isPremium: false, isSuperAdmin: false, isLoggedIn: false };
     }
 
-    // 👑 حسابك الشخصي - مفتوح له كل شيء
+    // 👑 حسابك الشخصي الاستثنائي - كل شيء مفتوح
     if (user.email?.trim().toLowerCase() === 'mohamedemadbasha716@gmail.com') {
+      console.log('👑 Super Admin logged in!');
       return { isPremium: true, isSuperAdmin: true, isLoggedIn: true };
     }
 

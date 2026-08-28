@@ -2,14 +2,16 @@
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Gift, Crown, ArrowRight, Sparkle, CheckCircle, Shield } from 'lucide-react';
+import { Crown, ArrowRight, Sparkle, CheckCircle, Shield, Star, Zap, Trophy } from 'lucide-react';
 
 export default function PlansPage() {
   const router = useRouter();
-  const [loadingPaid, setLoadingPaid] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  const handleFreePlan = () => router.push('/character-and-map');
-  const handlePaidPlan = () => router.push('/pricing/eg');
+  const handleSelectPlan = (plan: 'monthly' | 'quarterly' | 'yearly') => {
+    setLoadingPlan(plan);
+    router.push(`/checkout?plan=${plan}&country=eg`);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a3e] via-[#2d1b4e] to-[#1e1b4b] text-white font-sans overflow-x-hidden relative" dir="rtl">
@@ -50,7 +52,7 @@ export default function PlansPage() {
       </motion.header>
 
       {/* المحتوى */}
-      <main className="relative z-10 max-w-6xl mx-auto px-6 py-12 md:py-20">
+      <main className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-20">
         {/* العنوان */}
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-4 mb-12"
@@ -80,141 +82,262 @@ export default function PlansPage() {
               🚀
             </motion.span>
           </h1>
-          <p className="text-gray-300 text-sm md:text-base max-w-xl mx-auto font-medium">
-            جرّب مجاناً أو ابدأ بخطة مدفوعة للاستفادة الكاملة من كل مميزات المنصة
+          <p className="text-gray-300 text-sm md:text-base max-w-2xl mx-auto font-medium">
+            3 خطط مرنة تناسب كل احتياجاتك — من لغة واحدة لجميع اللغات المتاحة والقادمة
           </p>
         </motion.div>
 
-        {/* الخطتين */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
+        {/* الخطط الثلاثة */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-6 max-w-6xl mx-auto">
 
-          {/* خطة مجانية */}
+          {/* 1️⃣ الخطة الشهرية */}
           <motion.div
-            initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             whileHover={{ y: -8, scale: 1.02 }}
-            className="relative rounded-[28px] overflow-hidden backdrop-blur-md bg-gradient-to-b from-[#06D6A0]/10 to-[#06D6A0]/5 border-2 border-[#06D6A0]/40 shadow-2xl shadow-[#06D6A0]/20 cursor-pointer group"
-            onClick={handleFreePlan}
+            className="relative rounded-[28px] overflow-hidden backdrop-blur-md bg-gradient-to-b from-[#4CC9F0]/10 to-[#4CC9F0]/5 border-2 border-[#4CC9F0]/40 shadow-2xl shadow-[#4CC9F0]/20 cursor-pointer group"
+            onClick={() => handleSelectPlan('monthly')}
           >
-            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-40 rounded-full blur-[80px] bg-[#06D6A0] opacity-20" />
-            <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-[#06D6A0]/20 border border-[#06D6A0]/40 text-[10px] font-black text-[#06D6A0]">
-              🎁 متاح فوراً
+            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-40 rounded-full blur-[80px] bg-[#4CC9F0] opacity-20" />
+            <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-[#4CC9F0]/20 border border-[#4CC9F0]/40 text-[10px] font-black text-[#4CC9F0]">
+              ⚡ الأنسب للتجربة
             </div>
 
-            <div className="relative z-10 p-8 md:p-10 space-y-6">
-              <div className="text-center space-y-4">
+            <div className="relative z-10 p-6 md:p-8 space-y-5">
+              <div className="text-center space-y-3">
                 <motion.div
                   animate={{ rotate: [0,10,-10,0], scale: [1,1.1,1] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="inline-block text-6xl"
-                  style={{ filter: 'drop-shadow(0 4px 15px rgba(6,214,160,0.5))' }}
-                >🎁</motion.div>
+                  className="inline-block text-5xl"
+                  style={{ filter: 'drop-shadow(0 4px 15px rgba(76,201,240,0.5))' }}
+                >⚡</motion.div>
 
                 <div className="space-y-2">
-                  <h2 className="text-2xl md:text-3xl font-black text-white">خطة مجانية</h2>
-                  <p className="text-[#06D6A0] font-black text-sm">جرّب قبل ما تشترك</p>
+                  <h2 className="text-xl md:text-2xl font-black text-white">الخطة الشهرية</h2>
+                  <p className="text-[#4CC9F0] font-black text-xs">لغة واحدة من اختيارك</p>
                 </div>
 
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-5xl font-black text-[#06D6A0]">0</span>
-                  <span className="text-gray-300 text-sm font-bold">مجاناً</span>
+                <div className="space-y-1">
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-gray-500 text-lg font-bold line-through">400</span>
+                    <span className="text-4xl font-black text-[#4CC9F0]">
+                      200
+                    </span>
+                    <span className="text-gray-300 text-xs font-bold">جنيه / شهر</span>
+                  </div>
+                  <div className="inline-block px-2 py-0.5 rounded-full bg-[#4CC9F0]/20 border border-[#4CC9F0]/40">
+                    <span className="text-[10px] font-black text-[#4CC9F0]">🎁 وفر 50%</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="h-[1px] bg-gradient-to-r from-transparent via-[#06D6A0]/40 to-transparent" />
+              <div className="h-[1px] bg-gradient-to-r from-transparent via-[#4CC9F0]/40 to-transparent" />
 
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {[
-                  'أول درس كامل في الألمانية',
-                  'ألعاب تفاعلية مجانية',
-                  'نطق بصوت ناطقين أصليين',
-                  'بدون بطاقة ائتمان',
-                  'ابدأ فوراً في دقايق',
+                  'لغة واحدة من اختيارك (ألماني أو إسباني)',
+                  'أو أي لغة جديدة عند إضافتها',
+                  'وصول كامل لكل دروس اللغة',
+                  'نطق ناطقين أصليين',
+                  'شهادات وأوسمة رقمية',
                 ].map((feature, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#06D6A0]/25 flex-shrink-0">
-                      <CheckCircle size={12} className="text-[#06D6A0]" />
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#4CC9F0]/25 flex-shrink-0">
+                      <CheckCircle size={12} className="text-[#4CC9F0]" />
                     </div>
-                    <span className="text-[13px] text-gray-200 font-medium">{feature}</span>
+                    <span className="text-[12px] text-gray-200 font-medium">{feature}</span>
                   </div>
                 ))}
               </div>
 
               <motion.button
-                whileHover={{ scale: 1.03, boxShadow: '0 0 40px rgba(6,214,160,0.5)' }}
+                whileHover={{ scale: 1.03, boxShadow: '0 0 40px rgba(76,201,240,0.5)' }}
                 whileTap={{ scale: 0.97 }}
-                onClick={handleFreePlan}
-                className="w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#06D6A0] to-[#4CC9F0] text-white shadow-lg shadow-[#06D6A0]/40"
+                onClick={(e) => { e.stopPropagation(); handleSelectPlan('monthly'); }}
+                disabled={loadingPlan === 'monthly'}
+                className="w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-[#4CC9F0] to-[#4361EE] text-white shadow-lg shadow-[#4CC9F0]/40 disabled:opacity-70"
               >
-                <Gift size={18} />
-                <span>ابدأ التجربة المجانية</span>
-                <ArrowRight size={16} className="rotate-180" />
+                {loadingPlan === 'monthly' ? (
+                  <>
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                    />
+                    <span>جاري التحويل...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap size={16} />
+                    <span>اشترك شهرياً</span>
+                    <ArrowRight size={14} className="rotate-180" />
+                  </>
+                )}
               </motion.button>
 
-              <p className="text-center text-[11px] text-gray-400 font-bold">⏱️ 5-10 دقائق فقط</p>
+              <p className="text-center text-[10px] text-gray-400 font-bold">💡 مرن — الغِ أي وقت</p>
             </div>
           </motion.div>
 
-          {/* خطة مدفوعة */}
+          {/* 2️⃣ الخطة الربع سنوية - الأكثر شعبية */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             whileHover={{ y: -8, scale: 1.02 }}
+            className="relative rounded-[28px] overflow-hidden backdrop-blur-md bg-gradient-to-b from-[#9D4EDD]/15 to-[#F72585]/5 border-2 border-[#9D4EDD]/50 shadow-2xl shadow-[#9D4EDD]/30 cursor-pointer group md:scale-105"
+            onClick={() => handleSelectPlan('quarterly')}
+          >
+            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-40 rounded-full blur-[80px] bg-[#9D4EDD] opacity-30" />
+            <div className="absolute top-0 left-0 right-0 py-2 text-center text-xs font-black text-white z-10"
+              style={{ background: 'linear-gradient(135deg, #9D4EDD, #F72585)', boxShadow: '0 4px 15px rgba(157,78,221,0.5)' }}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Star size={14} fill="white" /><span>الأكثر شعبية 🔥</span><Star size={14} fill="white" />
+              </div>
+            </div>
+
+            <div className="relative z-10 p-6 md:p-8 pt-12 space-y-5">
+              <div className="text-center space-y-3">
+                <motion.div
+                  animate={{ y: [0,-8,0], rotate: [0,5,-5,0] }}
+                  transition={{ duration: 2.5, repeat: Infinity }}
+                  className="inline-block text-5xl"
+                  style={{ filter: 'drop-shadow(0 4px 15px rgba(157,78,221,0.5))' }}
+                >🎯</motion.div>
+
+                <div className="space-y-2">
+                  <h2 className="text-xl md:text-2xl font-black text-white">الخطة الربع سنوية</h2>
+                  <p className="text-[#F72585] font-black text-xs">3 أشهر — 3 لغات</p>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-gray-500 text-lg font-bold line-through">700</span>
+                    <span className="text-4xl font-black"
+                      style={{ backgroundImage: 'linear-gradient(135deg, #9D4EDD, #F72585)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+                    >
+                      350
+                    </span>
+                    <span className="text-gray-300 text-xs font-bold">جنيه</span>
+                  </div>
+                  <div className="inline-block px-2 py-0.5 rounded-full bg-[#F72585]/20 border border-[#F72585]/40">
+                    <span className="text-[10px] font-black text-[#F72585]">🎁 وفر 50%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-[1px] bg-gradient-to-r from-transparent via-[#9D4EDD]/40 to-transparent" />
+
+              <div className="space-y-2.5">
+                {[
+                  { text: '✅ اللغة الألمانية كاملة', highlight: false },
+                  { text: '✅ اللغة الإسبانية كاملة', highlight: false },
+                  { text: '🎁 لغة ثالثة مجاناً عند إضافتها', highlight: true },
+                  { text: 'نطق ناطقين أصليين', highlight: false },
+                  { text: 'شهادات وأوسمة رقمية', highlight: false },
+                ].map((feature, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#F72585]/25 flex-shrink-0">
+                      <CheckCircle size={12} className="text-[#F72585]" />
+                    </div>
+                    <span className={`text-[12px] font-medium ${feature.highlight ? 'text-[#F72585] font-black' : 'text-gray-200'}`}>
+                      {feature.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.03, boxShadow: '0 0 40px rgba(157,78,221,0.5)' }}
+                whileTap={{ scale: 0.97 }}
+                onClick={(e) => { e.stopPropagation(); handleSelectPlan('quarterly'); }}
+                disabled={loadingPlan === 'quarterly'}
+                className="w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 text-white shadow-lg shadow-[#9D4EDD]/40 disabled:opacity-70"
+                style={{ background: 'linear-gradient(135deg, #9D4EDD, #F72585)' }}
+              >
+                {loadingPlan === 'quarterly' ? (
+                  <>
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                    />
+                    <span>جاري التحويل...</span>
+                  </>
+                ) : (
+                  <>
+                    <Star size={16} fill="white" />
+                    <span>اشترك ربع سنوي</span>
+                    <ArrowRight size={14} className="rotate-180" />
+                  </>
+                )}
+              </motion.button>
+
+              <div className="flex items-center justify-center gap-2 text-gray-400">
+                <Shield size={12} />
+                <span className="text-[10px] font-bold">آمن 100% | تفعيل فوري</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* 3️⃣ الخطة السنوية - الأفضل قيمة */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            whileHover={{ y: -8, scale: 1.02 }}
             className="relative rounded-[28px] overflow-hidden backdrop-blur-md bg-gradient-to-b from-[#FFD700]/10 to-[#FF6B35]/5 border-2 border-[#FFD700]/40 shadow-2xl shadow-[#FFD700]/20 cursor-pointer group"
-            onClick={handlePaidPlan}
+            onClick={() => handleSelectPlan('yearly')}
           >
             <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-40 rounded-full blur-[80px] bg-[#FFD700] opacity-20" />
             <div className="absolute top-0 left-0 right-0 py-2 text-center text-xs font-black text-white z-10"
               style={{ background: 'linear-gradient(135deg, #FFD700, #FF6B35)', boxShadow: '0 4px 15px rgba(255,215,0,0.5)' }}
             >
               <div className="flex items-center justify-center gap-2">
-                <Crown size={14} /><span>الأكثر شعبية</span><Crown size={14} />
+                <Crown size={14} /><span>الأفضل قيمة 👑</span><Crown size={14} />
               </div>
             </div>
 
-            <div className="relative z-10 p-8 md:p-10 pt-14 space-y-6">
-              <div className="text-center space-y-4">
+            <div className="relative z-10 p-6 md:p-8 pt-12 space-y-5">
+              <div className="text-center space-y-3">
                 <motion.div
                   animate={{ y: [0,-8,0], rotate: [0,5,-5,0] }}
                   transition={{ duration: 2.5, repeat: Infinity }}
-                  className="inline-block text-6xl"
+                  className="inline-block text-5xl"
                   style={{ filter: 'drop-shadow(0 4px 15px rgba(255,215,0,0.5))' }}
                 >👑</motion.div>
 
                 <div className="space-y-2">
-                  <h2 className="text-2xl md:text-3xl font-black text-white">خطة مدفوعة</h2>
-                  <p className="text-[#FFD700] font-black text-sm">الاستفادة الكاملة من المنصة</p>
+                  <h2 className="text-xl md:text-2xl font-black text-white">الخطة السنوية</h2>
+                  <p className="text-[#FFD700] font-black text-xs">شامل كل اللغات — دلوقتي والمستقبل</p>
                 </div>
 
                 <div className="space-y-1">
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-gray-400 text-xs font-bold">اختار الخطة الأنسب</span>
-                  </div>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-3xl font-black"
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-gray-500 text-lg font-bold line-through">1000</span>
+                    <span className="text-4xl font-black"
                       style={{ backgroundImage: 'linear-gradient(135deg, #FFD700, #FF6B35)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
                     >
-                      شهري / ربع سنوي / سنوي
+                      500
                     </span>
+                    <span className="text-gray-300 text-xs font-bold">جنيه</span>
+                  </div>
+                  <div className="inline-block px-2 py-0.5 rounded-full bg-[#FFD700]/20 border border-[#FFD700]/40">
+                    <span className="text-[10px] font-black text-[#FFD700]">🎁 وفر 50%</span>
                   </div>
                 </div>
               </div>
 
               <div className="h-[1px] bg-gradient-to-r from-transparent via-[#FFD700]/40 to-transparent" />
 
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {[
-                  { text: 'كل الدروس والألعاب', highlight: false },
-                  { text: 'نطق ناطقين أصليين', highlight: false },
-                  { text: 'شهادات وأوسمة رقمية', highlight: false },
-                  { text: '🎁 لغات جديدة مجاناً (سنوي)', highlight: true },
-                  { text: 'أولوية الدعم الفني', highlight: false },
+                  { text: '🏆 اللغات المتاحة حالياً: 🇩🇪 الألماني + 🇪🇸 الإسباني', highlight: true },
+                  { text: '🎁 كل اللغات القادمة مجاناً مدى الحياة:', highlight: true },
+                  { text: '(🇬🇧 إنجليزي، 🇫🇷 فرنساوي، 🇮🇹 إيطالي، 🇷🇺 روسي، 🇯🇵 ياباني، 🇨🇳 صيني، 🇹🇷 تركي، 🇰🇷 كوري)', highlight: false },
+                  { text: '✨ شهادات وأوسمة رقمية لكل لغة عند الإنجاز', highlight: false },
+                  { text: '👑 أولوية الدعم الفني والمساعدة للأبطال', highlight: false },
                 ].map((feature, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#FFD700]/25 flex-shrink-0">
                       <CheckCircle size={12} className="text-[#FFD700]" />
                     </div>
-                    <span className={`text-[13px] font-medium ${feature.highlight ? 'text-[#FFD700] font-black' : 'text-gray-200'}`}>
+                    <span className={`text-[12px] font-medium ${feature.highlight ? 'text-[#FFD700] font-black' : 'text-gray-200'}`}>
                       {feature.text}
                     </span>
                   </div>
@@ -224,37 +347,37 @@ export default function PlansPage() {
               <motion.button
                 whileHover={{ scale: 1.03, boxShadow: '0 0 40px rgba(255,215,0,0.5)' }}
                 whileTap={{ scale: 0.97 }}
-                onClick={handlePaidPlan}
-                disabled={loadingPaid}
-                className="w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2.5 text-white shadow-lg shadow-[#FFD700]/40 disabled:opacity-70"
+                onClick={(e) => { e.stopPropagation(); handleSelectPlan('yearly'); }}
+                disabled={loadingPlan === 'yearly'}
+                className="w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 text-white shadow-lg shadow-[#FFD700]/40 disabled:opacity-70"
                 style={{ background: 'linear-gradient(135deg, #FFD700, #FF6B35)' }}
               >
-                {loadingPaid ? (
+                {loadingPlan === 'yearly' ? (
                   <>
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                      className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                     />
                     <span>جاري التحويل...</span>
                   </>
                 ) : (
                   <>
-                    <Crown size={18} />
-                    <span>شاهد الأسعار</span>
-                    <ArrowRight size={16} className="rotate-180" />
+                    <Trophy size={16} />
+                    <span>اشترك سنوياً</span>
+                    <ArrowRight size={14} className="rotate-180" />
                   </>
                 )}
               </motion.button>
 
               <div className="flex items-center justify-center gap-2 text-gray-400">
                 <Shield size={12} />
-                <span className="text-[10px] font-bold">ضمان استرجاع خلال 14 يوم</span>
+                <span className="text-[10px] font-bold">آمن 100% | تفعيل فوري</span>
               </div>
             </div>
           </motion.div>
         </div>
 
         {/* رجوع */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
           className="text-center mt-10"
         >
           <button onClick={() => router.push('/')}
