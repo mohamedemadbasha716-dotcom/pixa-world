@@ -1,11 +1,13 @@
 import { supabase } from './supabase';
-import { getDeviceId } from './playerData';
+import { getDeviceId, isLessonUnlocked } from './playerData';
+import { getCurrentUser } from './auth';
 
 // ═══════════════════════════════════════════════════════
 // 📝 أنواع البيانات
 // ═══════════════════════════════════════════════════════
 
 export type PlanType = 'free' | 'monthly' | 'quarterly' | 'yearly';
+export type LanguageCode = 'de' | 'es' | 'ru' | 'ja' | 'zh';
 
 export interface Subscription {
   id?: string;
@@ -27,23 +29,46 @@ export const FREE_LESSONS = [
 ];
 
 // ═══════════════════════════════════════════════════════
-// 👑 نظام الأدمن (المطور)
+// 👑 حسابات Full Access (مفتحة دائماً)
+// ═══════════════════════════════════════════════════════
+
+export const FULL_ACCESS_EMAILS = [
+  'mohamedemadbasha716@gmail.com',
+];
+
+// ═══════════════════════════════════════════════════════
+// 🌍 اللغات
+// ═══════════════════════════════════════════════════════
+
+/** المتاح فعلياً حالياً — الباقي Coming Soon */
+export const AVAILABLE_LANGUAGES: LanguageCode[] = ['de'];
+
+/** عدد اللغات المسموح بها لكل خطة */
+export const PLAN_LANGUAGE_LIMIT: Record<PlanType, number> = {
+  free: 0,        // درس تجريبي واحد فقط
+  monthly: 1,     // لغة واحدة
+  quarterly: 2,   // لغتين
+  yearly: 999,    // كل اللغات + التحديثات
+};
+
+/** استخراج كود اللغة من lesson_id (لاحقاً لما نضيف لغات) */
+export function getLanguageFromLessonId(_lessonId: string): LanguageCode {
+  // حالياً كل الدروس ألماني
+  return 'de';
+}
+
+// ═══════════════════════════════════════════════════════
+// 👑 نظام الأدمن (المطور — من الكونسول)
 // ═══════════════════════════════════════════════════════
 
 const ADMIN_STORAGE_KEY = 'pixa_admin_mode';
-const ADMIN_SECRET = 'PIXA_ADMIN_2025'; // 🔑 كلمة سر الأدمن
+const ADMIN_SECRET = 'PIXA_ADMIN_2025';
 
-/**
- * 🔒 التحقق إذا الجهاز الحالي أدمن
- */
 export function isAdmin(): boolean {
   if (typeof window === 'undefined') return false;
   return localStorage.getItem(ADMIN_STORAGE_KEY) === ADMIN_SECRET;
 }
 
-/**
- * 👑 تفعيل وضع الأدمن (يشتغل من الـ Console)
- */
 export function enableAdminMode(secret: string): boolean {
   if (typeof window === 'undefined') return false;
   
@@ -58,9 +83,6 @@ export function enableAdminMode(secret: string): boolean {
   return true;
 }
 
-/**
- * 🚫 إلغاء وضع الأدمن
- */
 export function disableAdminMode(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(ADMIN_STORAGE_KEY);
@@ -77,6 +99,30 @@ if (typeof window !== 'undefined') {
     console.log(status ? '👑 أنت أدمن' : '👤 مستخدم عادي');
     return status;
   };
+}
+
+// ═══════════════════════════════════════════════════════
+// 👑 التحقق من الوصول الكامل (Full Access)
+// - أدمن الكونسول
+// - أو إيميل من قائمة FULL_ACCESS_EMAILS
+// ═══════════════════════════════════════════════════════
+
+export async function hasFullAccess(): Promise<boolean> {
+  // 1️⃣ أدمن الكونسول
+  if (isAdmin()) return true;
+
+  // 2️⃣ إيميل المطور / الحسابات المميزة
+  try {
+    const user = await getCurrentUser();
+    const email = user?.email?.toLowerCase()?.trim();
+    if (email && FULL_ACCESS_EMAILS.map(e => e.toLowerCase()).includes(email)) {
+      return true;
+    }
+  } catch {
+    // مش مسجل دخول — عادي
+  }
+
+  return false;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -108,8 +154,8 @@ export async function getUserSubscription(): Promise<Subscription | null> {
 // ═══════════════════════════════════════════════════════
 
 export async function isUserSubscribed(): Promise<boolean> {
-  // 👑 الأدمن مشترك تلقائياً
-  if (isAdmin()) return true;
+  // 👑 Full access → مشترك تلقائياً
+  if (await hasFullAccess()) return true;
 
   const subscription = await getUserSubscription();
   
@@ -128,30 +174,48 @@ export async function isUserSubscribed(): Promise<boolean> {
 
 // ═══════════════════════════════════════════════════════
 // 🔓 التحقق إذا الدرس ده مسموح للمستخدم
+// (المنطق النهائي: Full Access → مجاني → مشترك → تسلسل)
 // ═══════════════════════════════════════════════════════
 
 export async function canAccessLesson(lessonId: string): Promise<{
   canAccess: boolean;
-  reason: 'admin' | 'free_lesson' | 'subscribed' | 'not_subscribed';
+  reason:
+    | 'full_access'
+    | 'free_lesson'
+    | 'subscribed'
+    | 'not_subscribed'
+    | 'locked_sequence'
+    | 'language_not_allowed';
+  redirectTo?: string;
 }> {
-  // 👑 الأدمن ياخد كل حاجة
-  if (isAdmin()) {
-    return { canAccess: true, reason: 'admin' };
+  // 1️⃣ Full access (أدمن أو إيميل مميز) → كل حاجة مفتوحة
+  if (await hasFullAccess()) {
+    return { canAccess: true, reason: 'full_access' };
   }
 
-  // 🎁 الدرس المجاني متاح للكل
+  // 2️⃣ الدرس المجاني متاح للكل بدون تسلسل
   if (FREE_LESSONS.includes(lessonId)) {
     return { canAccess: true, reason: 'free_lesson' };
   }
 
-  // 💎 شيك على الاشتراك
+  // 3️⃣ لازم يكون مشترك
   const subscribed = await isUserSubscribed();
-  
-  if (subscribed) {
-    return { canAccess: true, reason: 'subscribed' };
+  if (!subscribed) {
+    return {
+      canAccess: false,
+      reason: 'not_subscribed',
+      redirectTo: '/plans',
+    };
   }
 
-  return { canAccess: false, reason: 'not_subscribed' };
+  // 4️⃣ القفل التسلسلي: الدرس السابق لازم يكون مكتمل
+  const unlocked = await isLessonUnlocked(lessonId);
+  if (!unlocked) {
+    return { canAccess: false, reason: 'locked_sequence' };
+  }
+
+  // ✅ مسموح
+  return { canAccess: true, reason: 'subscribed' };
 }
 
 // ═══════════════════════════════════════════════════════
@@ -217,11 +281,13 @@ export async function upgradeSubscription(
       break;
   }
 
+  // إلغاء تفعيل الاشتراكات القديمة
   await supabase
     .from('subscriptions')
     .update({ is_active: false })
     .eq('device_id', deviceId);
 
+  // إنشاء اشتراك جديد
   const { data, error } = await supabase
     .from('subscriptions')
     .insert({
@@ -250,17 +316,20 @@ export async function upgradeSubscription(
 export async function getSubscriptionStatus(): Promise<{
   isSubscribed: boolean;
   isAdmin: boolean;
+  hasFullAccess: boolean;
   planType: PlanType;
   expiresAt: string | null;
   daysRemaining: number | null;
 }> {
   const adminMode = isAdmin();
+  const fullAccess = await hasFullAccess();
 
-  // 👑 لو أدمن
-  if (adminMode) {
+  // 👑 لو Full Access
+  if (fullAccess) {
     return {
       isSubscribed: true,
-      isAdmin: true,
+      isAdmin: adminMode,
+      hasFullAccess: true,
       planType: 'yearly',
       expiresAt: null,
       daysRemaining: null,
@@ -273,6 +342,7 @@ export async function getSubscriptionStatus(): Promise<{
     return {
       isSubscribed: false,
       isAdmin: false,
+      hasFullAccess: false,
       planType: 'free',
       expiresAt: null,
       daysRemaining: null,
@@ -292,6 +362,7 @@ export async function getSubscriptionStatus(): Promise<{
   return {
     isSubscribed,
     isAdmin: false,
+    hasFullAccess: false,
     planType: subscription.plan_type,
     expiresAt: subscription.expires_at || null,
     daysRemaining,

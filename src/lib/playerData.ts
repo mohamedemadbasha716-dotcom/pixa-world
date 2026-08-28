@@ -38,7 +38,7 @@ export interface LessonProgress {
 }
 
 // ═══════════════════════════════════════
-// 🗺️ نظام الخرايط المتعددة
+// 🗺️ نظام الخرايط المتعددة (الألماني)
 // ═══════════════════════════════════════
 
 // 🗺️ الخريطة 1: ألمانيا — الأساسيات
@@ -53,29 +53,55 @@ export const MAP_1_LESSONS = [
 
 // 🗺️ الخريطة 2: ألمانيا — الحياة اليومية
 export const MAP_2_LESSONS = [
-  'heidelberg-school',  // 1️⃣ مدرسة هايدلبرغ
-  'karl-house',         // 2️⃣ منزل كارل
-  'toys-island',        // 3️⃣ جزيرة الألعاب
-  'munich-market',      // 4️⃣ سوق ميونخ
-  'clock-tower',        // 5️⃣ برج الساعة
-  'adventurer-castle',  // 6️⃣ قلعة المغامر الصغير
+  'heidelberg-school',
+  'karl-house',
+  'toys-island',
+  'munich-market',
+  'clock-tower',
+  'adventurer-castle',
 ];
 
 // 🗺️ الخريطة 3: فرانكفورت — مدن الثقافة
 export const MAP_3_LESSONS = [
-  'frankfurt-clothes',  // 1️⃣ شارع زيل
-  'frankfurt-body',     // 2️⃣ متحف زنكنبرغ
-  'frankfurt-health',   // 3️⃣ شاريتيه
-  'frankfurt-sports',   // 4️⃣ أليانز أرينا
-  'frankfurt-feelings', // 5️⃣ بالمنغارتن
-  'frankfurt-final',    // 6️⃣ Main Tower
+  'zeil-street',
+  'senckenberg-museum',
+  'charite-hospital',
+  'allianz-arena',
+  'palmengarten',
+  'main-tower',
+];
+
+// 🗺️ الخريطة 4: برلين
+export const MAP_4_LESSONS = [
+  'berlin-hauptbahnhof',
+  'brandenburg-gate-2',
+  'kudamm-street',
+  'museum-island',
+  'embassy-district',
+  'fernsehturm',
+];
+
+// 🗺️ الخريطة 5: مدن الثقافة الألمانية
+export const MAP_5_LESSONS = [
+  'heidelberg-uni',
+  'anna-amalia-library',
+  'goethe-house',
+  'semperoper',
+  'christmas-market',
+  'goethe-institut',
 ];
 
 // 🗺️ كل الدروس مرتبة (للقفل التلقائي عبر الخرايط)
-export const LESSON_ORDER = [...MAP_1_LESSONS, ...MAP_2_LESSONS, ...MAP_3_LESSONS];
+export const LESSON_ORDER = [
+  ...MAP_1_LESSONS,
+  ...MAP_2_LESSONS,
+  ...MAP_3_LESSONS,
+  ...MAP_4_LESSONS,
+  ...MAP_5_LESSONS,
+];
 
 // 🗺️ عدد الخرايط الكلي
-export const TOTAL_MAPS = 3;
+export const TOTAL_MAPS = 5;
 
 // 🗺️ Helper: جلب دروس خريطة معينة
 export function getMapLessons(mapNumber: number): string[] {
@@ -83,6 +109,8 @@ export function getMapLessons(mapNumber: number): string[] {
     case 1: return MAP_1_LESSONS;
     case 2: return MAP_2_LESSONS;
     case 3: return MAP_3_LESSONS;
+    case 4: return MAP_4_LESSONS;
+    case 5: return MAP_5_LESSONS;
     default: return [];
   }
 }
@@ -308,7 +336,7 @@ export async function getAllProgress(): Promise<LessonProgress[]> {
 }
 
 // ═══════════════════════════════════════
-// 🔒 التحقق إذا كان الدرس مفتوح
+// 🔒 التحقق إذا كان الدرس مفتوح (بالتسلسل)
 // ═══════════════════════════════════════
 export async function isLessonUnlocked(lessonId: string): Promise<boolean> {
   const lessonIndex = LESSON_ORDER.indexOf(lessonId);
@@ -348,7 +376,7 @@ export async function getTotalStarsFromLessons(): Promise<number> {
 }
 
 // ═══════════════════════════════════════
-// 🗺️ 🆕 التحقق إذا كانت خريطة معينة مكتملة (كل دروسها)
+// 🗺️ التحقق إذا كانت خريطة معينة مكتملة (كل دروسها)
 // ═══════════════════════════════════════
 export async function isMapCompleted(mapNumber: number): Promise<boolean> {
   const mapLessons = getMapLessons(mapNumber);
@@ -363,7 +391,7 @@ export async function isMapCompleted(mapNumber: number): Promise<boolean> {
 }
 
 // ═══════════════════════════════════════
-// 🗺️ 🆕 معرفة الخريطة الحالية اللي اللاعب فيها
+// 🗺️ معرفة الخريطة الحالية اللي اللاعب فيها
 // (أول خريطة فيها درس مش مكتمل)
 // ═══════════════════════════════════════
 export async function getCurrentMap(): Promise<number> {
@@ -387,14 +415,14 @@ export async function getCurrentMap(): Promise<number> {
 }
 
 // ═══════════════════════════════════════
-// 🗺️ 🆕 حساب نجوم خريطة معينة (مجموع نجوم كل دروسها)
+// 🗺️ حساب نجوم خريطة معينة
 // ═══════════════════════════════════════
 export async function getMapStars(mapNumber: number): Promise<{ earned: number; total: number }> {
   const mapLessons = getMapLessons(mapNumber);
   const allProgress = await getAllProgress();
   
   let earned = 0;
-  const total = mapLessons.length * 3; // كل درس 3 نجوم max
+  const total = mapLessons.length * 3;
 
   for (const lessonId of mapLessons) {
     const progress = allProgress.find(p => p.lesson_id === lessonId);
@@ -405,14 +433,48 @@ export async function getMapStars(mapNumber: number): Promise<{ earned: number; 
 }
 
 // ═══════════════════════════════════════
-// 🗺️ 🆕 معرفة هل خريطة معينة مفتوحة للّعب
+// 🗺️ هل خريطة معينة مفتوحة للّعب؟
+// (لازم اللي قبلها تكون مكتملة)
+// ═══════════════════════════════════════
 export async function isMapUnlocked(mapNumber: number): Promise<boolean> {
-  // تفعيل مؤقت: الخريطة 3 مفتوحة دائماً عشان الاختبار
-  if (mapNumber === 3) return true; 
-  
-  // الخريطة 1 دايماً مفتوحة
   if (mapNumber === 1) return true;
-  
-  // باقي الخرايط: لازم الخريطة اللي قبلها تكون مكتملة
   return await isMapCompleted(mapNumber - 1);
+}// ═══════════════════════════════════════
+// 👑 التحقق من نوع اشتراك المستخدم
+// ═══════════════════════════════════════
+export async function getUserPlanStatus(): Promise<{ 
+  isPremium: boolean; 
+  isSuperAdmin: boolean;
+  isLoggedIn: boolean;
+}> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return { isPremium: false, isSuperAdmin: false, isLoggedIn: false };
+    }
+
+    // 👑 حسابك الشخصي - مفتوح له كل شيء
+    if (user.email?.trim().toLowerCase() === 'mohamedemadbasha716@gmail.com') {
+      return { isPremium: true, isSuperAdmin: true, isLoggedIn: true };
+    }
+
+    // ⭐ التحقق من وجود اشتراك فعال
+    const { data: subData } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .limit(1);
+
+    const hasActiveSubscription = !!subData && subData.length > 0;
+
+    return { 
+      isPremium: hasActiveSubscription, 
+      isSuperAdmin: false,
+      isLoggedIn: true,
+    };
+  } catch (error) {
+    console.error('❌ خطأ في جلب حالة الاشتراك:', error);
+    return { isPremium: false, isSuperAdmin: false, isLoggedIn: false };
+  }
 }

@@ -12,6 +12,7 @@ import {
   isMapCompleted,
   isMapUnlocked,
   getMapStars,
+  getUserPlanStatus,
   MAP_1_LESSONS,
   MAP_2_LESSONS,
   MAP_3_LESSONS,
@@ -1015,7 +1016,15 @@ export default function CharacterAndMapPage() {
       }
     };
     
+    // 👑 جلب حالة اشتراك المستخدم
+    const loadUserStatus = async () => {
+      const status = await getUserPlanStatus();
+      setUserStatus({ ...status, loaded: true });
+      console.log('👤 حالة المستخدم:', status);
+    };
+    
     loadPlayer();
+    loadUserStatus();
 
     const params = new URLSearchParams(window.location.search);
     if (params.get('from') === 'lesson') {
@@ -1035,6 +1044,14 @@ export default function CharacterAndMapPage() {
   const [map2Complete, setMap2Complete] = useState(false);
   const [map3Complete, setMap3Complete] = useState(false);
   const [map4Complete, setMap4Complete] = useState(false);
+  
+  // 👑 حالة اشتراك المستخدم
+  const [userStatus, setUserStatus] = useState({ 
+    isPremium: false, 
+    isSuperAdmin: false, 
+    isLoggedIn: false,
+    loaded: false,
+  });
 
   useEffect(() => {
     const loadProgress = async () => {
@@ -1142,15 +1159,24 @@ export default function CharacterAndMapPage() {
   }, [isMobileView, step, currentMap]);
 
   // ═══════════════════════════════════════
-  // 🔓 فتح كل الأقفال مؤقتاً للتعديل المباشر
+  // 🔓 نظام الأقفال حسب نوع الحساب
   // ═══════════════════════════════════════
   const isLocked = (lesson: number) => {
-    return false; // تم فتح جميع الدروس مباشرة لإنهاء التعديلات
-    
-    /* عند الانتهاء، فقط احذف السطر بالأعلى وقم بإلغاء تعليق الكود التالي:
-    if (currentMap === 4 || currentMap === 5) return false;
-    return lesson > unlockedLessonInMap;
-    */
+    // ⏳ لسة بيحمل الحالة - اقفل الكل مؤقتاً ماعدا الأول
+    if (!userStatus.loaded) return lesson !== 1;
+
+    // 👑 حسابك الشخصي - كل شيء مفتوح
+    if (userStatus.isSuperAdmin) return false;
+
+    // ⭐ حساب مدفوع - النظام التدريجي القديم
+    if (userStatus.isPremium) {
+      if (currentMap === 4 || currentMap === 5) return false;
+      return lesson > unlockedLessonInMap;
+    }
+
+    // 🎁 حساب مجاني - أول درس في أول خريطة فقط
+    if (currentMap === 1 && lesson === 1) return false;
+    return true;
   };
   
   const isCurrent = (lesson: number) => lesson === unlockedLessonInMap;
@@ -1190,6 +1216,10 @@ export default function CharacterAndMapPage() {
     }
     if (isLocked(landmark.lesson)) {
       playLockedSound();
+      // 🎁 لو حساب مجاني (مش سوبر أدمن ومش بريميوم) - حوله لصفحة الخطط
+      if (userStatus.loaded && !userStatus.isSuperAdmin && !userStatus.isPremium) {
+        setTimeout(() => router.push('/plans'), 200);
+      }
       return;
     }
     playClickSound();
