@@ -1,10 +1,9 @@
 'use client';
 import { motion } from 'framer-motion';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
-  ShieldCheck, Smartphone, Send, ArrowRight, Sparkles, 
-  User, Mail, Phone, Lock, CreditCard, BadgeHelp, CheckCircle
+  ArrowRight, User, Mail, Phone, Lock, CreditCard, Send, CheckCircle
 } from 'lucide-react';
 
 interface PlanDetails {
@@ -55,7 +54,6 @@ function CheckoutContent() {
       return;
     }
 
-    // إعداد نص رسالة الواتساب الترحيبية
     const message = `مرحباً بأبطال PIXA WORLD 👋
 
 لقد قمت بتحويل قيمة الاشتراك وأود تفعيل حساب طفلي.
@@ -72,15 +70,13 @@ function CheckoutContent() {
 ✨ مرفق لقطة الشاشة (سكرين شوت) لتأكيد عملية التحويل وتفعيل الحساب فوراً!`;
 
     const encodedMessage = encodeURIComponent(message);
-    const whatsappNumber = '201515023109'; // كود مصر + الرقم
+    const whatsappNumber = '201515023109';
     
-    // التوجيه المباشر للواتساب
     window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a3e] via-[#2d1b4e] to-[#1e1b4b] text-white font-sans py-12 px-4 relative" dir="rtl">
-      {/* الخلفية المضيئة */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[350px] h-[350px] rounded-full bg-[#FF4D6D]/15 blur-[80px]" />
         <div className="absolute bottom-1/4 left-1/3 w-[300px] h-[300px] rounded-full bg-[#9D4EDD]/15 blur-[80px]" />
@@ -88,21 +84,19 @@ function CheckoutContent() {
 
       <div className="max-w-3xl mx-auto relative z-10 space-y-8">
         
-        {/* العودة وشعار المنصة */}
         <div className="flex justify-between items-center">
           <button 
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-sm font-bold text-gray-300 hover:text-white transition-all bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/10"
+            className="flex items-center gap-2 text-sm font-bold text-gray-300 hover:text-white transition-all bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/10 cursor-pointer"
           >
             <ArrowRight size={16} />
             <span>رجوع للأسعار</span>
           </button>
-          <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-200">
+          <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-200 cursor-pointer" onClick={() => router.push('/')}>
             PIXA WORLD
           </span>
         </div>
 
-        {/* رأس الصفحة */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-black text-white">خطوة واحدة وتستمتع بمغامرة طفلك 🚀</h1>
           <p className="text-gray-400 text-sm">اتبع خطوات الدفع البسيطة أدناه لتأكيد الحساب</p>
@@ -110,10 +104,8 @@ function CheckoutContent() {
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           
-          {/* خطوات الدفع والبيانات */}
           <div className="md:col-span-3 space-y-6">
             
-            {/* بطاقة الدفع */}
             <div className="bg-white/[0.06] border border-white/12 rounded-3xl p-6 space-y-6 backdrop-blur-md shadow-xl">
               <div className="flex items-center gap-3 border-b border-white/10 pb-4">
                 <div className="w-10 h-10 rounded-xl bg-[#06D6A0]/20 flex items-center justify-center text-[#06D6A0]">
@@ -125,7 +117,6 @@ function CheckoutContent() {
                 </div>
               </div>
 
-              {/* تفاصيل الرقم */}
               <div className="space-y-4">
                 <div className="p-4 rounded-2xl bg-[#010103]/40 border border-white/5 space-y-3">
                   <p className="text-xs text-gray-400 font-bold">حول مبلغ الاشتراك على المحفظة التالية:</p>
@@ -147,7 +138,6 @@ function CheckoutContent() {
               </div>
             </div>
 
-            {/* فورم بيانات الحساب */}
             <form onSubmit={handleCompletePayment} className="bg-white/[0.06] border border-white/12 rounded-3xl p-6 space-y-5 backdrop-blur-md shadow-xl">
               <div className="flex items-center gap-3 border-b border-white/10 pb-4">
                 <div className="w-10 h-10 rounded-xl bg-[#9D4EDD]/20 flex items-center justify-center text-[#9D4EDD]">
@@ -160,7 +150,6 @@ function CheckoutContent() {
               </div>
 
               <div className="space-y-4">
-                {/* اسم الطفل */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-300 flex items-center gap-1.5">
                     <span>اسم الطفل البطل</span>
@@ -177,7 +166,6 @@ function CheckoutContent() {
                   </div>
                 </div>
 
-                {/* هاتف ولي الأمر */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-300">رقم واتساب ولي الأمر</label>
                   <div className="relative">
@@ -193,7 +181,6 @@ function CheckoutContent() {
                   </div>
                 </div>
 
-                {/* البريد الإلكتروني */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-300">بريد إلكتروني فعال لولي الأمر</label>
                   <div className="relative">
@@ -216,12 +203,11 @@ function CheckoutContent() {
                 </div>
               )}
 
-              {/* زر الإتمام والتأكيد المباشر عبر واتساب */}
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
-                className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-3 shadow-2xl shadow-[#06D6A0]/20"
+                className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-3 shadow-2xl shadow-[#06D6A0]/20 cursor-pointer"
                 style={{ background: 'linear-gradient(135deg, #06D6A0, #4CC9F0)' }}
               >
                 <Send size={18} />
@@ -238,7 +224,6 @@ function CheckoutContent() {
 
           </div>
 
-          {/* الباقة المختارة الفاتورة الجانبية */}
           <div className="md:col-span-2 space-y-4">
             <div className="bg-gradient-to-b from-white/[0.08] to-white/[0.03] border border-white/12 rounded-3xl p-6 backdrop-blur-md shadow-xl space-y-6">
               <h3 className="font-black text-sm text-gray-300 border-b border-white/10 pb-3">الباقة المختارة</h3>
@@ -276,7 +261,6 @@ function CheckoutContent() {
               </div>
             </div>
 
-            {/* بطاقة الدعم والمساعدة */}
             <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5 text-center space-y-2">
               <span className="text-2xl">💁‍♂️</span>
               <h4 className="text-xs font-black text-white">هل تواجه مشكلة؟</h4>
