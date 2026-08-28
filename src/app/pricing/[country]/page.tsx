@@ -65,12 +65,12 @@ const COUNTRIES: Record<CountryCode, CountryConfig> = {
     flag: '🇸🇦',
     currency: 'ريال سعودي',
     currencySymbol: 'ر.س',
-    plans: { monthly: 49, quarterly: 119, yearly: 349 },
+    plans: { monthly: 99, quarterly: 199, yearly: 349 }, // تم التحديث لتطابق الشيك أوت
     popularLabel: '🏆 الأكثر طلباً',
     heroSubtitle: 'أسعار مميزة للأسر السعودية',
     comparisonText: 'كورس لغة للأطفال = 200-400 ر.س شهرياً',
     paymentMethods: 'فيزا، ماستر كارد، مدى، أبل باي، STC Pay',
-    color: '#06D6A0',
+    color: '#FFD700',
     ctaText: 'سجّل طفلك الحين',
     trustText: 'أكثر من 3,000 أسرة سعودية معانا',
   },
@@ -81,12 +81,12 @@ const COUNTRIES: Record<CountryCode, CountryConfig> = {
     flag: '🇦🇪',
     currency: 'درهم إماراتي',
     currencySymbol: 'د.إ',
-    plans: { monthly: 49, quarterly: 129, yearly: 379 },
+    plans: { monthly: 109, quarterly: 219, yearly: 379 }, // تم التحديث لتطابق الشيك أوت
     popularLabel: '🏆 الأفضل قيمة',
     heroSubtitle: 'أسعار تنافسية للأسر في الإمارات',
     comparisonText: 'معهد لغات للأطفال = 300-500 د.إ شهرياً',
     paymentMethods: 'فيزا، ماستر كارد، أبل باي، Samsung Pay',
-    color: '#4CC9F0',
+    color: '#FFD700',
     ctaText: 'سجّل طفلك الحين',
     trustText: 'أكثر من 2,000 أسرة في الإمارات معانا',
   },
@@ -343,34 +343,40 @@ function PricingContent() {
     router.push(`/checkout?country=${country.code}&plan=${planType}`);
   };
 
-  // أسعار الخصم في مصر للواجهة الأصلية
-  const egyptOriginalPrices = { monthly: 400, quarterly: 700, yearly: 1000 };
+  // أسعار ما قبل الخصم (شطب السعر القديم بنسبة 50% لجميع الدول)
+  const ORIGINAL_PRICES: Record<CountryCode, { monthly: number; quarterly: number; yearly: number }> = {
+    eg: { monthly: 400, quarterly: 700, yearly: 1000 },
+    sa: { monthly: 198, quarterly: 398, yearly: 698 },
+    ae: { monthly: 218, quarterly: 438, yearly: 758 },
+  };
+
+  const selectedOriginal = ORIGINAL_PRICES[country.code] || ORIGINAL_PRICES.eg;
 
   const yearlyPerMonth = Math.round(country.plans.yearly / 12);
   const quarterlyPerMonth = Math.round(country.plans.quarterly / 3);
 
   const monthlyFeatures: PlanFeature[] = [
-    { text: 'اللغة الألمانية كاملة', included: true, highlight: true },
-    { text: 'كل الدروس والألعاب التفاعلية', included: true },
-    { text: 'نطق بصوت ناطقين أصليين', included: true },
-    { text: 'تقارير تقدم أساسية', included: true },
-    { text: 'شهادات وأوسمة رقمية', included: false },
+    { text: 'لغة واحدة من اختيارك (ألماني أو إسباني)', included: true, highlight: true },
+    { text: 'أو أي لغة جديدة فور توفرها', included: true },
+    { text: 'كل دروس وخرائط وألعاب اللغة بالكامل', included: true },
+    { text: 'نطق واضح وممتاز بصوت ناطقين أصليين', included: true },
+    { text: 'شهادات وأوسمة رقمية لكل لغة', included: true },
   ];
 
   const quarterlyFeatures: PlanFeature[] = [
-    { text: 'اللغة الألمانية كاملة', included: true, highlight: true },
-    { text: 'كل الدروس والألعاب التفاعلية', included: true },
-    { text: 'نطق بصوت ناطقين أصليين', included: true },
-    { text: 'تقارير تقدم أسبوعية', included: true },
-    { text: 'شهادات إنجاز رقمية', included: true },
+    { text: '🇩🇪 الألماني + 🇪🇸 الإسباني بالكامل', included: true, highlight: true },
+    { text: '🎁 لغة ثالثة مجاناً عند إضافتها', included: true, bonus: true },
+    { text: 'كل دروس وخرائط وألعاب اللغات المفتوحة', included: true },
+    { text: 'نطق واضح وممتاز بصوت ناطقين أصليين', included: true },
+    { text: 'شهادات وأوسمة رقمية لكل لغة عند الإنجاز', included: true },
   ];
 
   const yearlyFeatures: PlanFeature[] = [
-    { text: 'اللغة الألمانية كاملة لسنة', included: true, highlight: true },
-    { text: 'كل الدروس والألعاب التفاعلية', included: true },
-    { text: 'نطق بصوت ناطقين أصليين', included: true },
-    { text: 'تقارير تقدم تفصيلية', included: true },
-    { text: '🎁 كل لغة جديدة تنزل = مجاناً', included: true, bonus: true },
+    { text: '🇩🇪 الألماني + 🇪🇸 الإسباني بالكامل', included: true, highlight: true },
+    { text: '🎁 كل اللغات القادمة مجاناً مدى الحياة:', included: true, bonus: true },
+    { text: '(إنجليزي، فرنساوي، إيطالي، روسي، ياباني، صيني، تركي، كوري)', included: true },
+    { text: 'شهادات رقمية معتمدة لكل لغات المنصة', included: true },
+    { text: 'أولوية الدعم الفني وتفعيل الحسابات للأبطال', included: true },
   ];
 
   return (
@@ -409,7 +415,7 @@ function PricingContent() {
           <PricingCard
             plan="الاشتراك الشهري"
             price={country.plans.monthly}
-            originalPrice={country.code === 'eg' ? egyptOriginalPrices.monthly : undefined}
+            originalPrice={selectedOriginal.monthly}
             period="/ شهر"
             features={monthlyFeatures}
             isPopular={false}
@@ -425,7 +431,7 @@ function PricingContent() {
             <PricingCard
               plan="الاشتراك السنوي"
               price={country.plans.yearly}
-              originalPrice={country.code === 'eg' ? egyptOriginalPrices.yearly : (country.plans.monthly * 12)}
+              originalPrice={selectedOriginal.yearly}
               period="/ سنة كاملة"
               perMonth={yearlyPerMonth}
               features={yearlyFeatures}
@@ -435,15 +441,15 @@ function PricingContent() {
               color="#FFD700"
               currencySymbol={country.currencySymbol}
               delay={0.2}
-              savings={country.code === 'eg' ? '50%' : '35%'}
+              savings="50%"
               badge="🎁 وصول مبكر مجاني"
               onClick={() => handleCheckoutRedirect('yearly')}
             />
           </div>
           <PricingCard
-            plan="ربع سنوي"
+            plan="الاشتراك الربع سنوي"
             price={country.plans.quarterly}
-            originalPrice={country.code === 'eg' ? egyptOriginalPrices.quarterly : (country.plans.monthly * 3)}
+            originalPrice={selectedOriginal.quarterly}
             period="/ 3 شهور"
             perMonth={quarterlyPerMonth}
             features={quarterlyFeatures}
@@ -453,7 +459,7 @@ function PricingContent() {
             color="#9D4EDD"
             currencySymbol={country.currencySymbol}
             delay={0.3}
-            savings="خصم مميز"
+            savings="50%"
             badge="الأكثر مرونة"
             onClick={() => handleCheckoutRedirect('quarterly')}
           />
