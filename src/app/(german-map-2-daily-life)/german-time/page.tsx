@@ -105,6 +105,155 @@ function similarityScore(a: string, b: string): number {
   return matches / Math.max(wordsA.length, wordsB.length);
 }
 
+// ═══════════════════════════════════════
+// ⏱️ مكون الساعة الديناميكية - بشكل ساعة حائط واقعية جداً
+// ═══════════════════════════════════════
+function parseTimeFromItem(item: TimeItem) {
+  let strToParse = `${item.id} ${item.de}`;
+  let matches = strToParse.match(/\d+/g);
+  
+  if (matches && matches.length >= 1) {
+    let h = parseInt(matches[0], 10);
+    let m = matches.length >= 2 ? parseInt(matches[1], 10) : 0;
+    
+    if (strToParse.includes('halb')) {
+      m = 30; h -= 1; if(h < 1) h = 12; 
+    }
+    if (strToParse.includes('viertel nach')) m = 15;
+    if (strToParse.includes('viertel vor')) { m = 45; h -= 1; if(h < 1) h = 12; }
+    
+    return { h, m };
+  }
+  return null; 
+}
+
+function DynamicClock({ item, size }: { item: TimeItem; size: number }) {
+  const time = parseTimeFromItem(item);
+
+  if (!time) {
+    return <span style={{ fontSize: size * 0.5, lineHeight: 1 }}>{item.emoji}</span>;
+  }
+
+  const minuteDegrees = time.m * 6;
+  const hourDegrees = ((time.h % 12) * 30) + (time.m * 0.5); 
+  const numbers = Array.from({ length: 12 }, (_, i) => i + 1);
+
+  return (
+    <div style={{ 
+      width: size, 
+      height: size, 
+      filter: `drop-shadow(0 12px 24px ${item.color}77)`,
+      position: 'relative'
+    }}>
+      <svg width="100%" height="100%" viewBox="0 0 100 100" style={{ overflow: 'visible' }}>
+        <defs>
+          {/* تدرج لون إطار الساعة 3D */}
+          <linearGradient id={`frame-${item.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="30%" stopColor="#e2e8f0" />
+            <stop offset="100%" stopColor="#94a3b8" />
+          </linearGradient>
+
+          {/* تدرج زجاج الساعة اللامع */}
+          <linearGradient id={`glass-${item.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.7)" />
+            <stop offset="40%" stopColor="rgba(255,255,255,0.1)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+          </linearGradient>
+
+          {/* ظل داخلي للعمق */}
+          <filter id={`innerShadow-${item.id}`}>
+            <feOffset dx="0" dy="1.5"/>
+            <feGaussianBlur stdDeviation="2" result="offset-blur"/>
+            <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
+            <feFlood floodColor="black" floodOpacity="0.2" result="color"/>
+            <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
+            <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
+          </filter>
+        </defs>
+
+        {/* الإطار الخارجي للساعة */}
+        <circle cx="50" cy="50" r="48" fill={`url(#frame-${item.id})`} stroke="#64748b" strokeWidth="0.5" />
+        
+        {/* حلقة لونية تعبر عن الكارت لمسة جمالية */}
+        <circle cx="50" cy="50" r="44" fill="none" stroke={item.color} strokeWidth="3" opacity="0.8" />
+        
+        {/* خلفية الساعة البيضاء مع الظل الداخلي */}
+        <circle cx="50" cy="50" r="42" fill="#ffffff" filter={`url(#innerShadow-${item.id})`} />
+
+        {/* نقاط الدقائق */}
+        {[...Array(60)].map((_, i) => {
+          if (i % 5 === 0) return null; // تخطي مكان أرقام الساعات
+          return (
+            <line 
+              key={`tick-${i}`}
+              x1="50" y1="11" x2="50" y2="12.5" 
+              stroke="#cbd5e1" strokeWidth="0.8"
+              transform={`rotate(${i * 6} 50 50)`} 
+            />
+          )
+        })}
+
+        {/* أرقام الساعة (1 - 12) */}
+        {numbers.map((num) => {
+          const angle = (num * 30 - 90) * (Math.PI / 180);
+          const radius = 33; 
+          const x = 50 + radius * Math.cos(angle);
+          const y = 50 + radius * Math.sin(angle) + 3; // +3 لتوسيط النص رأسياً
+          return (
+            <text 
+              key={`num-${num}`} 
+              x={x} y={y} 
+              textAnchor="middle" 
+              dominantBaseline="middle"
+              fill="#1e293b"
+              fontSize="10px"
+              fontFamily="Arial Rounded MT Bold, Nunito, sans-serif"
+              fontWeight="900"
+            >
+              {num}
+            </text>
+          );
+        })}
+
+        {/* عقرب الساعات */}
+        <g transform={`rotate(${hourDegrees} 50 50)`} style={{ transition: 'transform 1s cubic-bezier(0.4, 2.5, 0.55, 0.9)' }}>
+          {/* ظل العقرب */}
+          <line x1="49.5" y1="51.5" x2="49.5" y2="28" stroke="rgba(0,0,0,0.15)" strokeWidth="5" strokeLinecap="round" />
+          {/* العقرب نفسه */}
+          <line x1="50" y1="56" x2="50" y2="27" stroke="#0f172a" strokeWidth="4.5" strokeLinecap="round" />
+        </g>
+
+        {/* عقرب الدقائق */}
+        <g transform={`rotate(${minuteDegrees} 50 50)`} style={{ transition: 'transform 1s cubic-bezier(0.4, 2.5, 0.55, 0.9)' }}>
+          {/* ظل العقرب */}
+          <line x1="49.5" y1="51.5" x2="49.5" y2="15" stroke="rgba(0,0,0,0.15)" strokeWidth="3" strokeLinecap="round" />
+          {/* العقرب نفسه */}
+          <line x1="50" y1="58" x2="50" y2="14" stroke="#334155" strokeWidth="2.5" strokeLinecap="round" />
+        </g>
+
+        {/* عقرب الثواني الأحمر الكلاسيكي */}
+        <g transform="rotate(0 50 50)">
+          <line x1="50" y1="62" x2="50" y2="12" stroke="#ef4444" strokeWidth="1.2" strokeLinecap="round" />
+          <circle cx="50" cy="50" r="3.5" fill="#ef4444" />
+          <circle cx="50" cy="50" r="1.5" fill="#ffffff" />
+        </g>
+        
+        {/* النقطة المركزية النهائية */}
+        <circle cx="50" cy="50" r="5" fill="none" stroke="#0f172a" strokeWidth="1" />
+
+        {/* تأثير انعكاس الزجاج على الساعة */}
+        <path 
+          d="M 12 50 A 38 38 0 0 1 88 50 C 88 25 70 12 50 12 C 30 12 12 25 12 50 Z" 
+          fill={`url(#glass-${item.id})`}
+          pointerEvents="none"
+        />
+      </svg>
+    </div>
+  );
+}
+// ═══════════════════════════════════════
+
 function useIsMobile(breakpoint: number = 1024): boolean {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -291,7 +440,6 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <motion.div whileHover={{ scale: 1.1 }} className="relative w-8 h-8 rounded-full overflow-hidden border-2 flex-shrink-0"
               style={{ borderColor: '#3498DB', boxShadow: '0 0 10px rgba(52,152,219,0.5)', background: 'linear-gradient(135deg, #3498DB, #1A5276)' }}>
-              {/* تعديل مسار الكاركتر إلى .webp */}
               <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
             </motion.div>
             <div className="flex flex-col items-start leading-none gap-0.5">
@@ -309,7 +457,6 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
             <motion.div key={`points-${stats.points}`} animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 0.3 }}
               className="flex items-center gap-1 px-1.5 py-1 rounded-lg flex-1 justify-center"
               style={{ background: 'rgba(15,10,45,0.7)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,215,0,0.35)' }}>
-              {/* تعديل مسار النجمة إلى .webp */}
               <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-3 h-3 flex-shrink-0" style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
               <span className="font-black text-[10px] text-white truncate">{stats.points}</span>
             </motion.div>
@@ -348,7 +495,6 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
         <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
           <motion.div whileHover={{ scale: 1.1 }} className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-2 flex-shrink-0"
             style={{ borderColor: '#3498DB', boxShadow: '0 0 15px rgba(52,152,219,0.5), inset 0 1px 0 rgba(255,255,255,0.2)', background: 'linear-gradient(135deg, #3498DB, #1A5276)' }}>
-            {/* تعديل مسار الكاركتر إلى .webp */}
             <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
           </motion.div>
           <div className="flex flex-col items-start">
@@ -388,7 +534,6 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
             className="flex items-center gap-1.5 md:gap-2 px-3 md:px-3.5 py-2 md:py-2.5 rounded-2xl"
             style={{ background: 'rgba(15,10,45,0.65)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)', border: '2px solid rgba(255,215,0,0.35)', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
             <span className="font-black text-xs md:text-sm text-white" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{stats.points}</span>
-            {/* تعديل مسار النجمة إلى .webp */}
             <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-5 h-5 md:w-6 md:h-6" style={{ filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.8))' }} />
           </motion.div>
           <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }} onClick={onHome}
@@ -440,7 +585,6 @@ function FlyingItems({ items }: { items: FlyingItem[] }) {
               <div className="relative" style={{ width: 40, height: 40, marginTop: -20, marginLeft: -20 }}>
                 <div className="absolute inset-0 rounded-full blur-xl" style={{ background: color, opacity: 0.8, transform: 'scale(2.5)' }} />
                 <div className="relative flex items-center justify-center w-full h-full">
-                  {/* تعديل مسارات الطيران إلى .webp */}
                   {item.type === 'star' && (<img src="/treasuer/star.webp" alt="star" className="w-10 h-10" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
                   {item.type === 'energy' && (<img src="/treasuer/energy.webp" alt="energy" className="w-10 h-10" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
                   {item.type === 'gem' && (<Gem size={36} className="text-purple-200" fill="#9D4EDD" style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />)}
@@ -480,7 +624,6 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
   stats: GameStats; treasureState: 'closed' | 'half' | 'opend';
   onHint: () => void; onMap: () => void; isMobile: boolean;
 }) {
-  // تعديل مسار الصندوق إلى .webp
   const treasureImg = `/treasuer/${treasureState}.webp`;
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 px-2 md:px-4 pb-1 md:pb-1.5 pointer-events-none"
@@ -499,7 +642,6 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
             <Sparkles size={8} className="text-cyan-300" />
           </div>
           <div className="flex items-end justify-around gap-2 md:gap-3">
-            {/* تعديل مسارات الأيقونات إلى .webp */}
             <FloatingIconButton onClick={onMap} label="خريطة" color="#3498DB" isMobile={isMobile} iconSrc="/treasuer/map-icon.webp" iconAlt="map" />
             <FloatingIconButton label="نجوم" color="#FFD700" isMobile={isMobile} disabled iconSrc="/treasuer/star.webp" iconAlt="star" />
             <motion.div id="treasure-box" whileHover={{ scale: 1.08, y: -2 }}
@@ -562,11 +704,15 @@ function SoundButton({ onClick, color, label, size = 40 }: {
   );
 }
 
+// ═══════════════════════════════════════
+// HeroItemDisplay - عرض الساعة الديناميكية 3D
+// ═══════════════════════════════════════
 function HeroItemDisplay({ item, isMobile, showWord = false }: { 
   item: TimeItem; isMobile?: boolean; showWord?: boolean;
 }) {
-  const size = isMobile ? 200 : 320;
+  const size = isMobile ? 180 : 280;
   const imgSrc = showWord ? TIME_WORD_IMAGES[item.de] : TIME_IMAGES[item.id];
+
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
       <motion.div className="absolute inset-8 rounded-3xl blur-3xl"
@@ -574,8 +720,9 @@ function HeroItemDisplay({ item, isMobile, showWord = false }: {
         animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} />
       <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-        className="relative w-full h-full select-none"
+        className="relative w-full h-full select-none flex flex-col items-center justify-center"
         style={{ filter: `drop-shadow(0 10px 25px ${item.color}99) drop-shadow(0 0 30px ${item.color}66)` }}>
+        
         {imgSrc ? (
           <img src={imgSrc} alt={item.de} className="w-full h-full object-contain" draggable={false} />
         ) : (
@@ -585,10 +732,12 @@ function HeroItemDisplay({ item, isMobile, showWord = false }: {
               border: `3px solid ${item.color}`,
               boxShadow: `inset 0 2px 10px rgba(255,255,255,0.2)`,
             }}>
-            <div className="select-none" style={{ fontSize: isMobile ? '6rem' : '9rem', lineHeight: 1 }}>{item.emoji}</div>
+            {/* 🆕 استخدام الساعة الديناميكية الواقعية */}
+            <DynamicClock item={item} size={isMobile ? 110 : 180} />
+
             {showWord && (
               <>
-                <div className={`font-black text-white mt-3 ${isMobile ? 'text-lg' : 'text-3xl'}`} style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                <div className={`font-black text-white mt-4 ${isMobile ? 'text-lg' : 'text-3xl'} text-center`} style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
                   {item.article && <span className="text-white/70 text-sm mr-1">{item.article}</span>}
                   {item.de}
                 </div>
@@ -657,18 +806,17 @@ function ItemChoiceMobile({ item, allItems, onCorrect, onWrong }: {
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
           className="px-4 py-1.5 rounded-2xl"
           style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,255,0.9))', border: `2px solid ${item.color}66`, boxShadow: `0 4px 15px ${item.color}44` }}>
-          <span className="font-black text-xs text-gray-800">استمع جيداً واختر الصورة</span>
+          <span className="font-black text-xs text-gray-800">استمع جيداً واختر الساعة</span>
         </motion.div>
         
-        {/* 🆕 إضافة الكلمة المطلوبة بالعربي */}
         <div className="bg-white/10 px-4 py-1 rounded-xl border border-white/20">
-          <span className="font-black text-yellow-300 text-base">{item.ar}</span>
+          <span className="font-black text-cyan-300 text-base">{item.ar}</span>
         </div>
 
         <HeroItemDisplay item={item} isMobile showWord />
         <SoundButton onClick={() => speakWord(item.de)} color={item.color} size={45} />
         <div className="flex items-center gap-1.5">
-          <span className="font-black text-white text-xs">اختر الصورة الصحيحة</span>
+          <span className="font-black text-white text-xs">اختر الساعة الصحيحة</span>
           <span className="text-sm">👇</span>
         </div>
         <div className="flex items-center justify-center gap-2.5 w-full" dir="ltr">
@@ -688,14 +836,14 @@ function ItemChoiceMobile({ item, allItems, onCorrect, onWrong }: {
                     disabled={status === 'correct' || isWrong}
                     className="relative rounded-xl flex flex-col items-center justify-center flex-shrink-0 overflow-hidden border-2 p-1"
                     style={{
-                      width: 80, height: 95,
+                      width: 90, height: 110,
                       background: isWrong ? 'linear-gradient(145deg, #FF4444, #CC0000)' : `linear-gradient(145deg, ${choice.gradient[0]}, ${choice.gradient[1]})`,
                       borderColor: isWrong ? '#FF4444' : `${choice.color}`,
                       boxShadow: isWrong ? '0 5px 18px rgba(255,68,68,0.6)' : `0 5px 18px ${choice.color}55`,
                     }}>
-                    <span style={{ fontSize: '2.5rem', lineHeight: 1 }}>{choice.emoji}</span>
-                    {/* 🆕 إضافة الكلمة بالألماني تحت الإيموجي */}
-                    <span className="text-[10px] font-black text-white mt-1 leading-tight text-center">
+                    <DynamicClock item={choice} size={55} />
+                    
+                    <span className="text-[10px] font-black text-white mt-2 leading-tight text-center">
                       {choice.de}
                     </span>
                   </motion.button>
@@ -776,9 +924,8 @@ function WordBuilderMobile({ item, onComplete, onWrong }: {
         
         <HeroItemDisplay item={item} isMobile showWord={false} />
         
-        {/* 🆕 إبراز الكلمة بالعربي */}
         <div className="text-center mt-1 px-4 py-1 rounded-xl bg-white/10 border border-white/20">
-          <div className="font-black text-base text-yellow-300">{item.ar}</div>
+          <div className="font-black text-base text-cyan-300">{item.ar}</div>
         </div>
 
         <SoundButton onClick={() => speakWord(word)} color={item.color} size={38} />
@@ -920,8 +1067,7 @@ function ListenPhase({ item, allItems, onDone, onKarlReact, onCombo, onCorrect, 
               <div className="text-center lg:text-right">
                 <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${item.color}aa` }}>Hören · استماع</div>
                 
-                {/* 🆕 إظهار الكلمة بالعربي لزيادة الوضوح */}
-                <div className="text-2xl font-black text-yellow-300 bg-white/5 inline-block px-4 py-1 rounded-xl mb-2">
+                <div className="text-2xl font-black text-cyan-300 bg-white/5 inline-block px-4 py-1 rounded-xl mb-2">
                   {item.ar}
                 </div>
                 
@@ -941,15 +1087,16 @@ function ListenPhase({ item, allItems, onDone, onKarlReact, onCombo, onCorrect, 
                           whileHover={{ scale: 1.05, y: -3 }} whileTap={{ scale: 0.95 }}
                           onClick={(e) => handleDesktopChoice(choice, e)}
                           disabled={status === 'correct' || isWrong}
-                          className="relative rounded-2xl flex flex-col items-center justify-center min-h-[140px] overflow-hidden border-2 p-2"
+                          className="relative rounded-2xl flex flex-col items-center justify-center min-h-[160px] overflow-hidden border-2 p-2"
                           style={{
                             background: isWrong ? 'linear-gradient(145deg, #FF4444, #CC0000)' : `linear-gradient(145deg, ${choice.gradient[0]}, ${choice.gradient[1]})`,
                             borderColor: isWrong ? '#FF4444' : choice.color,
                             boxShadow: isWrong ? '0 5px 18px rgba(255,68,68,0.6)' : `0 8px 24px ${choice.color}66`,
                           }}>
-                          <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>{choice.emoji}</span>
-                          {/* 🆕 إظهار الكلمة الألماني تحت الصورة */}
-                          <span className="font-black text-white text-sm mt-3 text-center leading-tight">
+                          
+                          <DynamicClock item={choice} size={75} />
+                          
+                          <span className="font-black text-white text-sm mt-4 text-center leading-tight">
                             {choice.de}
                           </span>
                         </motion.button>
@@ -1045,8 +1192,7 @@ function WritePhase({ item, onDone, onKarlReact, onCombo, onCorrect, isMobile }:
               <div className="text-center lg:text-right">
                 <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${item.color}aa` }}>Wort · بالألمانية</div>
                 <div className="text-2xl font-black text-white">اكتب الكلمة</div>
-                {/* 🆕 إبراز الكلمة بالعربي */}
-                <div className="text-xl font-bold text-yellow-300 mt-2 bg-white/5 inline-block px-4 py-1 rounded-xl border border-white/10">{item.ar}</div>
+                <div className="text-xl font-bold text-cyan-300 mt-2 bg-white/5 inline-block px-4 py-1 rounded-xl border border-white/10">{item.ar}</div>
               </div>
               <GhostInput ref={inputRef} value={input}
                 onChange={v => { setInput(v); setStatus('idle'); }} onEnter={handleCheck}
@@ -1443,8 +1589,8 @@ function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: {
   };
 
   const progress = (matched.size / group.length) * 100;
-  const cardWidth = isMobile ? 65 : 95;
-  const cardHeight = isMobile ? 85 : 115;
+  const cardWidth = isMobile ? 70 : 100;
+  const cardHeight = isMobile ? 95 : 125;
 
   const renderCard = (it: TimeItem, side: 'emoji' | 'word') => {
     const isMatched = matched.has(it.id);
@@ -1489,16 +1635,15 @@ function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: {
         }}>
         {side === 'emoji' ? (
           <>
-            <span style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', lineHeight: 1 }}>{it.emoji}</span>
-            {/* 🆕 إضافة الكلمة بالألماني تحت الإيموجي للمطابقة */}
-            <span className="text-[9px] md:text-xs font-black text-white mt-1 leading-tight text-center">
+            <DynamicClock item={it} size={isMobile ? 50 : 75} />
+            <span className="text-[9px] md:text-xs font-black text-white mt-2 leading-tight text-center">
               {it.de}
             </span>
           </>
         ) : (
           <div className="text-center px-1">
-            <div className="font-black text-white" style={{ fontSize: isMobile ? '0.75rem' : '0.95rem', lineHeight: 1.1, textShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>{it.de}</div>
-            <div className="font-bold text-yellow-300 text-[8px] md:text-[10px] mt-1">{it.ar}</div>
+            <div className="font-black text-white" style={{ fontSize: isMobile ? '0.8rem' : '1rem', lineHeight: 1.1, textShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>{it.de}</div>
+            <div className="font-bold text-yellow-300 text-[9px] md:text-xs mt-1">{it.ar}</div>
           </div>
         )}
         {isOver && (
