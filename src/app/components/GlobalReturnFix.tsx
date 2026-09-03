@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Map, User, ChevronDown, ArrowLeft } from 'lucide-react';
@@ -94,7 +94,7 @@ const SPANISH_LESSON_TO_MAP: Record<string, string> = {
   'spanish-palacio-final-test': 'map-5',
 };
 
-export default function GlobalReturnFix() {
+function GlobalReturnFixContent() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -117,7 +117,6 @@ export default function GlobalReturnFix() {
           localStorage.setItem('lastGermanMapLesson', lessonKey);
           const num = mapId.replace('map-', '');
           setCurrentMapLabel(num);
-          console.log(`💾 [DE] حفظ: ${lessonKey} -> ${mapId}`);
           break;
         }
       }
@@ -138,7 +137,6 @@ export default function GlobalReturnFix() {
           localStorage.setItem('lastSpanishMapLesson', lessonKey);
           const num = mapId.replace('map-', '');
           setCurrentMapLabel(num);
-          console.log(`💾 [ES] حفظ: ${lessonKey} -> ${mapId}`);
           break;
         }
       }
@@ -153,7 +151,6 @@ export default function GlobalReturnFix() {
       setIsLesson(false);
     }
 
-    // ✅ إذا كنا في صفحة الخريطة للألماني أو الإسباني
     if (pathname.includes('character-and-map')) {
       const isSpanishMap = pathname.includes('spanish-character-and-map');
       const mapFromUrl = searchParams.get('map');
@@ -184,7 +181,6 @@ export default function GlobalReturnFix() {
             if (isSpanishMap) {
               localStorage.setItem('es_current_map', mapId.replace('map-', ''));
             }
-            console.log(`📍 كليك على ${lessonKey} من ${mapId}`);
             break;
           }
         }
@@ -203,13 +199,11 @@ export default function GlobalReturnFix() {
     const storageKey = isSpanish ? 'lastSpanishMap' : 'lastGermanMap';
     const dictionary = isSpanish ? SPANISH_LESSON_TO_MAP : GERMAN_LESSON_TO_MAP;
 
-    // 1- من الـ URL
     const fromMap = searchParams.get('fromMap') || searchParams.get('map');
     if (fromMap) {
       return `${baseUrl}?map=${fromMap}&from=lesson`;
     }
     
-    // 2- من localStorage
     if (typeof window !== 'undefined') {
       const lastMap = localStorage.getItem(storageKey);
       if (lastMap) {
@@ -217,7 +211,6 @@ export default function GlobalReturnFix() {
       }
     }
     
-    // 3- تخمين من اسم الدرس الحالي
     for (const [lessonKey, mapId] of Object.entries(dictionary)) {
       if (pathname.includes(lessonKey)) {
         return `${baseUrl}?map=${mapId}&from=lesson`;
@@ -235,7 +228,6 @@ export default function GlobalReturnFix() {
 
   return (
     <>
-      {/* ✅ إخفاء كل أزرار الهوم القديمة للألماني والإسباني */}
       <style>{`
         button:has(svg.lucide-home) {
           opacity: 0 !important;
@@ -243,7 +235,6 @@ export default function GlobalReturnFix() {
         }
       `}</style>
 
-      {/* ✅ القائمة المنسدلة الموحدة */}
       <div className="fixed top-[75px] left-3 z-[9999] md:top-[80px] md:left-4">
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -272,7 +263,6 @@ export default function GlobalReturnFix() {
               <button
                 onClick={() => {
                   const url = getReturnMapUrl();
-                  console.log('🔙 راجع لـ:', url);
                   router.push(url);
                   setOpen(false);
                 }}
@@ -323,5 +313,13 @@ export default function GlobalReturnFix() {
         </AnimatePresence>
       </div>
     </>
+  );
+}
+
+export default function GlobalReturnFix() {
+  return (
+    <Suspense fallback={null}>
+      <GlobalReturnFixContent />
+    </Suspense>
   );
 }
