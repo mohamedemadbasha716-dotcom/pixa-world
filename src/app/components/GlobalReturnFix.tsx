@@ -102,12 +102,29 @@ function GlobalReturnFixContent() {
   const [currentMapLabel, setCurrentMapLabel] = useState('1');
 
   // 🎯 تمييز دقيق بين صفحات الدروس وصفحات الخريطة
-  const isMapPage = pathname === '/character-and-map' || pathname === '/spanish-character-and-map';
-  const isGermanLesson = !isMapPage && (pathname.includes('german-') || Object.keys(GERMAN_LESSON_TO_MAP).some(k => pathname.includes(k)));
-  const isSpanishLesson = !isMapPage && (pathname.includes('spanish-') || Object.keys(SPANISH_LESSON_TO_MAP).some(k => pathname.includes(k)));
-  
+  const isMapPage =
+    pathname === '/character-and-map' ||
+    pathname === '/spanish-character-and-map' ||
+    pathname.endsWith('/character-and-map') ||
+    pathname.endsWith('/spanish-character-and-map');
+
+  const isGermanLesson =
+    !isMapPage &&
+    (pathname.includes('german-') ||
+      Object.keys(GERMAN_LESSON_TO_MAP).some((k) => pathname.includes(k)));
+
+  const isSpanishLesson =
+    !isMapPage &&
+    (pathname.includes('spanish-') ||
+      Object.keys(SPANISH_LESSON_TO_MAP).some((k) => pathname.includes(k)));
+
   const isLesson = isGermanLesson || isSpanishLesson;
-  const lang: 'de' | 'es' = isSpanishLesson ? 'es' : 'de';
+
+  // نظهر الزرار جوه الدروس وعلى الخرائط
+  const shouldShow = isLesson || isMapPage;
+
+  // اللغة: من الدرس أو من الخريطة
+  const lang: 'de' | 'es' = isSpanishLesson || pathname.includes('spanish-') ? 'es' : 'de';
 
   useEffect(() => {
     if (isGermanLesson) {
@@ -146,8 +163,8 @@ function GlobalReturnFixContent() {
 
     if (isMapPage) {
       const isSpanishMap = pathname.includes('spanish-');
-      const mapFromUrl = searchParams.get('map');
-      
+      const mapFromUrl = searchParams.get('map') || searchParams.get('fromMap');
+
       if (mapFromUrl) {
         if (isSpanishMap) {
           localStorage.setItem('lastSpanishMap', mapFromUrl);
@@ -156,15 +173,23 @@ function GlobalReturnFixContent() {
           localStorage.setItem('lastGermanMap', mapFromUrl);
         }
         setCurrentMapLabel(mapFromUrl.replace('map-', ''));
+      } else if (typeof window !== 'undefined') {
+        // لو مفيش map في الـ URL، جيب من localStorage
+        const saved = isSpanishMap
+          ? localStorage.getItem('lastSpanishMap') || localStorage.getItem('es_current_map')
+          : localStorage.getItem('lastGermanMap');
+        if (saved) {
+          setCurrentMapLabel(saved.replace('map-', ''));
+        }
       }
 
       const handleLessonClick = (e: MouseEvent) => {
         const target = (e.target as HTMLElement).closest('a, button, [data-lesson]');
         if (!target) return;
-        
+
         const href = target.getAttribute('href') || '';
         const lessonId = target.getAttribute('data-lesson') || href;
-        
+
         const dictionary = isSpanishMap ? SPANISH_LESSON_TO_MAP : GERMAN_LESSON_TO_MAP;
         const storageKey = isSpanishMap ? 'lastSpanishMap' : 'lastGermanMap';
 
@@ -184,7 +209,7 @@ function GlobalReturnFixContent() {
     }
   }, [pathname, searchParams, isGermanLesson, isSpanishLesson, isMapPage]);
 
-  if (!isLesson) return null;
+  if (!shouldShow) return null;
 
   const getReturnMapUrl = () => {
     const isSpanish = lang === 'es';
@@ -196,32 +221,37 @@ function GlobalReturnFixContent() {
     if (fromMap) {
       return `${baseUrl}?map=${fromMap}&from=lesson`;
     }
-    
+
     if (typeof window !== 'undefined') {
       const lastMap = localStorage.getItem(storageKey);
       if (lastMap) {
         return `${baseUrl}?map=${lastMap}&from=lesson`;
       }
     }
-    
+
     for (const [lessonKey, mapId] of Object.entries(dictionary)) {
       if (pathname.includes(lessonKey)) {
         return `${baseUrl}?map=${mapId}&from=lesson`;
       }
     }
-    
+
     return `${baseUrl}?from=lesson`;
   };
 
   const getCharacterSelectionUrl = () => {
-    return lang === 'es' 
-      ? '/spanish-character-and-map?selectCharacter=true' 
+    return lang === 'es'
+      ? '/spanish-character-and-map?selectCharacter=true'
       : '/character-and-map?selectCharacter=true';
   };
 
+  // نص الزرار: على الخريطة "قائمة" — جوه الدرس "عودة"
+  const buttonLabel = isMapPage
+    ? 'قائمة'
+    : `عودة${currentMapLabel !== '1' ? ` (خريطة ${currentMapLabel})` : ''}`;
+
   return (
     <>
-      {/* ✅ إخفاء أزرار الهوم القديمة فقط، مع حماية أزرار القائمة المنسدلة من الإخفاء */}
+      {/* ✅ إخفاء أزرار الهوم القديمة فقط، مع حماية أزرار القائمة المنسدلة */}
       <style>{`
         button:has(svg.lucide-home):not(.global-nav-dropdown-item) {
           opacity: 0 !important;
@@ -238,7 +268,7 @@ function GlobalReturnFixContent() {
           dir="rtl"
         >
           <ArrowLeft size={12} />
-          <span>عودة {currentMapLabel !== '1' ? `(خريطة ${currentMapLabel})` : ''}</span>
+          <span>{buttonLabel}</span>
           <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
             <ChevronDown size={10} />
           </motion.div>
@@ -254,23 +284,32 @@ function GlobalReturnFixContent() {
               className="absolute top-full mt-2 left-0 w-64 rounded-xl overflow-hidden bg-[#0f0a2a]/95 backdrop-blur-xl border border-white/20 shadow-2xl"
               dir="rtl"
             >
-              <button
-                onClick={() => {
-                  const url = getReturnMapUrl();
-                  router.push(url);
-                  setOpen(false);
-                }}
-                className="global-nav-dropdown-item w-full flex items-center gap-2.5 px-4 py-3 text-right hover:bg-white/10 transition-all border-b border-white/10"
-              >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center flex-shrink-0">
-                  <Map size={16} className="text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-bold text-[13px] text-white">خريطة الدرس {currentMapLabel !== '1' ? currentMapLabel : ''}</div>
-                  <div className="text-[10px] text-white/50">ارجع لنفس الخريطة {currentMapLabel !== '1' ? `(خريطة ${currentMapLabel})` : ''}</div>
-                </div>
-              </button>
+              {/* ✅ جوه الدرس فقط: خيار الرجوع للخريطة */}
+              {isLesson && (
+                <button
+                  onClick={() => {
+                    const url = getReturnMapUrl();
+                    router.push(url);
+                    setOpen(false);
+                  }}
+                  className="global-nav-dropdown-item w-full flex items-center gap-2.5 px-4 py-3 text-right hover:bg-white/10 transition-all border-b border-white/10"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center flex-shrink-0">
+                    <Map size={16} className="text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-bold text-[13px] text-white">
+                      خريطة الدرس {currentMapLabel !== '1' ? currentMapLabel : ''}
+                    </div>
+                    <div className="text-[10px] text-white/50">
+                      ارجع لنفس الخريطة
+                      {currentMapLabel !== '1' ? ` (خريطة ${currentMapLabel})` : ''}
+                    </div>
+                  </div>
+                </button>
+              )}
 
+              {/* ✅ الصفحة الرئيسية (في الدروس والخرائط) */}
               <button
                 onClick={() => {
                   router.push('/');
@@ -287,6 +326,7 @@ function GlobalReturnFixContent() {
                 </div>
               </button>
 
+              {/* ✅ اختيار الشخصية (في الدروس والخرائط) */}
               <button
                 onClick={() => {
                   router.push(getCharacterSelectionUrl());
