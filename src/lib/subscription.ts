@@ -55,12 +55,17 @@ export function disableAdminMode(): void {
   localStorage.removeItem(ADMIN_STORAGE_KEY);
 }
 
-export async function hasFullAccess(): Promise<boolean> {
+// 🔑 دالة الوصول الكامل مع دعم اختيار lessonId اختياري
+export async function hasFullAccess(lessonId?: string): Promise<boolean> {
   if (isAdmin()) return true;
   try {
     const user = await getCurrentUser();
     const email = user?.email?.toLowerCase()?.trim();
     if (email && FULL_ACCESS_EMAILS.map(e => e.toLowerCase()).includes(email)) {
+      // 🔑 إذا كان الدرس إسبانياً (يبدأ بـ es-) ينطبق عليه النظام العادي ولا يُفتح كأدمن
+      if (lessonId && lessonId.startsWith('es-')) {
+        return false;
+      }
       return true;
     }
   } catch {}
@@ -113,13 +118,11 @@ export async function canAccessLesson(lessonId: string): Promise<{
     return { canAccess: true, reason: 'free_lesson' };
   }
 
-  // 🔑 تمرير lessonId لضمان عدم معاملة دروس الإسباني كـ Premium للأدمن
   const subscribed = await isUserSubscribed(lessonId);
   if (!subscribed) {
     return { canAccess: false, reason: 'not_subscribed', redirectTo: '/plans' };
   }
 
-  // فرز التحقق ديناميكياً حسب كود المعلم (أسباني أو ألماني)
   const isSpanish = lessonId.startsWith('es-');
   const unlocked = isSpanish 
     ? await isSpanishLessonUnlocked(lessonId) 
