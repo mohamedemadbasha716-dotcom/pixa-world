@@ -98,25 +98,24 @@ function GlobalReturnFixContent() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isLesson, setIsLesson] = useState(false);
-  const [lang, setLang] = useState<'de' | 'es'>('de');
   const [open, setOpen] = useState(false);
   const [currentMapLabel, setCurrentMapLabel] = useState('1');
 
+  // 🎯 تمييز دقيق بين صفحات الدروس وصفحات الخريطة
+  const isMapPage = pathname === '/character-and-map' || pathname === '/spanish-character-and-map';
+  const isGermanLesson = !isMapPage && (pathname.includes('german-') || Object.keys(GERMAN_LESSON_TO_MAP).some(k => pathname.includes(k)));
+  const isSpanishLesson = !isMapPage && (pathname.includes('spanish-') || Object.keys(SPANISH_LESSON_TO_MAP).some(k => pathname.includes(k)));
+  
+  const isLesson = isGermanLesson || isSpanishLesson;
+  const lang: 'de' | 'es' = isSpanishLesson ? 'es' : 'de';
+
   useEffect(() => {
-    const isGermanLesson = pathname.includes('german-');
-    const isSpanishLesson = pathname.includes('spanish-');
-
     if (isGermanLesson) {
-      setIsLesson(true);
-      setLang('de');
-
       for (const [lessonKey, mapId] of Object.entries(GERMAN_LESSON_TO_MAP)) {
         if (pathname.includes(lessonKey)) {
           localStorage.setItem('lastGermanMap', mapId);
           localStorage.setItem('lastGermanMapLesson', lessonKey);
-          const num = mapId.replace('map-', '');
-          setCurrentMapLabel(num);
+          setCurrentMapLabel(mapId.replace('map-', ''));
           break;
         }
       }
@@ -127,16 +126,12 @@ function GlobalReturnFixContent() {
         setCurrentMapLabel(fromMap.replace('map-', ''));
       }
     } else if (isSpanishLesson) {
-      setIsLesson(true);
-      setLang('es');
-
       for (const [lessonKey, mapId] of Object.entries(SPANISH_LESSON_TO_MAP)) {
         if (pathname.includes(lessonKey)) {
           localStorage.setItem('lastSpanishMap', mapId);
           localStorage.setItem('es_current_map', mapId.replace('map-', ''));
           localStorage.setItem('lastSpanishMapLesson', lessonKey);
-          const num = mapId.replace('map-', '');
-          setCurrentMapLabel(num);
+          setCurrentMapLabel(mapId.replace('map-', ''));
           break;
         }
       }
@@ -147,12 +142,10 @@ function GlobalReturnFixContent() {
         localStorage.setItem('es_current_map', fromMap.replace('map-', ''));
         setCurrentMapLabel(fromMap.replace('map-', ''));
       }
-    } else {
-      setIsLesson(false);
     }
 
-    if (pathname.includes('character-and-map')) {
-      const isSpanishMap = pathname.includes('spanish-character-and-map');
+    if (isMapPage) {
+      const isSpanishMap = pathname.includes('spanish-');
       const mapFromUrl = searchParams.get('map');
       
       if (mapFromUrl) {
@@ -189,7 +182,7 @@ function GlobalReturnFixContent() {
       document.addEventListener('click', handleLessonClick, true);
       return () => document.removeEventListener('click', handleLessonClick, true);
     }
-  }, [pathname, searchParams]);
+  }, [pathname, searchParams, isGermanLesson, isSpanishLesson, isMapPage]);
 
   if (!isLesson) return null;
 
@@ -228,19 +221,20 @@ function GlobalReturnFixContent() {
 
   return (
     <>
+      {/* ✅ إخفاء أزرار الهوم القديمة فقط، مع حماية أزرار القائمة المنسدلة من الإخفاء */}
       <style>{`
-        button:has(svg.lucide-home) {
+        button:has(svg.lucide-home):not(.global-nav-dropdown-item) {
           opacity: 0 !important;
           pointer-events: none !important;
         }
       `}</style>
 
-      <div className="fixed top-[75px] left-3 z-[9999] md:top-[80px] md:left-4">
+      <div className="fixed top-[75px] left-3 z-[999999] md:top-[80px] md:left-4">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-[11px] md:text-xs text-white bg-black/50 backdrop-blur-md border border-white/20 hover:bg-black/70 transition-all shadow-lg"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-[11px] md:text-xs text-white bg-black/85 backdrop-blur-xl border border-white/30 hover:bg-black/95 transition-all shadow-2xl"
           dir="rtl"
         >
           <ArrowLeft size={12} />
@@ -257,7 +251,7 @@ function GlobalReturnFixContent() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute top-full mt-2 left-0 w-64 rounded-xl overflow-hidden bg-[#0f0a2a]/95 backdrop-blur-xl border border-white/15 shadow-2xl"
+              className="absolute top-full mt-2 left-0 w-64 rounded-xl overflow-hidden bg-[#0f0a2a]/95 backdrop-blur-xl border border-white/20 shadow-2xl"
               dir="rtl"
             >
               <button
@@ -266,7 +260,7 @@ function GlobalReturnFixContent() {
                   router.push(url);
                   setOpen(false);
                 }}
-                className="w-full flex items-center gap-2.5 px-4 py-3 text-right hover:bg-white/10 transition-all border-b border-white/10"
+                className="global-nav-dropdown-item w-full flex items-center gap-2.5 px-4 py-3 text-right hover:bg-white/10 transition-all border-b border-white/10"
               >
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center flex-shrink-0">
                   <Map size={16} className="text-white" />
@@ -282,7 +276,7 @@ function GlobalReturnFixContent() {
                   router.push('/');
                   setOpen(false);
                 }}
-                className="w-full flex items-center gap-2.5 px-4 py-3 text-right hover:bg-white/10 transition-all border-b border-white/10"
+                className="global-nav-dropdown-item w-full flex items-center gap-2.5 px-4 py-3 text-right hover:bg-white/10 transition-all border-b border-white/10"
               >
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center flex-shrink-0">
                   <Home size={16} className="text-white" />
@@ -298,7 +292,7 @@ function GlobalReturnFixContent() {
                   router.push(getCharacterSelectionUrl());
                   setOpen(false);
                 }}
-                className="w-full flex items-center gap-2.5 px-4 py-3 text-right hover:bg-white/10 transition-all"
+                className="global-nav-dropdown-item w-full flex items-center gap-2.5 px-4 py-3 text-right hover:bg-white/10 transition-all"
               >
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center flex-shrink-0">
                   <User size={16} className="text-white" />
