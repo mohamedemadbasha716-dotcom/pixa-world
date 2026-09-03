@@ -1414,10 +1414,10 @@ export default function PixiHomePage() {
             <p className="text-[11px] text-gray-400 font-bold">
               © {new Date().getFullYear()} <span dir="ltr" className="inline-block mx-1">PIXA WORLD</span>. جميع الحقوق محفوظة 🎮✨
             </p>
-            <div className="flex gap-6 text-[11px] text-gray-400 font-bold">
-              <a href="#" className="hover:text-white transition-colors">سياسة الخصوصية</a>
-              <a href="#" className="hover:text-white transition-colors">شروط الاستخدام</a>
-            </div>
+<div className="flex gap-6 text-[11px] text-gray-400 font-bold">
+  <a href="/privacy" className="hover:text-white transition-colors">سياسة الخصوصية</a>
+  <a href="/terms" className="hover:text-white transition-colors">شروط الاستخدام</a>
+</div>
           </div>
         </div>
       </footer>
