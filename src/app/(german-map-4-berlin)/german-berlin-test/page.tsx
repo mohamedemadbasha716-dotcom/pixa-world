@@ -69,20 +69,20 @@ function shuffle<T>(arr: T[]): T[] {
 function StarryBackground() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      <div className="absolute inset-0"
-        style={{ background: 'linear-gradient(180deg, #0a0520 0%, #1a1033 50%, #0a0520 100%)' }} />
-      <motion.div className="absolute inset-0 opacity-40"
-        style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,58,237,0.4), transparent 70%)' }}
-        animate={{ opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 4, repeat: Infinity }} />
-      {Array.from({ length: 60 }).map((_, i) => (
-        <motion.div key={i} className="absolute rounded-full"
+      <picture className="absolute inset-0 w-full h-full">
+        <source media="(min-width: 768px)" srcSet="/card-image/lake-group3-pc.webp" />
+        <img src="/card-image/lake-group3-mob.webp" alt="bg" className="w-full h-full object-cover" />
+      </picture>
+      <div className="absolute inset-0" style={{
+        background: 'linear-gradient(180deg, rgba(10,5,30,0.5) 0%, rgba(10,5,30,0.3) 50%, rgba(10,5,30,0.5) 100%)',
+      }} />
+      {Array.from({ length: 40 }).map((_, i) => (
+        <motion.div key={i} className="absolute rounded-full bg-white"
           style={{
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
             width: 1.5 + Math.random() * 2,
             height: 1.5 + Math.random() * 2,
-            background: 'white',
           }}
           animate={{ opacity: [0.2, 1, 0.2] }}
           transition={{ duration: 2 + Math.random() * 3, delay: Math.random() * 5, repeat: Infinity }}
@@ -666,7 +666,7 @@ function CertificateScreen({ score, totalPossible, heroName, onRestart, onHome, 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}
             className="flex items-center gap-3 p-4 rounded-2xl mb-4"
             style={{ background: 'rgba(20,15,55,0.7)', backdropFilter: 'blur(20px)', border: '2px solid rgba(255,215,0,0.3)' }}>
-            <motion.img src="/characters/karl-3d.png" alt="كارل" className="w-12 h-12 md:w-14 md:h-14 object-contain flex-shrink-0"
+            <motion.img src="/characters/karl-3d.webp" alt="كارل" className="w-12 h-12 md:w-14 md:h-14 object-contain flex-shrink-0"
               animate={{ rotate: [-5, 5, -5] }} transition={{ duration: 2, repeat: Infinity }} />
             <div>
               <div className="text-xs font-black text-yellow-400 mb-1">كارل النسر يقول:</div>

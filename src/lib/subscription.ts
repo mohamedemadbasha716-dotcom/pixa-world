@@ -84,8 +84,8 @@ export async function getUserSubscription(): Promise<Subscription | null> {
   return data;
 }
 
-export async function isUserSubscribed(): Promise<boolean> {
-  if (await hasFullAccess()) return true;
+export async function isUserSubscribed(lessonId?: string): Promise<boolean> {
+  if (await hasFullAccess(lessonId)) return true;
 
   const subscription = await getUserSubscription();
   if (!subscription) return false;
@@ -105,7 +105,7 @@ export async function canAccessLesson(lessonId: string): Promise<{
   reason: 'full_access' | 'free_lesson' | 'subscribed' | 'not_subscribed' | 'locked_sequence';
   redirectTo?: string;
 }> {
-  if (await hasFullAccess()) {
+  if (await hasFullAccess(lessonId)) {
     return { canAccess: true, reason: 'full_access' };
   }
 
@@ -113,7 +113,8 @@ export async function canAccessLesson(lessonId: string): Promise<{
     return { canAccess: true, reason: 'free_lesson' };
   }
 
-  const subscribed = await isUserSubscribed();
+  // 🔑 تمرير lessonId لضمان عدم معاملة دروس الإسباني كـ Premium للأدمن
+  const subscribed = await isUserSubscribed(lessonId);
   if (!subscribed) {
     return { canAccess: false, reason: 'not_subscribed', redirectTo: '/plans' };
   }

@@ -294,7 +294,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
                 background: 'rgba(40,10,15,0.7)', backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255,215,0,0.35)', minWidth: 0,
               }}>
-              <img id="star-target" src="/treasuer/star.png" alt="star" className="w-3 h-3 flex-shrink-0" 
+              <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-3 h-3 flex-shrink-0" 
                 style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
               <span className="font-black text-[10px] text-white truncate">{stats.points}</span>
             </motion.div>
@@ -422,7 +422,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
               boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
             }}>
             <span className="font-black text-xs md:text-sm text-white">{stats.points}</span>
-            <img id="star-target" src="/treasuer/star.png" alt="star" className="w-5 h-5 md:w-6 md:h-6" 
+            <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-5 h-5 md:w-6 md:h-6" 
               style={{ filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.8))' }} />
           </motion.div>
 
@@ -446,7 +446,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
   stats: GameStats; treasureState: 'closed' | 'half' | 'opend';
   onHint: () => void; onMap: () => void; isMobile: boolean;
 }) {
-  const treasureImg = `/treasuer/${treasureState}.png`;
+  const treasureImg = `/treasuer/${treasureState}.webp`;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 px-2 md:px-4 pb-1 md:pb-1.5 pointer-events-none"
@@ -469,10 +469,10 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
 
           <div className="flex items-end justify-around gap-2 md:gap-3">
             <FloatingIconButton onClick={onMap} label="خريطة" color="#4CC9F0" isMobile={isMobile}
-              iconSrc="/treasuer/map-icon.png" iconAlt="map" />
+              iconSrc="/treasuer/map-icon.webp" iconAlt="map" />
 
             <FloatingIconButton label="نجوم" color="#FFD700" isMobile={isMobile} disabled
-              iconSrc="/treasuer/star.png" iconAlt="star" />
+              iconSrc="/treasuer/star.webp" iconAlt="star" />
 
             <motion.div id="treasure-box" whileHover={{ scale: 1.08, y: -2 }}
               animate={treasureState === 'opend' ? { y: [0, -3, 0] } : {}}
@@ -496,7 +496,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
             </motion.div>
 
             <FloatingIconButton label="طاقة" color="#4CC9F0" isMobile={isMobile} disabled
-              iconSrc="/treasuer/energy.png" iconAlt="energy" />
+              iconSrc="/treasuer/energy.webp" iconAlt="energy" />
 
             <FloatingIconButton onClick={onHint} label="تلميح" color="#FFD700" isMobile={isMobile}
               badge={stats.hints} disabled={stats.hints === 0}
@@ -563,11 +563,11 @@ function FlyingItems({ items }: { items: FlyingItem[] }) {
                   style={{ background: color, opacity: 0.8, transform: 'scale(2.5)' }} />
                 <div className="relative flex items-center justify-center w-full h-full">
                   {item.type === 'star' && (
-                    <img src="/treasuer/star.png" alt="star" className="w-10 h-10"
+                    <img src="/treasuer/star.webp" alt="star" className="w-10 h-10"
                       style={{ filter: `drop-shadow(0 0 15px ${color})` }} />
                   )}
                   {item.type === 'energy' && (
-                    <img src="/treasuer/energy.png" alt="energy" className="w-10 h-10"
+                    <img src="/treasuer/energy.webp" alt="energy" className="w-10 h-10"
                       style={{ filter: `drop-shadow(0 0 15px ${color})` }} />
                   )}
                   {item.type === 'gem' && (
@@ -1374,7 +1374,7 @@ function GroupSuccessScreen({ groupTitle, onNext }: { groupTitle: string; onNext
         {[1, 2, 3].map(s => (
           <motion.div key={s} initial={{ scale: 0 }} animate={{ scale: 1 }} 
             transition={{ delay: 0.3 + s * 0.15, type: 'spring' }}>
-            <img src="/treasuer/star.png" alt="star" className="w-10 h-10 md:w-12 md:h-12" 
+            <img src="/treasuer/star.webp" alt="star" className="w-10 h-10 md:w-12 md:h-12" 
               style={{ filter: 'drop-shadow(0 0 12px rgba(255,215,0,0.8))' }} />
           </motion.div>
         ))}
@@ -1402,7 +1402,7 @@ function AllDoneScreen({ onMap }: { onMap: () => void }) {
         {[1, 2, 3].map(s => (
           <motion.div key={s} initial={{ scale: 0 }} animate={{ scale: 1, rotate: [0, 360] }}
             transition={{ delay: 0.5 + s * 0.2, type: 'spring' }}>
-            <img src="/treasuer/star.png" alt="star" className="w-16 h-16 md:w-20 md:h-20"
+            <img src="/treasuer/star.webp" alt="star" className="w-16 h-16 md:w-20 md:h-20"
               style={{ filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.9))' }} />
           </motion.div>
         ))}

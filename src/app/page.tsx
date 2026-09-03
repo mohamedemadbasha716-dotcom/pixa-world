@@ -6,7 +6,7 @@ import {
   Star, Zap, BookOpen, Users, Trophy, Heart,
   ChevronLeft, ChevronRight, Play, Shield, Rocket,
   Brain, Gamepad2, GraduationCap, Languages, CheckCircle,
-  Clock, Award, Volume2
+  Clock, Award, Volume2, LineChart, MonitorSmartphone, ShieldCheck
 } from 'lucide-react';
 
 const BOOKS_DATA = [
@@ -990,6 +990,79 @@ export default function PixiHomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 5.5 قسم الآباء والتوافق مع الأجهزة (جديد) */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <section className="w-full max-w-6xl mx-auto px-6 mb-24 z-10 relative">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="rounded-[32px] overflow-hidden border border-white/10 bg-gradient-to-br from-[#1a1a3e]/80 to-[#2d1b4e]/80 backdrop-blur-xl flex flex-col lg:flex-row shadow-2xl"
+        >
+          {/* محتوى النص */}
+          <div className="p-8 md:p-12 lg:w-1/2 flex flex-col justify-center space-y-6">
+            <div className="inline-flex items-center gap-2 bg-[#06D6A0]/20 border border-[#06D6A0]/30 px-4 py-1.5 rounded-full text-xs font-bold text-[#6ee7b7] w-fit">
+              <ShieldCheck size={14} /> راحة بال للآباء
+            </div>
+            <h2 className="text-3xl md:text-4xl font-black text-white leading-tight">
+              أنت الموجه.. <br /> وطفلك هو البطل!
+            </h2>
+            <p className="text-gray-300 text-sm md:text-base font-medium leading-relaxed">
+              عارفين إنك مشغول، عشان كده عملنالك لوحة تحكم خاصة بيك تتابع منها مستوى طفلك، وتعرف الكلمات اللي اتعلمها، والوقت اللي قضاه على المنصة.
+            </p>
+            
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#4CC9F0]/20 flex items-center justify-center"><LineChart className="text-[#4CC9F0]" size={18} /></div>
+                <div>
+                  <h4 className="text-white font-black text-sm">تقارير ذكية أسبوعية</h4>
+                  <p className="text-gray-400 text-xs font-bold">بنوصلك تقرير بمستوى طفلك ونقاط قوته.</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#9D4EDD]/20 flex items-center justify-center"><MonitorSmartphone className="text-[#9D4EDD]" size={18} /></div>
+                <div>
+                  <h4 className="text-white font-black text-sm">متوافق مع التابلت والآيباد</h4>
+                  <p className="text-gray-400 text-xs font-bold">شغال على كل الأجهزة اللي طفلك بيحبها بأعلى جودة.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* الجزء البصري (Mockup) */}
+          <div className="lg:w-1/2 relative min-h-[300px] bg-gradient-to-br from-white/5 to-white/0 p-8 flex items-center justify-center overflow-hidden border-t lg:border-t-0 lg:border-r border-white/10">
+            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.05]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#06D6A0]/20 rounded-full blur-[80px]" />
+            
+            {/* بطاقة تقرير مصغرة */}
+            <motion.div 
+              animate={{ y: [-10, 10, -10] }} 
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              className="relative z-10 w-full max-w-sm rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-5 shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#FF4D6D] to-[#9D4EDD] p-0.5"><img src="/characters/boy-3d.webp" alt="Avatar" className="w-full h-full object-cover rounded-full bg-black" /></div>
+                  <div><div className="text-xs font-black text-white">عمر محمد</div><div className="text-[9px] text-[#06D6A0] font-bold">بطل الأسبوع 🏆</div></div>
+                </div>
+                <div className="text-right"><div className="text-xs font-black text-white">اللغة الألمانية</div><div className="text-[10px] text-gray-400">المستوى 2</div></div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-[10px] text-white/80 font-bold mb-1"><span>إتمام الكلمات</span><span>85%</span></div>
+                  <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden"><div className="w-[85%] h-full bg-[#06D6A0] rounded-full" /></div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-[10px] text-white/80 font-bold mb-1"><span>دقة النطق 🎤</span><span>92%</span></div>
+                  <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden"><div className="w-[92%] h-full bg-[#4CC9F0] rounded-full" /></div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
       {/* 6. ليه تختار PIXA WORLD - المميزات */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <section className="w-full max-w-6xl mx-auto px-6 mb-24 space-y-12 z-10 relative">
@@ -1348,6 +1421,25 @@ export default function PixiHomePage() {
           </div>
         </div>
       </footer>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 11. الزر العائم للموبايل (يظهر فقط في الشاشات الصغيرة) */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <motion.div 
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        transition={{ delay: 2, type: 'spring' }}
+        className="fixed bottom-0 left-0 right-0 p-4 z-50 md:hidden bg-gradient-to-t from-[#0a0a1a] via-[#0a0a1a]/90 to-transparent pb-6 pt-10"
+      >
+        <button
+          onClick={() => window.location.href = '/plans'}
+          className="w-full bg-gradient-to-r from-[#FF4D6D] to-[#F72585] text-white px-6 py-4 rounded-2xl font-black text-base shadow-[0_0_30px_rgba(255,77,109,0.4)] flex items-center justify-center gap-2"
+        >
+          <Rocket size={18} />
+          ابدأ رحلة طفلك مجاناً الآن
+        </button>
+      </motion.div>
+      
     </div>
   );
 }

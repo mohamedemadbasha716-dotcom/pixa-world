@@ -197,7 +197,7 @@ function StarsDisplay({ stars, animated = true, size = 50 }: { stars: 0 | 1 | 2 
         >
           {i <= stars ? (
             <img 
-              src="/treasuer/star.png" 
+              src="/treasuer/star.webp" 
               alt="star" 
               style={{ 
                 width: size, 
@@ -417,7 +417,7 @@ function SpanishConsuegraTestInner() {
                 
                 <div className="flex items-center gap-1 flex-1 justify-center max-w-[230px]">
                   <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/50 backdrop-blur-md border border-yellow-400/40 flex-1 justify-center">
-                    <img src="/treasuer/star.png" className="w-3 h-3" alt="" />
+                    <img src="/treasuer/star.webp" className="w-3 h-3" alt="" />
                     <span className="font-black text-[10px] text-white">{points}</span>
                   </div>
                   <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/50 backdrop-blur-md border border-orange-400/40 flex-1 justify-center">
@@ -447,7 +447,7 @@ function SpanishConsuegraTestInner() {
                   <Home size={20} />
                 </button>
                 <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-black/50 backdrop-blur-xl border-2 border-yellow-400/40">
-                  <img src="/treasuer/star.png" className="w-6 h-6" alt="" />
+                  <img src="/treasuer/star.webp" className="w-6 h-6" alt="" />
                   <span className="font-black text-white">{points}</span>
                 </div>
                 <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-black/50 backdrop-blur-xl border-2 border-green-400/40">

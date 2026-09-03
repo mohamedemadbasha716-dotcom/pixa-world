@@ -131,7 +131,7 @@ function shuffleWordLetters(word: string): string[] {
 
 function getGroupBackground(groupIdx: number, isMobile: boolean): string {
   const suffix = isMobile ? 'mob' : 'pc';
-  return `/card-image/verbs/bg-group${Math.min(groupIdx + 1, 3)}-${suffix}.webp`;
+  return `/card-image/lake-group2-${suffix}.webp`;
 }
 
 function useIsMobile(breakpoint = 1024): boolean {
@@ -266,7 +266,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 flex-shrink-0"
               style={{ borderColor: '#FFD700', boxShadow: '0 0 10px rgba(255,215,0,0.5)', background: 'linear-gradient(135deg,#4CC9F0,#7209B7)' }}>
-              <img src="/characters/karl-3d.png" alt="" className="w-full h-full object-cover" />
+              <img src="/characters/karl-3d.webp" alt="" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col items-start leading-none gap-0.5">
               <span className="text-[7px] font-bold text-white/80">المستوى</span>
@@ -282,7 +282,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
           <div className="flex items-center gap-1 flex-1 justify-center max-w-[200px]">
             <motion.div className="flex items-center gap-1 px-1.5 py-1 rounded-lg flex-1 justify-center"
               style={{ background: 'rgba(15,10,45,0.7)', border: '1px solid rgba(255,215,0,0.35)' }}>
-              <img id="star-target" src="/treasuer/star.png" alt="" className="w-3 h-3 flex-shrink-0" />
+              <img id="star-target" src="/treasuer/star.webp" alt="" className="w-3 h-3 flex-shrink-0" />
               <span className="font-black text-[10px] text-white truncate">{stats.points}</span>
             </motion.div>
             <motion.div className="flex items-center gap-1 px-1.5 py-1 rounded-lg flex-1 justify-center"
@@ -317,7 +317,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-2"
             style={{ borderColor: '#FFD700', background: 'linear-gradient(135deg,#4CC9F0,#7209B7)' }}>
-            <img src="/characters/karl-3d.png" alt="" className="w-full h-full object-cover" />
+            <img src="/characters/karl-3d.webp" alt="" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
             <span className="text-[9px] font-bold text-white/80 mb-0.5">المستوى</span>
@@ -350,7 +350,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
           <div className="flex items-center gap-1.5 px-3 py-2 rounded-2xl"
             style={{ background: 'rgba(15,10,45,0.65)', border: '2px solid rgba(255,215,0,0.35)' }}>
             <span className="font-black text-sm text-white">{stats.points}</span>
-            <img id="star-target" src="/treasuer/star.png" alt="" className="w-5 h-5 md:w-6 md:h-6" />
+            <img id="star-target" src="/treasuer/star.webp" alt="" className="w-5 h-5 md:w-6 md:h-6" />
           </div>
           <motion.button whileTap={{ scale: 0.92 }} onClick={onHome}
             className="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center"
@@ -382,8 +382,8 @@ function FlyingItems({ items }: { items: FlyingItem[] }) {
             <div className="relative" style={{ width: 40, height: 40, marginTop: -20, marginLeft: -20 }}>
               <div className="absolute inset-0 rounded-full blur-xl" style={{ background: color, opacity: 0.8, transform: 'scale(2.5)' }} />
               <div className="relative flex items-center justify-center w-full h-full">
-                {item.type === 'star' && <img src="/treasuer/star.png" alt="" className="w-10 h-10" />}
-                {item.type === 'energy' && <img src="/treasuer/energy.png" alt="" className="w-10 h-10" />}
+                {item.type === 'star' && <img src="/treasuer/star.webp" alt="" className="w-10 h-10" />}
+                {item.type === 'energy' && <img src="/treasuer/energy.webp" alt="" className="w-10 h-10" />}
                 {item.type === 'gem' && <Gem size={36} fill="#9D4EDD" className="text-purple-200" />}
               </div>
             </div>
@@ -419,15 +419,15 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
             <Sparkles size={8} className="text-yellow-300" />
           </div>
           <div className="flex items-end justify-around gap-2">
-            <Btn onClick={onMap} label="خريطة" color="#4CC9F0" iconSrc="/treasuer/map-icon.png" />
-            <Btn label="نجوم" color="#FFD700" disabled iconSrc="/treasuer/star.png" />
+            <Btn onClick={onMap} label="خريطة" color="#4CC9F0" iconSrc="/treasuer/map-icon.webp" />
+            <Btn label="نجوم" color="#FFD700" disabled iconSrc="/treasuer/star.webp" />
             <div id="treasure-box" className="flex flex-col items-center gap-0.5">
               <div className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center">
-                <img src={`/treasuer/${treasureState}.png`} alt="" className="w-full h-full object-contain" />
+                <img src={`/treasuer/${treasureState}.webp`} alt="" className="w-full h-full object-contain" />
               </div>
               <span className="text-[7px] font-black text-yellow-400">صندوق</span>
             </div>
-            <Btn label="طاقة" color="#4CC9F0" disabled iconSrc="/treasuer/energy.png" />
+            <Btn label="طاقة" color="#4CC9F0" disabled iconSrc="/treasuer/energy.webp" />
             <Btn onClick={onHint} label="تلميح" color="#FFD700" badge={stats.hints} disabled={stats.hints === 0} iconSrc="/treasuer/HINT.svg" />
           </div>
         </div>

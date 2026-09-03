@@ -1,0 +1,220 @@
+// src/data/german/nuremberg-holidays.ts
+
+export interface HolidayItem {
+  id: string;
+  deBase: string;
+  de: string;
+  ar: string;
+  emoji: string;
+  color: string;
+  gradient: [string, string];
+  acceptedAnswers?: string[];
+  exampleDe?: string;
+  exampleAr?: string;
+}
+
+export const HOLIDAYS: HolidayItem[] = [
+  // 🟢 المجموعة الأولى: أعياد رأس السنة والشتاء (5)
+  {
+    id: 'weihnachten',
+    deBase: 'Weihnachten',
+    de: 'Frohe Weihnachten',
+    ar: 'عيد الميلاد المجيد',
+    emoji: '🎄',
+    color: '#EF4444',
+    gradient: ['#EF4444', '#B91C1C'],
+    acceptedAnswers: ['weihnachten', 'frohe weihnachten'],
+    exampleDe: 'Frohe Weihnachten und ein schönes Fest!',
+    exampleAr: 'عيد ميلاد سعيد ومهرجان جميل!',
+  },
+  {
+    id: 'silvester',
+    deBase: 'Silvester',
+    de: 'Silvester',
+    ar: 'ليلة رأس السنة',
+    emoji: '🎆',
+    color: '#FFD700',
+    gradient: ['#FFD700', '#FF8C00'],
+    acceptedAnswers: ['silvester'],
+    exampleDe: 'Guten Rutsch ins neue Jahr!',
+    exampleAr: 'سنة جديدة سعيدة!',
+  },
+  {
+    id: 'neujahr',
+    deBase: 'Neujahr',
+    de: 'Neujahr',
+    ar: 'رأس السنة الميلادية',
+    emoji: '🥂',
+    color: '#F72585',
+    gradient: ['#F72585', '#B5179E'],
+    acceptedAnswers: ['neujahr', 'neu jahr'],
+    exampleDe: 'Frohes neues Jahr!',
+    exampleAr: 'كل عام وأنتم بخير!',
+  },
+  {
+    id: 'nikolaus',
+    deBase: 'Nikolaus',
+    de: 'Der Nikolaus',
+    ar: 'عيد سانت نيكولاس',
+    emoji: '🎅',
+    color: '#DC2626',
+    gradient: ['#DC2626', '#7F1D1D'],
+    acceptedAnswers: ['nikolaus', 'der nikolaus'],
+    exampleDe: 'Der Nikolaus bringt Geschenke.',
+    exampleAr: 'سانت نيكولاس يحضر الهدايا.',
+  },
+  {
+    id: 'karneval',
+    deBase: 'Karneval',
+    de: 'Der Karneval',
+    ar: 'الكرنفال والمهرجان',
+    emoji: '🎭',
+    color: '#7209B7',
+    gradient: ['#7209B7', '#3A0CA3'],
+    acceptedAnswers: ['karneval', 'fasching', 'der karneval'],
+    exampleDe: 'Der Karneval in Köln ist berühmt.',
+    exampleAr: 'الكرنفال في كولونيا مشهور.',
+  },
+
+  // 🟡 المجموعة الثانية: المناسبات الشخصية والعائلية (5)
+  {
+    id: 'geburtstag',
+    deBase: 'Geburtstag',
+    de: 'Geburtstag',
+    ar: 'عيد الميلاد الشخصي',
+    emoji: '🎂',
+    color: '#9D4EDD',
+    gradient: ['#9D4EDD', '#5A189A'],
+    acceptedAnswers: ['geburtstag'],
+    exampleDe: 'Alles Gute zum Geburtstag!',
+    exampleAr: 'كل سنة وأنت طيب!',
+  },
+  {
+    id: 'hochzeit',
+    deBase: 'Hochzeit',
+    de: 'Die Hochzeit',
+    ar: 'حفل الزفاف',
+    emoji: '💍',
+    color: '#EC4899',
+    gradient: ['#EC4899', '#BE185D'],
+    acceptedAnswers: ['hochzeit', 'die hochzeit'],
+    exampleDe: 'Meine Schwester feiert Hochzeit.',
+    exampleAr: 'أختي تحتفل بحفل زفافها.',
+  },
+  {
+    id: 'geschenk',
+    deBase: 'Geschenk',
+    de: 'Das Geschenk',
+    ar: 'الهدية',
+    emoji: '🎁',
+    color: '#F77F00',
+    gradient: ['#F77F00', '#D62828'],
+    acceptedAnswers: ['geschenk', 'das geschenk'],
+    exampleDe: 'Danke für das schöne Geschenk!',
+    exampleAr: 'شكراً على الهدية الجميلة!',
+  },
+  {
+    id: 'party',
+    deBase: 'Party',
+    de: 'Die Party',
+    ar: 'الحفلة',
+    emoji: '🥳',
+    color: '#4CC9F0',
+    gradient: ['#4CC9F0', '#028090'],
+    acceptedAnswers: ['party', 'die party', 'fest'],
+    exampleDe: 'Wir machen eine große Party.',
+    exampleAr: 'نحن نقيم حفلة كبيرة.',
+  },
+  {
+    id: 'urlaub',
+    deBase: 'Urlaub',
+    de: 'Der Urlaub',
+    ar: 'الإجازة والعطلة',
+    emoji: '🏖️',
+    color: '#3B82F6',
+    gradient: ['#3B82F6', '#1E3A8A'],
+    acceptedAnswers: ['urlaub', 'ferien', 'der urlaub'],
+    exampleDe: 'Schönen Urlaub!',
+    exampleAr: 'إجازة سعيدة!',
+  },
+
+  // 🟣 المجموعة الثالثة: المهرجانات والاحتفالات (5)
+  {
+    id: 'oktoberfest',
+    deBase: 'Oktoberfest',
+    de: 'Das Oktoberfest',
+    ar: 'مهرجان أكتوبر الشهير',
+    emoji: '🍺',
+    color: '#F59E0B',
+    gradient: ['#F59E0B', '#78350F'],
+    acceptedAnswers: ['oktoberfest', 'das oktoberfest'],
+    exampleDe: 'Das Oktoberfest ist in München.',
+    exampleAr: 'مهرجان أكتوبر يقام في ميونخ.',
+  },
+  {
+    id: 'ostern',
+    deBase: 'Ostern',
+    de: 'Frohe Ostern',
+    ar: 'عيد الفصح',
+    emoji: '🐰',
+    color: '#06D6A0',
+    gradient: ['#06D6A0', '#02C39A'],
+    acceptedAnswers: ['ostern', 'frohe ostern'],
+    exampleDe: 'Wir feiern Ostern mit Eiern.',
+    exampleAr: 'نحتفل بعيد الفصح بالبيض الملون.',
+  },
+  {
+    id: 'feuerwerk',
+    deBase: 'Feuerwerk',
+    de: 'Das Feuerwerk',
+    ar: 'الألعاب النارية',
+    emoji: '🎇',
+    color: '#F472B6',
+    gradient: ['#F472B6', '#9D174D'],
+    acceptedAnswers: ['feuerwerk', 'das feuerwerk'],
+    exampleDe: 'Das Feuerwerk ist wunderschön.',
+    exampleAr: 'الألعاب النارية جميلة جداً.',
+  },
+  {
+    id: 'musik',
+    deBase: 'Musik',
+    de: 'Die Musik',
+    ar: 'الموسيقى',
+    emoji: '🎵',
+    color: '#A78BFA',
+    gradient: ['#A78BFA', '#5B21B6'],
+    acceptedAnswers: ['musik', 'die musik'],
+    exampleDe: 'Ich höre gerne Musik.',
+    exampleAr: 'أحب الاستماع إلى الموسيقى.',
+  },
+  {
+    id: 'feier',
+    deBase: 'Feier',
+    de: 'Die Feier',
+    ar: 'الاحتفال',
+    emoji: '🎉',
+    color: '#FF4D6D',
+    gradient: ['#FF4D6D', '#9F1239'],
+    acceptedAnswers: ['feier', 'die feier'],
+    exampleDe: 'Die Feier beginnt um 18 Uhr.',
+    exampleAr: 'الاحتفال يبدأ الساعة 6 مساءً.',
+  },
+];
+
+export const HOLIDAY_GROUPS = [
+  {
+    id: 'group-1',
+    title: 'أعياد رأس السنة',
+    numbers: HOLIDAYS.slice(0, 5),
+  },
+  {
+    id: 'group-2',
+    title: 'المناسبات العائلية',
+    numbers: HOLIDAYS.slice(5, 10),
+  },
+  {
+    id: 'group-3',
+    title: 'المهرجانات والاحتفالات',
+    numbers: HOLIDAYS.slice(10, 15),
+  },
+];

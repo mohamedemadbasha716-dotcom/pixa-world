@@ -20,7 +20,7 @@ import { ENCOURAGEMENTS, SAD_MESSAGES } from '@/lib/types/lesson';
 import { playCoinSound, playBuzzSound, playComboSound } from '@/lib/audio/sounds';
 import { speakNumber as speakGerman } from '@/lib/audio/speech';
 
-import { PRONOUNS, PRONOUN_GROUPS, type PronounItem } from '@/data/german/map-5-culture/heidelberg-pronouns';
+import { HOLIDAYS, HOLIDAY_GROUPS, type HolidayItem } from '@/data/german/nuremberg-holidays';
 
 type Phase = 'listen' | 'write' | 'speak' | 'test';
 type FlyingItem = {
@@ -37,16 +37,9 @@ interface SpeechRecognitionEvent {
   };
 }
 
-const TOTAL_PRONOUNS = PRONOUNS.length;
-const TOTAL_ANSWERS_PER_LESSON = TOTAL_PRONOUNS * 3;
-const LESSON_ID = 'heidelberg-uni';
-const PRONOUN_IMAGES: Record<string, string> = {};
-
-const ARTIKEL_COLORS = {
-  der: '#3B82F6',
-  die: '#EC4899',
-  das: '#10B981',
-};
+const TOTAL_ITEMS = HOLIDAYS.length;
+const TOTAL_ANSWERS_PER_LESSON = TOTAL_ITEMS * 3;
+const LESSON_ID = 'christmas-market';
 
 const DARK_COLORS: Record<string, string> = {
   '#4CC9F0': '#075985', '#F72585': '#831843', '#3B82F6': '#1E3A8A',
@@ -54,6 +47,8 @@ const DARK_COLORS: Record<string, string> = {
   '#F77F00': '#9A3412', '#06D6A0': '#064E3B', '#FBBF24': '#7D5310',
   '#A78BFA': '#5B21B6', '#0EA5E9': '#075985', '#F472B6': '#9D174D',
   '#8B5CF6': '#4C1D95', '#22C55E': '#15803D', '#EF4444': '#7F1D1D',
+  '#FFD700': '#B45309', '#F59E0B': '#78350F', '#FF4D6D': '#9F1239',
+  '#58CC02': '#166534', '#DC2626': '#7F1D1D',
 };
 
 function getDarkColor(c: string): string {
@@ -97,8 +92,8 @@ function similarityScore(a: string, b: string): number {
   return 1 - levenshteinDistance(na, nb) / Math.max(na.length, nb.length);
 }
 
-function checkAnswer(input: string, item: PronounItem): boolean {
-  const accepted = [item.deBase, ...(item.acceptedAnswers || [])];
+function checkAnswer(input: string, item: HolidayItem): boolean {
+  const accepted = [item.deBase, item.de, ...(item.acceptedAnswers || [])];
   return accepted.some(ans => normalizeGerman(input) === normalizeGerman(ans));
 }
 
@@ -111,7 +106,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function generateChoices(correctId: string, all: PronounItem[], count = 3): PronounItem[] {
+function generateChoices(correctId: string, all: HolidayItem[], count = 3): HolidayItem[] {
   const others = all.filter(c => c.id !== correctId);
   const wrong = shuffle(others).slice(0, count - 1);
   const correct = all.find(c => c.id === correctId)!;
@@ -205,10 +200,10 @@ function ScreenBackground({ groupIdx, isMobile, activeColor }: {
         style={{ filter: 'saturate(1.1)' }}
         onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
       <div className="absolute inset-0"
-        style={{ background: 'linear-gradient(180deg,rgba(10,5,30,.6) 0%,rgba(10,5,30,.3) 40%,rgba(10,5,30,.3) 60%,rgba(10,5,30,.6) 100%)' }} />
-      <motion.div className="absolute inset-0 opacity-40"
-        style={{ background: `radial-gradient(ellipse 80% 50% at 50% 0%,${activeColor}33,transparent 70%)` }}
-        animate={{ opacity: [0.25, 0.45, 0.25] }} transition={{ duration: 4, repeat: Infinity }} />
+        style={{ background: 'linear-gradient(180deg,rgba(10,5,25,.75) 0%,rgba(10,5,25,.4) 40%,rgba(10,5,25,.4) 60%,rgba(10,5,25,.75) 100%)' }} />
+      <motion.div className="absolute inset-0 opacity-50"
+        style={{ background: `radial-gradient(ellipse 80% 50% at 50% 0%,${activeColor}44,transparent 70%)` }}
+        animate={{ opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 4, repeat: Infinity }} />
       {!isMobile && particles.map(p => (
         <motion.div key={`${groupIdx}-${p.id}`} className="absolute rounded-full"
           style={{ left: `${p.x}%`, bottom: -20, width: p.size, height: p.size, background: `radial-gradient(circle,${activeColor}cc,transparent)`, boxShadow: `0 0 ${p.size * 2}px ${activeColor}88` }}
@@ -239,21 +234,21 @@ function Stepper({ currentStep, totalSteps, isMobile }: {
         const isLocked = i > currentStep;
         return (
           <div key={i} className="flex items-center">
-            <motion.div animate={isActive ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 2, repeat: Infinity }}
+            <motion.div animate={isActive ? { scale: [1, 1.15, 1] } : {}} transition={{ duration: 2, repeat: Infinity }}
               className="relative flex items-center justify-center rounded-full font-black border"
               style={{
-                width: isActive ? (isMobile ? 16 : 30) : (isMobile ? 13 : 25),
-                height: isActive ? (isMobile ? 16 : 30) : (isMobile ? 13 : 25),
-                background: isActive ? 'linear-gradient(135deg,#9D4EDD,#7209B7)' : isDone ? 'linear-gradient(135deg,#58CC02,#4AA802)' : 'rgba(255,255,255,0.1)',
-                borderColor: isActive ? '#9D4EDD' : isDone ? '#58CC02' : 'rgba(255,255,255,0.25)',
-                borderWidth: isMobile ? '1px' : '2px',
-                color: isLocked ? 'rgba(255,255,255,0.5)' : 'white',
-                fontSize: isMobile ? '6px' : '11px',
-                boxShadow: isActive ? '0 0 8px rgba(157,78,221,0.6)' : isDone ? '0 0 6px rgba(88,204,2,0.4)' : 'none',
+                width: isActive ? (isMobile ? 18 : 32) : (isMobile ? 14 : 26),
+                height: isActive ? (isMobile ? 18 : 32) : (isMobile ? 14 : 26),
+                background: isActive ? 'linear-gradient(135deg,#EF4444,#B91C1C)' : isDone ? 'linear-gradient(135deg,#58CC02,#4AA802)' : 'rgba(255,255,255,0.15)',
+                borderColor: isActive ? '#FCA5A5' : isDone ? '#86EFAC' : 'rgba(255,255,255,0.3)',
+                borderWidth: isMobile ? '1.5px' : '2px',
+                color: isLocked ? 'rgba(255,255,255,0.6)' : 'white',
+                fontSize: isMobile ? '7px' : '12px',
+                boxShadow: isActive ? '0 0 10px rgba(239,68,68,0.8)' : isDone ? '0 0 8px rgba(88,204,2,0.6)' : 'none',
               }}>
               {isLocked ? '🔒' : isDone ? '✓' : i + 1}
             </motion.div>
-            {i < totalSteps - 1 && <div className={`${isMobile ? 'w-1' : 'w-3 md:w-4'} h-0.5`} style={{ background: isDone ? '#58CC02' : 'rgba(255,255,255,0.2)' }} />}
+            {i < totalSteps - 1 && <div className={`${isMobile ? 'w-1.5' : 'w-4 md:w-5'} h-1 rounded-full`} style={{ background: isDone ? '#58CC02' : 'rgba(255,255,255,0.2)' }} />}
           </div>
         );
       })}
@@ -270,50 +265,50 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
 }) {
   if (isMobile) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-30 px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 2px)' }}>
+      <div className="fixed top-0 left-0 right-0 z-30 px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 4px)' }}>
         <div className="flex items-center justify-between gap-1.5">
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 flex-shrink-0"
-              style={{ borderColor: '#FFD700', boxShadow: '0 0 10px rgba(255,215,0,0.5)', background: 'linear-gradient(135deg,#4CC9F0,#7209B7)' }}>
+            <div className="relative w-9 h-9 rounded-full overflow-hidden border-2 flex-shrink-0"
+              style={{ borderColor: '#FFD700', boxShadow: '0 0 12px rgba(255,215,0,0.6)', background: 'linear-gradient(135deg,#4CC9F0,#7209B7)' }}>
               <img src="/characters/karl-3d.webp" alt="" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col items-start leading-none gap-0.5">
-              <span className="text-[7px] font-bold text-white/80">المستوى</span>
+              <span className="text-[8px] font-black text-white" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>المستوى</span>
               <div className="flex items-center gap-1">
-                <span className="font-black text-[11px] text-white">{level}</span>
-                <div id="level-bar-target" className="relative w-10 h-1.5 bg-white/15 rounded-full overflow-hidden border border-white/20">
+                <span className="font-black text-[12px] text-white" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{level}</span>
+                <div id="level-bar-target" className="relative w-12 h-2 bg-black/50 rounded-full overflow-hidden border border-white/30">
                   <motion.div className="h-full rounded-full" style={{ background: 'linear-gradient(to right,#4CC9F0,#7209B7)' }}
                     animate={{ width: `${stats.levelProgress}%` }} transition={{ duration: 0.8 }} />
                 </div>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1 flex-1 justify-center max-w-[200px]">
-            <motion.div className="flex items-center gap-1 px-1.5 py-1 rounded-lg flex-1 justify-center"
-              style={{ background: 'rgba(15,10,45,0.7)', border: '1px solid rgba(255,215,0,0.35)' }}>
-              <img id="star-target" src="/treasuer/star.webp" alt="" className="w-3 h-3 flex-shrink-0" />
-              <span className="font-black text-[10px] text-white truncate">{stats.points}</span>
+          <div className="flex items-center gap-1 flex-1 justify-center max-w-[210px]">
+            <motion.div className="flex items-center gap-1 px-2 py-1 rounded-xl flex-1 justify-center shadow-lg"
+              style={{ background: 'rgba(10,5,25,0.9)', border: '1.5px solid rgba(255,215,0,0.6)' }}>
+              <img id="star-target" src="/treasuer/star.webp" alt="" className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="font-black text-[11px] text-white truncate">{stats.points}</span>
             </motion.div>
-            <motion.div className="flex items-center gap-1 px-1.5 py-1 rounded-lg flex-1 justify-center"
-              style={{ background: 'rgba(15,10,45,0.7)', border: '1px solid rgba(255,77,109,0.35)' }}>
-              <Flame size={12} className="text-orange-400 flex-shrink-0" style={{ fill: stats.streak > 0 ? '#FF4D6D' : 'transparent' }} />
-              <span className="font-black text-[10px] text-white truncate">{stats.streak}</span>
+            <motion.div className="flex items-center gap-1 px-2 py-1 rounded-xl flex-1 justify-center shadow-lg"
+              style={{ background: 'rgba(10,5,25,0.9)', border: '1.5px solid rgba(255,77,109,0.6)' }}>
+              <Flame size={14} className="text-orange-400 flex-shrink-0" style={{ fill: stats.streak > 0 ? '#FF4D6D' : 'transparent' }} />
+              <span className="font-black text-[11px] text-white truncate">{stats.streak}</span>
             </motion.div>
-            <motion.div className="flex items-center gap-1 px-1.5 py-1 rounded-lg flex-1 justify-center"
-              style={{ background: 'rgba(15,10,45,0.7)', border: '1px solid rgba(157,78,221,0.35)' }}>
-              <Gem id="gem-target" size={12} className="text-purple-300 flex-shrink-0" style={{ fill: '#9D4EDD' }} />
-              <span className="font-black text-[10px] text-white truncate">{stats.gems}</span>
+            <motion.div className="flex items-center gap-1 px-2 py-1 rounded-xl flex-1 justify-center shadow-lg"
+              style={{ background: 'rgba(10,5,25,0.9)', border: '1.5px solid rgba(157,78,221,0.6)' }}>
+              <Gem id="gem-target" size={14} className="text-purple-300 flex-shrink-0" style={{ fill: '#9D4EDD' }} />
+              <span className="font-black text-[11px] text-white truncate">{stats.gems}</span>
             </motion.div>
           </div>
           <motion.button whileTap={{ scale: 0.92 }} onClick={onHome}
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(15,10,45,0.7)', border: '1px solid rgba(255,255,255,0.2)' }}>
-            <Home size={14} className="text-white" />
+            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg"
+            style={{ background: 'rgba(10,5,25,0.9)', border: '1.5px solid rgba(255,255,255,0.3)' }}>
+            <Home size={16} className="text-white" />
           </motion.button>
         </div>
-        <div className="flex justify-center" style={{ marginTop: '2.5px' }}>
-          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg"
-            style={{ background: 'rgba(15,10,45,0.7)', border: '1px solid rgba(255,255,255,0.18)' }}>
+        <div className="flex justify-center mt-2">
+          <div className="flex items-center gap-0.5 px-2 py-1 rounded-xl shadow-lg"
+            style={{ background: 'rgba(10,5,25,0.9)', border: '1.5px solid rgba(255,255,255,0.25)' }}>
             <Stepper currentStep={currentStep} totalSteps={totalSteps} isMobile />
           </div>
         </div>
@@ -321,18 +316,18 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
     );
   }
   return (
-    <div className="fixed top-0 left-0 right-0 z-30 px-4 md:px-6" style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 10px)' }}>
+    <div className="fixed top-0 left-0 right-0 z-30 px-4 md:px-6" style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 12px)' }}>
       <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-3 md:gap-6">
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-2"
-            style={{ borderColor: '#FFD700', background: 'linear-gradient(135deg,#4CC9F0,#7209B7)' }}>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="relative w-12 h-12 rounded-full overflow-hidden border-[3px]"
+            style={{ borderColor: '#FFD700', background: 'linear-gradient(135deg,#4CC9F0,#7209B7)', boxShadow: '0 0 15px rgba(255,215,0,0.5)' }}>
             <img src="/characters/karl-3d.webp" alt="" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[9px] font-bold text-white/80 mb-0.5">المستوى</span>
+            <span className="text-[11px] font-black text-white mb-0.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>المستوى</span>
             <div className="flex items-center gap-2">
-              <span className="font-black text-sm text-white">{level}</span>
-              <div id="level-bar-target" className="relative w-14 md:w-20 h-2 bg-white/15 rounded-full overflow-hidden border border-white/20">
+              <span className="font-black text-base text-white" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{level}</span>
+              <div id="level-bar-target" className="relative w-24 h-2.5 bg-black/50 rounded-full overflow-hidden border border-white/30">
                 <motion.div className="h-full rounded-full" style={{ background: 'linear-gradient(to right,#4CC9F0,#7209B7)' }}
                   animate={{ width: `${stats.levelProgress}%` }} transition={{ duration: 0.8 }} />
               </div>
@@ -340,31 +335,31 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
           </div>
         </div>
         <div className="flex-1 flex justify-center">
-          <div className="flex items-center gap-1 px-4 py-2 rounded-2xl"
-            style={{ background: 'rgba(15,10,45,0.65)', backdropFilter: 'blur(20px)', border: '2px solid rgba(255,255,255,0.18)' }}>
+          <div className="flex items-center gap-1 px-5 py-2.5 rounded-2xl shadow-xl"
+            style={{ background: 'rgba(10,5,25,0.85)', backdropFilter: 'blur(20px)', border: '2px solid rgba(255,255,255,0.2)' }}>
             <Stepper currentStep={currentStep} totalSteps={totalSteps} isMobile={false} />
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-2xl"
-            style={{ background: 'rgba(15,10,45,0.65)', border: '2px solid rgba(157,78,221,0.35)' }}>
-            <span className="font-black text-sm text-white">{stats.gems}</span>
-            <Gem id="gem-target" size={18} className="text-purple-300" style={{ fill: '#9D4EDD' }} />
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl shadow-lg"
+            style={{ background: 'rgba(10,5,25,0.85)', border: '2px solid rgba(157,78,221,0.6)' }}>
+            <span className="font-black text-base text-white">{stats.gems}</span>
+            <Gem id="gem-target" size={20} className="text-purple-300" style={{ fill: '#9D4EDD' }} />
           </div>
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-2xl"
-            style={{ background: 'rgba(15,10,45,0.65)', border: '2px solid rgba(255,77,109,0.35)' }}>
-            <span className="font-black text-sm text-white">{stats.streak}</span>
-            <Flame size={18} className="text-orange-400" style={{ fill: stats.streak > 0 ? '#FF4D6D' : 'transparent' }} />
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl shadow-lg"
+            style={{ background: 'rgba(10,5,25,0.85)', border: '2px solid rgba(255,77,109,0.6)' }}>
+            <span className="font-black text-base text-white">{stats.streak}</span>
+            <Flame size={20} className="text-orange-400" style={{ fill: stats.streak > 0 ? '#FF4D6D' : 'transparent' }} />
           </div>
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-2xl"
-            style={{ background: 'rgba(15,10,45,0.65)', border: '2px solid rgba(255,215,0,0.35)' }}>
-            <span className="font-black text-sm text-white">{stats.points}</span>
-            <img id="star-target" src="/treasuer/star.webp" alt="" className="w-5 h-5 md:w-6 md:h-6" />
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl shadow-lg"
+            style={{ background: 'rgba(10,5,25,0.85)', border: '2px solid rgba(255,215,0,0.6)' }}>
+            <span className="font-black text-base text-white">{stats.points}</span>
+            <img id="star-target" src="/treasuer/star.webp" alt="" className="w-6 h-6" />
           </div>
           <motion.button whileTap={{ scale: 0.92 }} onClick={onHome}
-            className="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center"
-            style={{ background: 'rgba(15,10,45,0.65)', border: '2px solid rgba(255,255,255,0.18)' }}>
-            <Home size={20} className="text-white" />
+            className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
+            style={{ background: 'rgba(10,5,25,0.85)', border: '2px solid rgba(255,255,255,0.3)' }}>
+            <Home size={22} className="text-white" />
           </motion.button>
         </div>
       </div>
@@ -416,34 +411,34 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
   const Btn = ({ label, color, onClick, badge, disabled, iconSrc }: any) => (
     <motion.button whileHover={!disabled ? { scale: 1.1 } : {}} whileTap={!disabled ? { scale: 0.92 } : {}}
       onClick={onClick} disabled={disabled} className="flex flex-col items-center gap-0.5 disabled:opacity-70">
-      <div className="relative w-9 h-9 md:w-11 md:h-11 flex items-center justify-center">
+      <div className="relative w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
         <img src={iconSrc} alt="" className="w-full h-full object-contain" style={{ filter: `drop-shadow(0 2px 8px ${color}aa)` }} />
         {badge > 0 && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black text-white" style={{ background: '#FF4D6D' }}>{badge}</div>}
       </div>
-      <span className="text-[7px] md:text-[9px] font-black" style={{ color }}>{label}</span>
+      <span className="text-[8px] md:text-[10px] font-black" style={{ color, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{label}</span>
     </motion.button>
   );
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-30 px-2 md:px-4 pointer-events-none" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 4px)' }}>
+    <div className="fixed bottom-0 left-0 right-0 z-30 px-2 md:px-4 pointer-events-none" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 6px)' }}>
       <div className={`mx-auto pointer-events-auto ${isMobile ? 'max-w-md' : 'max-w-[1400px]'}`}>
-        <div className="rounded-xl px-3 md:px-6 py-1 md:py-1.5"
-          style={{ background: 'linear-gradient(135deg,rgba(20,15,55,0.85),rgba(15,10,45,0.9))', backdropFilter: 'blur(30px)', border: '1.5px solid rgba(255,255,255,0.2)' }}>
-          <div className="flex items-center justify-center gap-1 mb-0.5">
-            <Sparkles size={8} className="text-yellow-300" />
-            <span className="text-[8px] font-black text-yellow-200 tracking-wider uppercase">مكافآت الإنجاز</span>
-            <Sparkles size={8} className="text-yellow-300" />
+        <div className="rounded-2xl px-3 md:px-6 py-1.5 md:py-2 shadow-2xl"
+          style={{ background: 'linear-gradient(135deg,rgba(20,15,55,0.9),rgba(15,10,45,0.95))', backdropFilter: 'blur(30px)', border: '2px solid rgba(255,255,255,0.25)' }}>
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Sparkles size={9} className="text-yellow-300" />
+            <span className="text-[9px] font-black text-yellow-200 tracking-widest uppercase" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>مكافآت الإنجاز</span>
+            <Sparkles size={9} className="text-yellow-300" />
           </div>
           <div className="flex items-end justify-around gap-2">
-            <Btn onClick={onMap} label="خريطة" color="#4CC9F0" iconSrc="/treasuer/map-icon.webp" />
-            <Btn label="نجوم" color="#FFD700" disabled iconSrc="/treasuer/star.webp" />
+            <Btn onClick={onMap} label="خريطة" color="#7DD3FC" iconSrc="/treasuer/map-icon.webp" />
+            <Btn label="نجوم" color="#FDE047" disabled iconSrc="/treasuer/star.webp" />
             <div id="treasure-box" className="flex flex-col items-center gap-0.5">
-              <div className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center">
-                <img src={`/treasuer/${treasureState}.webp`} alt="" className="w-full h-full object-contain" />
+              <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
+                <img src={`/treasuer/${treasureState}.webp`} alt="" className="w-full h-full object-contain drop-shadow-xl" />
               </div>
-              <span className="text-[7px] font-black text-yellow-400">صندوق</span>
+              <span className="text-[8px] md:text-[10px] font-black" style={{ color: '#FDE047', textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>صندوق</span>
             </div>
-            <Btn label="طاقة" color="#4CC9F0" disabled iconSrc="/treasuer/energy.webp" />
-            <Btn onClick={onHint} label="تلميح" color="#FFD700" badge={stats.hints} disabled={stats.hints === 0} iconSrc="/treasuer/HINT.svg" />
+            <Btn label="طاقة" color="#7DD3FC" disabled iconSrc="/treasuer/energy.webp" />
+            <Btn onClick={onHint} label="تلميح" color="#FDE047" badge={stats.hints} disabled={stats.hints === 0} iconSrc="/treasuer/HINT.svg" />
           </div>
         </div>
       </div>
@@ -459,77 +454,71 @@ function SoundButton({ onClick, color, label, size = 40 }: { onClick: () => void
   const go = () => { setPlaying(true); onClick(); setTimeout(() => setPlaying(false), 1500); };
   if (label) return (
     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={go}
-      className="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm text-white"
-      style={{ background: `linear-gradient(135deg,${color}cc,${color}88)`, border: `1px solid ${color}` }}>
-      <Volume2 size={16} /><span>{label}</span>
+      className="flex items-center gap-2 px-5 py-2.5 rounded-full font-black text-sm text-white shadow-xl"
+      style={{ background: `linear-gradient(135deg,${color}dd,${color}99)`, border: `2px solid ${color}`, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>
+      <Volume2 size={18} /><span>{label}</span>
     </motion.button>
   );
   return (
     <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={go}
-      className="rounded-full flex items-center justify-center border-2 relative flex-shrink-0"
-      style={{ width: size, height: size, background: 'linear-gradient(135deg,#9D4EDD,#7209B7)', borderColor: 'rgba(255,255,255,0.4)' }}>
+      className="rounded-full flex items-center justify-center border-[3px] relative flex-shrink-0 shadow-2xl"
+      style={{ width: size, height: size, background: `linear-gradient(135deg,${color},${getDarkColor(color)})`, borderColor: 'rgba(255,255,255,0.5)' }}>
       {playing && [0, .2, .4].map((d, i) => (
-        <motion.div key={i} className="absolute inset-0 rounded-full border-2 pointer-events-none" style={{ borderColor: '#9D4EDD' }}
+        <motion.div key={i} className="absolute inset-0 rounded-full border-2 pointer-events-none" style={{ borderColor: color }}
           initial={{ scale: 1, opacity: .8 }} animate={{ scale: 1.8, opacity: 0 }} transition={{ duration: 1, delay: d }} />
       ))}
-      <Volume2 size={size * .4} className="text-white" />
+      <Volume2 size={size * .45} className="text-white drop-shadow-md" />
     </motion.button>
-  );
-}
-
-function ArtikelBadge({ artikel, size = 'md' }: { artikel?: 'der' | 'die' | 'das'; size?: 'sm' | 'md' }) {
-  if (!artikel) return null;
-  const color = ARTIKEL_COLORS[artikel];
-  const cls = size === 'sm' ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-1';
-  return (
-    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300 }}
-      className={`inline-flex items-center gap-1 rounded-lg font-black ${cls}`}
-      style={{ background: `linear-gradient(135deg,${color},${color}cc)`, color: 'white', border: `1px solid ${color}` }}>
-      <span className="uppercase tracking-wide">{artikel}</span>
-    </motion.div>
   );
 }
 
 // ═══════════════════════════════════════
 // 🖼️ HeroDisplay
 // ═══════════════════════════════════════
-function HeroDisplay({ item, isMobile, showWord = false }: { item: PronounItem; isMobile?: boolean; showWord?: boolean }) {
-  const size = isMobile ? 200 : 320;
+function HeroDisplay({ item, isMobile, showWord = false }: { item: HolidayItem; isMobile?: boolean; showWord?: boolean }) {
+  const size = isMobile ? 180 : 300;
+  const wordLen = item.de.length;
+  const wordFontSize = isMobile 
+    ? (wordLen > 14 ? '0.9rem' : wordLen > 10 ? '1rem' : '1.15rem')
+    : (wordLen > 14 ? '1.3rem' : wordLen > 10 ? '1.5rem' : '1.75rem');
+
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <motion.div className="absolute inset-8 rounded-3xl blur-3xl"
-        style={{ background: `radial-gradient(circle,${item.color}66,transparent 70%)` }}
-        animate={{ scale: [1, 1.1, 1], opacity: [.4, .7, .4] }} transition={{ duration: 3, repeat: Infinity }} />
-      <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity }}
+      <motion.div className="absolute inset-6 rounded-full blur-3xl"
+        style={{ background: `radial-gradient(circle,${item.color}88,transparent 70%)` }}
+        animate={{ scale: [1, 1.15, 1], opacity: [.5, .8, .5] }} transition={{ duration: 3, repeat: Infinity }} />
+      <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 3, repeat: Infinity }}
         className="relative w-full h-full select-none flex items-center justify-center"
-        style={{ filter: `drop-shadow(0 10px 25px ${item.color}99)` }}>
-        <div className="text-center" style={{ fontSize: isMobile ? '8rem' : '12rem', lineHeight: 1 }}>{item.emoji}</div>
+        style={{ filter: `drop-shadow(0 15px 30px ${item.color}aa)` }}>
+        <div className="text-center" style={{ fontSize: isMobile ? '6.5rem' : '10rem', lineHeight: 1 }}>{item.emoji}</div>
       </motion.div>
       {showWord && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl whitespace-nowrap z-10"
-          style={{ background: `linear-gradient(135deg,${item.gradient[0]},${item.gradient[1]})`, border: '2px solid rgba(255,255,255,0.4)' }}>
-          <span className="font-black text-white text-sm md:text-base">{item.de}</span>
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+          className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl whitespace-nowrap z-10 shadow-2xl max-w-[90%]"
+          style={{ background: `linear-gradient(135deg,${item.gradient[0]},${item.gradient[1]})`, border: '2px solid rgba(255,255,255,0.6)' }}>
+          <span className="font-black text-white text-center block" style={{ fontSize: wordFontSize, textShadow: '0 2px 6px rgba(0,0,0,0.7)' }}>{item.de}</span>
         </motion.div>
       )}
-      {[{ x: '0%', y: '5%', d: 0, s: 14 }, { x: '95%', y: '10%', d: .5, s: 12 }, { x: '-2%', y: '85%', d: 1, s: 13 }, { x: '97%', y: '88%', d: 1.5, s: 11 }
+      {[{ x: '5%', y: '10%', d: 0, s: 16 }, { x: '90%', y: '15%', d: .5, s: 14 }, { x: '0%', y: '80%', d: 1, s: 15 }, { x: '95%', y: '85%', d: 1.5, s: 12 }
       ].map((star, i) => (
         <motion.div key={i} className="absolute pointer-events-none z-20" style={{ left: star.x, top: star.y }}
-          animate={{ scale: [0, 1, 0], rotate: [0, 180, 360], opacity: [0, 1, 0] }}
+          animate={{ scale: [0, 1.2, 0], rotate: [0, 180, 360], opacity: [0, 1, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, delay: star.d }}>
-          <Sparkles size={star.s} style={{ color: item.color }} />
+          <Sparkles size={star.s} style={{ color: item.color, filter: 'drop-shadow(0 0 5px white)' }} />
         </motion.div>
       ))}
     </div>
   );
-}// ═══════════════════════════════════════
+}
+
+// ═══════════════════════════════════════
 // 🃏 ChoiceCard (Listen)
 // ═══════════════════════════════════════
 function ChoiceCard({ item, allItems, isMobile, onCorrect, onWrong }: {
-  item: PronounItem; allItems: PronounItem[]; isMobile: boolean;
+  item: HolidayItem; allItems: HolidayItem[]; isMobile: boolean;
   onCorrect: (cx: number, cy: number) => void; onWrong: () => void;
 }) {
-  const [choices, setChoices] = useState<PronounItem[]>([]);
+  const [choices, setChoices] = useState<HolidayItem[]>([]);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [wrongId, setWrongId] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'correct'>('idle');
@@ -539,7 +528,7 @@ function ChoiceCard({ item, allItems, isMobile, onCorrect, onWrong }: {
     setHiddenIds(new Set()); setWrongId(null); setStatus('idle');
   }, [item.id]);
 
-  const handleChoice = (c: PronounItem, e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleChoice = (c: HolidayItem, e: React.MouseEvent<HTMLButtonElement>) => {
     if (status === 'correct' || hiddenIds.has(c.id)) return;
     if (c.id === item.id) {
       setHiddenIds(p => new Set(p).add(c.id)); setStatus('correct');
@@ -550,29 +539,37 @@ function ChoiceCard({ item, allItems, isMobile, onCorrect, onWrong }: {
     }
   };
 
-  const cardSize = isMobile ? 75 : 130;
+  const cardSize = isMobile ? 82 : 140;
+  const mainTextLen = item.de.length;
+  const mainFontSize = isMobile
+    ? (mainTextLen > 14 ? '1.3rem' : mainTextLen > 10 ? '1.5rem' : '1.8rem')
+    : (mainTextLen > 14 ? '2rem' : mainTextLen > 10 ? '2.4rem' : '2.8rem');
 
   return (
-    <div className={`w-full ${isMobile ? 'max-w-md' : 'max-w-3xl'} mx-auto ${isMobile ? 'p-3' : 'p-6'} rounded-[1.5rem] md:rounded-[2rem] relative overflow-hidden`}
-      style={{ background: 'rgba(20,15,55,0.55)', backdropFilter: 'blur(30px)', border: '2px solid rgba(255,255,255,0.2)', boxShadow: `0 20px 60px rgba(0,0,0,0.5),0 0 50px ${item.color}33` }}>
-      <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 50% 0%,${item.color}33,transparent 60%)` }} />
-      <div className={`relative z-10 flex flex-col items-center ${isMobile ? 'gap-2.5' : 'gap-4'}`}>
+    <div className={`w-full ${isMobile ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto ${isMobile ? 'p-4' : 'p-8'} rounded-[2rem] relative overflow-hidden shadow-2xl`}
+      style={{ background: 'rgba(15,10,35,0.88)', backdropFilter: 'blur(40px)', border: '2px solid rgba(255,255,255,0.25)', boxShadow: `0 25px 70px rgba(0,0,0,0.6), inset 0 0 30px ${item.color}22` }}>
+      <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 50% -20%,${item.color}44,transparent 60%)` }} />
+      <div className={`relative z-10 flex flex-col items-center ${isMobile ? 'gap-3.5' : 'gap-5'}`}>
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          className={`${isMobile ? 'px-4 py-1.5' : 'px-6 py-2.5'} rounded-2xl`}
-          style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.95),rgba(245,245,255,0.9))', border: `2px solid ${item.color}66` }}>
-          <span className={`font-black ${isMobile ? 'text-xs' : 'text-base'} text-gray-800`}>استمع جيداً واختر الضمير الصحيح</span>
+          className={`${isMobile ? 'px-5 py-2' : 'px-8 py-3'} rounded-2xl shadow-lg`}
+          style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.98),rgba(240,240,250,0.95))', border: `2px solid ${item.color}88` }}>
+          <span className={`font-black ${isMobile ? 'text-xs' : 'text-base'} text-gray-900`}>استمع جيداً واختر المناسبة الصحيحة</span>
         </motion.div>
-        <motion.span className="font-black text-white" style={{ fontSize: isMobile ? '1.5rem' : '2.5rem', textShadow: `0 4px 15px ${item.color}`, direction: 'ltr' }}
+        
+        <motion.span className="font-black text-white text-center px-2" style={{ fontSize: mainFontSize, textShadow: `0 4px 20px ${item.color}, 0 2px 6px rgba(0,0,0,0.9)`, direction: 'ltr', lineHeight: 1.2 }}
           animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity }}>
-          {item.deBase}
+          {item.de}
         </motion.span>
-        <div className={`px-3 py-1 rounded-full ${isMobile ? 'text-xs' : 'text-base'} font-black`}
-          style={{ background: `${item.color}33`, border: `1.5px solid ${item.color}66`, color: 'white' }}>
+        
+        <div className={`px-4 py-1.5 rounded-full ${isMobile ? 'text-sm' : 'text-lg'} font-black shadow-md`}
+          style={{ background: `${item.color}55`, border: `2px solid ${item.color}`, color: '#FFFFFF', textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>
           {item.ar}
         </div>
-        <SoundButton onClick={() => speakGerman(item.de)} color={item.color} size={isMobile ? 45 : 55} />
-        <span className={`font-black text-white ${isMobile ? 'text-xs' : 'text-base'}`}>اضغط على الرمز الصحيح 👇</span>
-        <div className={`flex items-center justify-center ${isMobile ? 'gap-2.5' : 'gap-5'} w-full`} dir="ltr">
+        
+        <SoundButton onClick={() => speakGerman(item.de)} color={item.color} size={isMobile ? 50 : 60} />
+        <span className={`font-black text-white ${isMobile ? 'text-xs' : 'text-base'} mt-1`} style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>اضغط على الرمز الصحيح 👇</span>
+        
+        <div className={`flex items-center justify-center ${isMobile ? 'gap-3' : 'gap-6'} w-full`} dir="ltr">
           {choices.map((c, idx) => {
             const isHidden = hiddenIds.has(c.id);
             const isWrong = wrongId === c.id;
@@ -586,14 +583,14 @@ function ChoiceCard({ item, allItems, isMobile, onCorrect, onWrong }: {
                     transition={isWrong ? { duration: .4 } : { delay: idx * .1, type: 'spring', stiffness: 300 }}
                     whileHover={{ scale: 1.08, y: -3 }} whileTap={{ scale: .95 }}
                     onClick={e => handleChoice(c, e)} disabled={status === 'correct' || isWrong}
-                    className="relative rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden border-2"
+                    className="relative rounded-[1.5rem] flex items-center justify-center flex-shrink-0 overflow-hidden border-[3px]"
                     style={{
                       width: cardSize, height: cardSize,
-                      background: isWrong ? 'linear-gradient(145deg,#FF4444,#CC0000)' : 'linear-gradient(145deg,rgba(255,255,255,0.98),rgba(245,245,255,0.95))',
-                      borderColor: isWrong ? '#FF4444' : `${c.color}aa`,
-                      boxShadow: isWrong ? '0 8px 25px rgba(255,68,68,0.6)' : `0 8px 25px ${c.color}66`,
+                      background: isWrong ? 'linear-gradient(145deg,#EF4444,#991B1B)' : 'linear-gradient(145deg,rgba(255,255,255,0.98),rgba(235,235,245,0.95))',
+                      borderColor: isWrong ? '#FCA5A5' : `${c.color}bb`,
+                      boxShadow: isWrong ? '0 10px 25px rgba(239,68,68,0.6)' : `0 10px 25px ${c.color}55`,
                     }}>
-                    <span style={{ fontSize: isMobile ? '3rem' : '5rem', lineHeight: 1 }}>{c.emoji}</span>
+                    <span style={{ fontSize: isMobile ? '3.5rem' : '5.5rem', lineHeight: 1, filter: isWrong ? 'grayscale(100%) brightness(50%)' : 'none' }}>{c.emoji}</span>
                   </motion.button>
                 )}
               </AnimatePresence>
@@ -603,18 +600,19 @@ function ChoiceCard({ item, allItems, isMobile, onCorrect, onWrong }: {
         <AnimatePresence>
           {status === 'correct' && (
             <motion.div initial={{ opacity: 0, scale: .9 }} animate={{ opacity: 1, scale: 1 }}
-              className={`flex items-center gap-2 font-black ${isMobile ? 'text-xs py-1 px-3' : 'text-sm py-2 px-5'} rounded-xl`}
-              style={{ background: 'rgba(88,204,2,0.3)', color: '#58CC02', border: '1.5px solid #58CC0288' }}>
-              <Check size={isMobile ? 12 : 16} /> ممتاز! 🎉
+              className={`flex items-center gap-2 font-black ${isMobile ? 'text-sm py-1.5 px-4' : 'text-lg py-2.5 px-6'} rounded-xl shadow-lg`}
+              style={{ background: 'linear-gradient(135deg,#58CC02,#3A8A01)', color: 'white', border: '2px solid #86EFAC' }}>
+              <Check size={isMobile ? 16 : 20} strokeWidth={3} /> ممتاز! 🎉
             </motion.div>
           )}
         </AnimatePresence>
         <AnimatePresence>
           {status === 'correct' && item.exampleDe && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .3 }}
-              className={`text-center ${isMobile ? 'px-3 py-1.5' : 'px-5 py-3'} rounded-xl bg-white/5 border border-white/10`}>
-              <div className={`font-bold ${isMobile ? 'text-xs' : 'text-sm'} text-white/90`} dir="ltr">{item.exampleDe}</div>
-              <div className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-white/60 mt-0.5`}>{item.exampleAr}</div>
+              className={`text-center ${isMobile ? 'px-3 py-2' : 'px-5 py-3'} rounded-xl shadow-inner w-full max-w-md`}
+              style={{ background: 'rgba(0,0,0,0.4)', border: '1.5px solid rgba(255,255,255,0.15)' }}>
+              <div className={`font-black ${isMobile ? 'text-xs' : 'text-sm'} text-cyan-200`} dir="ltr" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{item.exampleDe}</div>
+              <div className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-yellow-200 mt-1 font-bold`} style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{item.exampleAr}</div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -627,9 +625,14 @@ function ChoiceCard({ item, allItems, isMobile, onCorrect, onWrong }: {
 // ✏️ WordBuilderMobile
 // ═══════════════════════════════════════
 function WordBuilderMobile({ item, onComplete, onWrong }: {
-  item: PronounItem; onComplete: (cx: number, cy: number) => void; onWrong: () => void;
+  item: HolidayItem; onComplete: (cx: number, cy: number) => void; onWrong: () => void;
 }) {
   const word = item.deBase.split(' ')[0];
+  const wordLen = word.length;
+  const slotW = wordLen > 10 ? 26 : wordLen > 7 ? 32 : 38;
+  const slotH = wordLen > 10 ? 34 : wordLen > 7 ? 40 : 46;
+  const letterSize = wordLen > 10 ? '1rem' : wordLen > 7 ? '1.15rem' : '1.3rem';
+
   const [shuffledLetters, setShuffledLetters] = useState<string[]>([]);
   const [placedIndices, setPlacedIndices] = useState<number[]>([]);
   const [wrongShake, setWrongShake] = useState<number | null>(null);
@@ -656,13 +659,13 @@ function WordBuilderMobile({ item, onComplete, onWrong }: {
           setPlacedIndices(p => [...p, idx]); setFlyingLetter(null); playCoinSound();
           if (placedIndices.length + 1 === word.length) {
             setIsComplete(true); speakGerman(item.de);
-            setTimeout(() => onComplete(e.clientX, e.clientY), 600);
+            setTimeout(() => onComplete(e.clientX, e.clientY), 800);
           }
-        }, 600);
+        }, 500);
       }
     } else {
       setWrongShake(idx); playBuzzSound(); onWrong();
-      setTimeout(() => setWrongShake(null), 600);
+      setTimeout(() => setWrongShake(null), 500);
     }
   };
 
@@ -670,46 +673,52 @@ function WordBuilderMobile({ item, onComplete, onWrong }: {
     <>
       <AnimatePresence>
         {flyingLetter && (
-          <motion.div className="fixed pointer-events-none z-[100] flex items-center justify-center rounded-lg"
+          <motion.div className="fixed pointer-events-none z-[100] flex items-center justify-center rounded-lg shadow-2xl"
             initial={{ left: flyingLetter.fromRect.left, top: flyingLetter.fromRect.top, width: flyingLetter.fromRect.width, height: flyingLetter.fromRect.height }}
             animate={{ left: flyingLetter.toRect.left, top: flyingLetter.toRect.top, width: flyingLetter.toRect.width, height: flyingLetter.toRect.height, scale: [1, 1.2, 1] }}
-            transition={{ duration: .6 }}
-            style={{ background: `linear-gradient(145deg,${item.gradient[0]},${item.gradient[1]})`, border: '2px solid rgba(255,255,255,0.6)' }}>
-            <span className="font-black text-white text-2xl">{flyingLetter.letter}</span>
+            transition={{ duration: .5 }}
+            style={{ background: `linear-gradient(145deg,${item.gradient[0]},${item.gradient[1]})`, border: '2px solid white' }}>
+            <span className="font-black text-white" style={{ fontSize: letterSize, textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>{flyingLetter.letter}</span>
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="w-full max-w-md mx-auto p-3 rounded-[1.5rem] relative overflow-hidden"
-        style={{ background: 'rgba(20,15,55,0.45)', backdropFilter: 'blur(30px)', border: '2px solid rgba(255,255,255,0.2)' }}>
+      
+      <div className="w-full max-w-[95%] mx-auto p-4 rounded-[2rem] relative overflow-hidden shadow-2xl"
+        style={{ background: 'rgba(15,10,35,0.88)', backdropFilter: 'blur(40px)', border: '2px solid rgba(255,255,255,0.25)' }}>
         <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 50% 0%,${item.color}33,transparent 60%)` }} />
-        <div className="relative z-10 flex flex-col items-center gap-2">
-          <div className="px-3 py-1.5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.95)', border: `2px solid ${item.color}66` }}>
-            <span className="font-black text-xs text-gray-800">استمع ورتب الحروف</span>
+        <div className="relative z-10 flex flex-col items-center gap-3">
+          <div className="px-4 py-1.5 rounded-2xl shadow-md" style={{ background: 'rgba(255,255,255,0.98)', border: `2px solid ${item.color}88` }}>
+            <span className="font-black text-xs text-gray-900">استمع ورتب الحروف</span>
           </div>
+          
           <HeroDisplay item={item} isMobile showWord />
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-xs" style={{ color: item.color }}>{item.ar}</span>
+          
+          <div className="flex flex-col items-center gap-1 -mt-1">
+            <span className="font-black text-sm" style={{ color: '#FFFFFF', textShadow: `0 2px 4px rgba(0,0,0,0.9), 0 0 10px ${item.color}` }}>{item.ar}</span>
           </div>
-          <SoundButton onClick={() => speakGerman(item.de)} color={item.color} size={38} />
-          <div className="flex items-center justify-center gap-1.5 flex-wrap mt-1" dir="ltr">
+          
+          <SoundButton onClick={() => speakGerman(item.de)} color={item.color} size={44} />
+          
+          <div className="flex justify-center gap-1.5 flex-wrap mt-1" dir="ltr">
             {word.split('').map((l, idx) => {
               const isFilled = idx < placedIndices.length;
               return (
                 <motion.div ref={el => { slotRefs.current[idx] = el; }} key={`slot-${idx}`}
                   animate={{ scale: isFilled ? [.8, 1.15, 1] : 1 }}
-                  className="rounded-lg flex items-center justify-center flex-shrink-0 border-2 relative overflow-hidden"
+                  className="rounded-lg flex items-center justify-center flex-shrink-0 border-2 relative overflow-hidden shadow-inner"
                   style={{
-                    width: 34, height: 42,
-                    background: isFilled ? `linear-gradient(145deg,${item.gradient[0]},${item.gradient[1]})` : 'rgba(255,255,255,0.05)',
-                    borderColor: isFilled ? item.color : `${item.color}55`, borderStyle: isFilled ? 'solid' : 'dashed',
+                    width: slotW, height: slotH,
+                    background: isFilled ? `linear-gradient(145deg,${item.gradient[0]},${item.gradient[1]})` : 'rgba(0,0,0,0.4)',
+                    borderColor: isFilled ? 'white' : `${item.color}66`, borderStyle: isFilled ? 'solid' : 'dashed',
                   }}>
-                  {!isFilled && <span className="absolute inset-0 flex items-center justify-center pointer-events-none font-black text-xl" style={{ color: item.color, opacity: .25 }}>{l}</span>}
-                  {isFilled && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="font-black text-white text-xl">{l}</motion.span>}
+                  {!isFilled && <span className="absolute inset-0 flex items-center justify-center pointer-events-none font-black" style={{ fontSize: letterSize, color: item.color, opacity: .35 }}>{l}</span>}
+                  {isFilled && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="font-black text-white" style={{ fontSize: letterSize, textShadow: '0 2px 4px rgba(0,0,0,0.7)' }}>{l}</motion.span>}
                 </motion.div>
               );
             })}
           </div>
-          <div className="flex items-center justify-center gap-1.5 flex-wrap mt-1" dir="ltr">
+          
+          <div className="flex items-center justify-center gap-1.5 flex-wrap mt-2 max-w-full" dir="ltr">
             {shuffledLetters.map((l, idx) => {
               const placed = placedIndices.includes(idx);
               const shaking = wrongShake === idx;
@@ -719,28 +728,29 @@ function WordBuilderMobile({ item, onComplete, onWrong }: {
                     <motion.button ref={el => { letterRefs.current[idx] = el; }}
                       initial={{ scale: 0, opacity: 0 }}
                       animate={shaking ? { x: [-6, 6, -6, 6, 0], scale: 1, opacity: 1 } : { scale: 1, opacity: 1 }}
-                      exit={{ opacity: 0 }}
+                      exit={{ opacity: 0, scale: 0 }}
                       whileHover={{ scale: 1.08 }} whileTap={{ scale: .95 }}
                       onClick={e => handleLetterClick(l, idx, e)}
                       disabled={isComplete || !!flyingLetter}
-                      className="rounded-lg flex items-center justify-center flex-shrink-0 border-2"
+                      className="rounded-lg flex items-center justify-center flex-shrink-0 border-2 shadow-lg"
                       style={{
-                        width: 40, height: 40,
-                        background: shaking ? 'linear-gradient(145deg,#FF4444,#CC0000)' : 'linear-gradient(145deg,rgba(255,255,255,0.98),rgba(245,245,255,0.95))',
-                        borderColor: shaking ? '#FF4444' : `${item.color}aa`,
+                        width: slotW + 4, height: slotH + 4,
+                        background: shaking ? 'linear-gradient(145deg,#EF4444,#991B1B)' : 'linear-gradient(145deg,rgba(255,255,255,0.98),rgba(235,235,245,0.95))',
+                        borderColor: shaking ? '#FCA5A5' : `${item.color}bb`,
                       }}>
-                      <span className="font-black text-xl" style={{ color: shaking ? 'white' : darkColor }}>{l}</span>
+                      <span className="font-black" style={{ fontSize: letterSize, color: shaking ? 'white' : darkColor }}>{l}</span>
                     </motion.button>
                   )}
                 </AnimatePresence>
               );
             })}
           </div>
+          
           {isComplete && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="flex items-center gap-2 font-black text-sm py-1.5 px-4 rounded-xl"
-              style={{ background: 'rgba(88,204,2,0.3)', color: '#58CC02' }}>
-              <Check size={14} /> ممتاز! 🎉
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 font-black text-sm py-2 px-5 rounded-xl mt-2 shadow-lg"
+              style={{ background: 'linear-gradient(135deg,#58CC02,#3A8A01)', color: 'white', border: '2px solid #86EFAC' }}>
+              <Check size={16} strokeWidth={3} /> ممتاز! 🎉
             </motion.div>
           )}
         </div>
@@ -809,49 +819,53 @@ function WritePhase({ item, onDone, onKarlReact, onCombo, onCorrect, isMobile }:
         {isMobile ? (
           <WordBuilderMobile item={item} onComplete={handleMobileComplete} onWrong={() => onKarlReact('sad')} />
         ) : (
-          <div className="grid lg:grid-cols-5 gap-8 items-center">
-            <div className="lg:col-span-3 flex flex-col items-center gap-4">
+          <div className="grid lg:grid-cols-5 gap-8 items-center rounded-[2rem] p-8 shadow-2xl"
+            style={{ background: 'rgba(15,10,35,0.85)', backdropFilter: 'blur(30px)', border: '2px solid rgba(255,255,255,0.2)' }}>
+            <div className="lg:col-span-3 flex flex-col items-center gap-6">
               <HeroDisplay item={item} showWord />
-              <SoundButton onClick={() => speakGerman(item.de)} color={item.color} label="استمع للكلمة" />
+              <SoundButton onClick={() => speakGerman(item.de)} color={item.color} label="استمع للمناسبة" />
               {item.acceptedAnswers && item.acceptedAnswers.length > 1 && (
-                <div className="text-center px-4 py-2 rounded-xl bg-white/5 border border-white/10">
-                  <div className="text-xs text-white/60 mb-1">إجابات مقبولة:</div>
-                  <div className="flex flex-wrap gap-1 justify-center">
+                <div className="text-center px-4 py-2 rounded-xl shadow-inner" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                  <div className="text-xs mb-1.5 font-bold" style={{ color: '#FDE047', textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>إجابات مقبولة أيضاً:</div>
+                  <div className="flex flex-wrap gap-1.5 justify-center">
                     {item.acceptedAnswers.map((a: string, i: number) => (
-                      <span key={i} className="text-xs font-bold text-white/80 bg-white/10 px-2 py-0.5 rounded-full" dir="ltr">{a}</span>
+                      <span key={i} className="text-xs font-black text-white bg-white/15 px-2.5 py-1 rounded-full border border-white/20" dir="ltr">{a}</span>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-            <div className="lg:col-span-2 space-y-4">
+            <div className="lg:col-span-2 space-y-5">
               <div className="text-center lg:text-right">
-                <div className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: `${item.color}aa` }}>Schreiben · بالألمانية</div>
-                <div className="text-2xl font-black text-white">اكتب الكلمة</div>
-                <div className="text-sm font-bold text-white/40 mt-1">{item.ar}</div>
+                <div className="text-sm font-black uppercase tracking-widest mb-2 flex items-center justify-center lg:justify-end gap-2" style={{ color: item.color, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+                  <Sparkles size={14} /> Schreiben · بالألمانية
+                </div>
+                <div className="text-3xl font-black text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>اكتب اسم المناسبة</div>
+                <div className="text-base font-bold mt-2" style={{ color: '#FDE047', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{item.ar}</div>
               </div>
               <GhostInput ref={inputRef} value={input} onChange={v => { setInput(v); setStatus('idle'); }}
                 onEnter={handleCheck} ghostText={item.deBase} color={item.color} status={status} fontSize="1.8rem" />
               {requiredChars.length > 0 && (
                 <div className="space-y-2 pt-1">
-                  <p className="text-center text-[10px] font-black text-white/40 uppercase">💡 الحروف الخاصة</p>
+                  <p className="text-center text-[11px] font-black uppercase tracking-widest" style={{ color: '#7DD3FC', textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>💡 الحروف الألمانية الخاصة</p>
                   <SpecialCharsKeyboard chars={requiredChars} onChar={c => { setInput(p => p + c); setStatus('idle'); inputRef.current?.focus(); }} color={item.color} />
                 </div>
               )}
               {status !== 'idle' && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="flex items-center justify-center gap-2 font-black text-sm py-2.5 rounded-xl"
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-center gap-2 font-black text-base py-3 rounded-xl shadow-lg"
                   style={{
-                    background: status === 'correct' ? 'rgba(34,197,94,0.18)' : 'rgba(239,68,68,0.18)',
-                    color: status === 'correct' ? '#22c55e' : '#ef4444',
+                    background: status === 'correct' ? 'linear-gradient(135deg,#58CC02,#3A8A01)' : 'linear-gradient(135deg,#EF4444,#991B1B)',
+                    color: 'white',
+                    border: `2px solid ${status === 'correct' ? '#86EFAC' : '#FCA5A5'}`,
                   }}>
-                  {status === 'correct' ? '✅ ممتاز!' : '❌ جرب تاني'}
+                  {status === 'correct' ? '✅ ممتاز!' : '❌ حاول مرة أخرى'}
                 </motion.div>
               )}
               <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: .96 }}
                 onClick={handleCheck} disabled={!input}
-                className="w-full py-4 rounded-2xl font-black text-lg text-white disabled:opacity-25"
-                style={{ background: `linear-gradient(135deg,${item.gradient[0]},${item.gradient[1]})`, borderBottom: `4px solid ${item.color}77` }}>
+                className="w-full py-4 rounded-2xl font-black text-lg text-white shadow-xl disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{ background: `linear-gradient(135deg,${item.gradient[0]},${item.gradient[1]})`, borderBottom: `4px solid ${item.color}77`, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                 تحقق ✓
               </motion.button>
             </div>
@@ -903,56 +917,64 @@ function SpeakPhase({ item, isMobile, onSuccess, onSkip }: any) {
   };
 
   if (!supported) return (
-    <div className="w-full max-w-md mx-auto p-6 rounded-3xl border-2 text-center" style={{ background: 'rgba(255,107,107,0.1)', borderColor: 'rgba(255,107,107,0.3)' }}>
-      <div className="text-5xl mb-3">😅</div>
-      <h3 className="text-xl font-black text-white mb-2">المتصفح مش بيدعم النطق</h3>
-      <button onClick={onSkip} className="px-8 py-3 rounded-2xl font-black text-white"
+    <div className="w-full max-w-md mx-auto p-8 rounded-[2rem] border-2 text-center shadow-2xl"
+      style={{ background: 'rgba(239,68,68,0.15)', borderColor: 'rgba(239,68,68,0.4)', backdropFilter: 'blur(20px)' }}>
+      <div className="text-6xl mb-4">😅</div>
+      <h3 className="text-2xl font-black text-white mb-3" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>المتصفح مش بيدعم النطق</h3>
+      <button onClick={onSkip} className="w-full py-4 rounded-2xl font-black text-white text-lg shadow-lg"
         style={{ background: `linear-gradient(135deg,${item.gradient[0]},${item.gradient[1]})` }}>تخطي ⏭️</button>
     </div>
   );
 
-  const micSize = isMobile ? 64 : 96;
+  const micSize = isMobile ? 75 : 100;
 
   return (
     <motion.div key={`speak-${item.id}`} initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }}
       className="w-full max-w-5xl mx-auto">
-      <div className={isMobile ? 'mx-auto rounded-[1.5rem] relative overflow-hidden p-3 max-w-md' : 'grid lg:grid-cols-5 gap-8 items-center'}
-        style={isMobile ? { background: 'rgba(20,15,55,0.55)', backdropFilter: 'blur(30px)', border: '2px solid rgba(255,255,255,0.2)' } : {}}>
-        {!isMobile && <div className="lg:col-span-3 flex flex-col items-center gap-4"><HeroDisplay item={item} showWord /></div>}
+      <div className={isMobile ? 'mx-auto rounded-[2rem] relative overflow-hidden p-4 max-w-[95%] shadow-2xl' : 'grid lg:grid-cols-5 gap-8 items-center rounded-[2rem] p-8 shadow-2xl'}
+        style={isMobile 
+          ? { background: 'rgba(15,10,35,0.88)', backdropFilter: 'blur(40px)', border: '2px solid rgba(255,255,255,0.25)' }
+          : { background: 'rgba(15,10,35,0.85)', backdropFilter: 'blur(30px)', border: '2px solid rgba(255,255,255,0.2)' }}>
+        {!isMobile && <div className="lg:col-span-3 flex flex-col items-center gap-6"><HeroDisplay item={item} showWord /></div>}
         <div className={isMobile ? '' : 'lg:col-span-2'}>
-          <div className={`${isMobile ? '' : 'relative rounded-[1.8rem] p-6 overflow-hidden'}`}
-            style={!isMobile ? { background: 'rgba(20,15,55,0.55)', backdropFilter: 'blur(30px)', border: '2px solid rgba(255,255,255,0.2)' } : {}}>
-            <div className={`flex flex-col items-center gap-${isMobile ? '2' : '4'} w-full ${isMobile ? '' : 'relative z-10'}`}>
+          <div className={`${isMobile ? '' : 'relative rounded-[1.8rem] p-6 overflow-hidden shadow-inner'}`}
+            style={!isMobile ? { background: 'rgba(0,0,0,0.35)', border: '2px solid rgba(255,255,255,0.15)' } : {}}>
+            <div className={`flex flex-col items-center gap-${isMobile ? '3' : '5'} w-full ${isMobile ? '' : 'relative z-10'}`}>
               {isMobile && <HeroDisplay item={item} isMobile showWord />}
               <div className="text-center">
-                <h3 className={`font-black text-white flex items-center justify-center gap-1.5 ${isMobile ? 'text-base' : 'text-2xl'}`}>
-                  انطق الكلمة <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>🎤</motion.span>
+                <h3 className={`font-black text-white flex items-center justify-center gap-2 ${isMobile ? 'text-lg' : 'text-2xl'}`}
+                  style={{ textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>
+                  انطق المناسبة <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>🎤</motion.span>
                 </h3>
               </div>
               <button onClick={() => speakGerman(item.de)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/5 text-white/80 font-bold px-3 py-1 text-xs">
-                <Volume2 size={12} /> اسمع
+                className="inline-flex items-center gap-2 rounded-full border-2 font-black px-4 py-1.5 text-xs shadow-lg transition-colors"
+                style={{ borderColor: '#7DD3FC', background: 'rgba(6,182,212,0.25)', color: '#E0F2FE', textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
+                <Volume2 size={14} /> اسمع النطق
               </button>
               <motion.button ref={micRef} onClick={handleStart} disabled={isListening || status === 'success'}
-                className="relative rounded-full flex items-center justify-center flex-shrink-0"
+                className="relative rounded-full flex items-center justify-center flex-shrink-0 shadow-2xl mt-1"
                 style={{
                   width: micSize, height: micSize,
-                  background: status === 'success' ? 'linear-gradient(135deg,#58CC02,#096A02)' : isListening ? 'linear-gradient(135deg,#FF4444,#C70039)' : `linear-gradient(135deg,${item.gradient[0]},${item.gradient[1]})`,
+                  background: status === 'success' ? 'linear-gradient(135deg,#58CC02,#2A6A02)' : isListening ? 'linear-gradient(135deg,#EF4444,#991B1B)' : `linear-gradient(135deg,${item.gradient[0]},${item.gradient[1]})`,
+                  border: `4px solid ${status === 'success' ? '#86EFAC' : isListening ? '#FCA5A5' : 'rgba(255,255,255,0.5)'}`
                 }}>
                 {isListening && [0, .3, .6].map((d, i) => (
-                  <motion.div key={i} className="absolute inset-0 rounded-full border-4" style={{ borderColor: '#FF4444' }}
-                    initial={{ scale: 1, opacity: .8 }} animate={{ scale: 1.6, opacity: 0 }} transition={{ duration: 1.5, delay: d, repeat: Infinity }} />
+                  <motion.div key={i} className="absolute inset-0 rounded-full border-4" style={{ borderColor: '#EF4444' }}
+                    initial={{ scale: 1, opacity: .8 }} animate={{ scale: 1.8, opacity: 0 }} transition={{ duration: 1.5, delay: d, repeat: Infinity }} />
                 ))}
-                {status === 'success' ? <Check size={isMobile ? 30 : 42} className="text-white" strokeWidth={3} /> : <Mic size={isMobile ? 30 : 42} className="text-white" />}
+                {status === 'success' ? <Check size={isMobile ? 34 : 44} className="text-white drop-shadow-md" strokeWidth={3} /> : <Mic size={isMobile ? 34 : 44} className="text-white drop-shadow-md" />}
               </motion.button>
-              {transcript && <p className="font-black text-white text-sm text-center" dir="ltr">&ldquo;{transcript}&rdquo;</p>}
-              {status === 'listening' && <p className="font-black text-red-400 text-xs">🎙️ بسمعك...</p>}
-              {status === 'success' && <p className="font-black text-green-400 text-base">✅ نطق ممتاز!</p>}
-              {status === 'try-again' && <p className="font-black text-yellow-400 text-xs">😊 قريب! حاول تاني</p>}
-              {status === 'error' && <p className="font-black text-red-400 text-xs">❌ لازم تسمح للمايك</p>}
+              <div className="min-h-[3rem] flex items-center justify-center">
+                {transcript && <p className="font-black text-white text-sm text-center bg-black/50 px-3 py-1 rounded-lg" dir="ltr" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>&ldquo;{transcript}&rdquo;</p>}
+                {status === 'listening' && !transcript && <p className="font-black text-red-300 text-sm animate-pulse" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>🎙️ بسمعك...</p>}
+                {status === 'success' && !transcript && <p className="font-black text-green-300 text-base" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>✅ نطق ممتاز!</p>}
+                {status === 'try-again' && !transcript && <p className="font-black text-yellow-300 text-sm" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>😊 قريب! حاول تاني</p>}
+                {status === 'error' && !transcript && <p className="font-black text-red-300 text-sm" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>❌ لازم تسمح للمايك</p>}
+              </div>
               {(attempts >= 2 || status === 'error') && (
                 <button onClick={onSkip}
-                  className="flex items-center gap-2 rounded-2xl font-bold text-white/70 border border-white/15 bg-white/5 px-4 py-2 text-xs">
+                  className="flex items-center gap-2 rounded-2xl font-black text-white border border-white/30 bg-white/10 px-5 py-2.5 text-xs shadow-lg hover:bg-white/20 transition-colors">
                   <SkipForward size={14} /> تخطي
                 </button>
               )}
@@ -972,7 +994,7 @@ type DragSource = { id: string; side: 'image' | 'word' };
 function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: any) {
   const isMobile = useIsMobile();
   const [matched, setMatched] = useState<Set<string>>(new Set());
-  const [shuffledWords, setShuffledWords] = useState<PronounItem[]>(() => shuffle(group));
+  const [shuffledWords, setShuffledWords] = useState<HolidayItem[]>(() => shuffle(group));
   const [dragging, setDragging] = useState<DragSource | null>(null);
   const [overTarget, setOverTarget] = useState<DragSource | null>(null);
   const [wrongPair, setWrongPair] = useState<{ id: string; otherId: string } | null>(null);
@@ -984,18 +1006,18 @@ function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: any) 
   const touchOffRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => { setShuffledWords(shuffle(group)); setMatched(new Set()); setErrors(0); }, [group]);
-  useEffect(() => { if (matched.size === group.length) { onKarlReact('celebrate'); setTimeout(onComplete, 800); } }, [matched]);
+  useEffect(() => { if (matched.size === group.length) { onKarlReact('celebrate'); setTimeout(onComplete, 1000); } }, [matched]);
 
   const tryMatch = (src: DragSource, tgt: DragSource, cx: number, cy: number) => {
     if (src.side === tgt.side) return;
     if (src.id === tgt.id) {
-      const it = group.find((x: PronounItem) => x.id === src.id)!;
+      const it = group.find((x: HolidayItem) => x.id === src.id)!;
       speakGerman(it.de); playCoinSound(); onCombo(); onKarlReact('happy'); onCorrect(cx, cy);
       setConfettiPos({ x: cx, y: cy }); setConfettiTrigger(t => t + 1);
       setMatched(p => new Set([...p, src.id]));
     } else {
       playBuzzSound(); onKarlReact('sad'); setErrors(e => e + 1);
-      setWrongPair({ id: tgt.id, otherId: src.id }); setTimeout(() => setWrongPair(null), 500);
+      setWrongPair({ id: tgt.id, otherId: src.id }); setTimeout(() => setWrongPair(null), 600);
     }
   };
 
@@ -1006,7 +1028,7 @@ function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: any) 
     const rect = card.getBoundingClientRect();
     touchOffRef.current = { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
     const clone = card.cloneNode(true) as HTMLElement;
-    clone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;opacity:.92;pointer-events:none;z-index:9998;border-radius:16px;transform:scale(1.08);`;
+    clone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;opacity:.95;pointer-events:none;z-index:9998;border-radius:16px;transform:scale(1.1);box-shadow:0 15px 30px rgba(0,0,0,0.5);`;
     document.body.appendChild(clone); touchCloneRef.current = clone;
   };
   const onTouchMove = (e: React.TouchEvent) => {
@@ -1037,17 +1059,22 @@ function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: any) 
     setOverTarget(null); touchDragging.current = null;
   };
 
-  const cardW = isMobile ? 62 : 95, cardH = isMobile ? 78 : 115;
+  const cardW = isMobile ? 65 : 105, cardH = isMobile ? 82 : 128;
 
-  const renderCard = (item: PronounItem, side: 'image' | 'word') => {
+  const renderCard = (item: HolidayItem, side: 'image' | 'word') => {
     const isMatched = matched.has(item.id);
     const isWrong = wrongPair?.id === item.id || wrongPair?.otherId === item.id;
     const isOver = overTarget?.id === item.id && overTarget?.side === side && !isMatched;
+    
+    const deLen = item.deBase.length;
+    const deFontSize = isMobile 
+      ? (deLen > 10 ? '.65rem' : deLen > 7 ? '.75rem' : '.85rem')
+      : (deLen > 10 ? '.9rem' : deLen > 7 ? '1rem' : '1.15rem');
 
     if (isMatched) return (
-      <div key={`${side}-${item.id}`} style={{ width: cardW, height: cardH, opacity: .2 }}
-        className="rounded-xl border-2 border-dashed border-green-500/40 flex items-center justify-center">
-        <Check size={20} className="text-green-500/50" />
+      <div key={`${side}-${item.id}`} style={{ width: cardW, height: cardH, opacity: .3 }}
+        className="rounded-2xl border-2 border-dashed border-green-500/50 flex items-center justify-center bg-green-900/20">
+        <Check size={24} className="text-green-400" />
       </div>
     );
     return (
@@ -1061,57 +1088,57 @@ function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: any) 
         onTouchStart={e => onTouchStart(e, { id: item.id, side })} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
         onClick={() => speakGerman(item.de)}
         whileHover={{ scale: 1.05 }} whileTap={{ scale: .95 }}
-        animate={isWrong ? { x: [-4, 4, -3, 3, 0] } : isOver ? { scale: 1.05 } : {}}
-        className="relative select-none rounded-xl overflow-hidden border-2"
+        animate={isWrong ? { x: [-5, 5, -4, 4, 0] } : isOver ? { scale: 1.08 } : {}}
+        className="relative select-none rounded-2xl overflow-hidden shadow-xl"
         style={{
           width: cardW, height: cardH, cursor: 'grab',
-          borderColor: isOver ? item.color : isWrong ? '#ef4444' : `${item.color}aa`,
-          background: `linear-gradient(180deg,${item.gradient[0]},${item.gradient[1]})`,
+          border: `2px solid ${isOver ? 'white' : isWrong ? '#FCA5A5' : 'rgba(255,255,255,0.35)'}`,
+          background: isWrong ? 'linear-gradient(180deg,#EF4444,#991B1B)' : `linear-gradient(180deg,${item.gradient[0]},${item.gradient[1]})`,
         }}>
         {side === 'image'
-          ? <div className="w-full h-full flex items-center justify-center" style={{ fontSize: isMobile ? '2.5rem' : '3.5rem' }}>{item.emoji}</div>
-          : <div className="w-full h-full flex flex-col items-center justify-center px-1">
-              <span className="font-black text-white text-center" style={{ fontSize: isMobile ? '.85rem' : '1.1rem', lineHeight: 1.1 }}>{item.deBase}</span>
-              <span className="font-bold text-white/80 text-[8px] mt-0.5">{item.ar}</span>
+          ? <div className="w-full h-full flex items-center justify-center" style={{ fontSize: isMobile ? '2.8rem' : '4rem', filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.5))' }}>{item.emoji}</div>
+          : <div className="w-full h-full flex flex-col items-center justify-center px-1.5 gap-1 bg-black/20">
+              <span className="font-black text-white text-center" style={{ fontSize: deFontSize, lineHeight: 1.15, textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>{item.deBase}</span>
+              <span className="font-black text-center bg-black/50 px-2 py-0.5 rounded-md" style={{ fontSize: isMobile ? '8px' : '11px', color: '#FDE047', textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{item.ar}</span>
             </div>}
-        {isOver && <motion.div className="absolute inset-0 pointer-events-none" animate={{ opacity: [.3, .6, .3] }} transition={{ duration: 1, repeat: Infinity }}
-          style={{ background: `radial-gradient(circle,${item.color}44,transparent)` }} />}
+        {isOver && <motion.div className="absolute inset-0 pointer-events-none border-4 border-white rounded-2xl" animate={{ opacity: [.4, 1, .4] }} transition={{ duration: 1, repeat: Infinity }} />}
       </motion.div>
     );
   };
 
   return (
     <>
-      <ConfettiBurst trigger={confettiTrigger} x={confettiPos.x} y={confettiPos.y} colors={['#FFD700', '#A78BFA', '#9D4EDD', '#FFF']} />
+      <ConfettiBurst trigger={confettiTrigger} x={confettiPos.x} y={confettiPos.y} colors={['#FFD700', '#EF4444', '#7209B7', '#FFF']} />
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-4xl mx-auto flex flex-col items-center gap-2">
-        <div className="flex items-center gap-3 w-full max-w-md px-2">
-          <div className="px-3 py-1 rounded-full flex items-center gap-1.5"
-            style={{ background: 'linear-gradient(135deg,rgba(124,58,237,0.4),rgba(236,72,153,0.4))', border: '1.5px solid rgba(167,139,250,0.5)' }}>
-            <Sparkles size={11} className="text-yellow-300" />
-            <span className="text-[10px] font-black text-white">طابق الضمير بالكلمة</span>
+        className="w-full max-w-5xl mx-auto flex flex-col items-center gap-3 p-4 md:p-8 rounded-[2.5rem] shadow-2xl"
+        style={{ background: 'rgba(15,10,35,0.75)', backdropFilter: 'blur(30px)', border: '2px solid rgba(255,255,255,0.2)' }}>
+        <div className="flex items-center gap-3 w-full max-w-2xl px-3 py-2 rounded-2xl" style={{ background: 'rgba(0,0,0,0.4)', border: '1.5px solid rgba(255,255,255,0.15)' }}>
+          <div className="px-3 py-1 rounded-full flex items-center gap-1.5 flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg,rgba(239,68,68,0.5),rgba(255,215,0,0.5))', border: '1.5px solid rgba(252,165,165,0.6)' }}>
+            <Sparkles size={12} className="text-yellow-300" />
+            <span className="text-[10px] md:text-xs font-black text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>طابق المناسبة</span>
           </div>
-          <div className="flex-1 flex items-center gap-1.5">
-            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <motion.div className="h-full rounded-full" style={{ background: 'linear-gradient(to right,#58CC02,#A78BFA,#EC4899)' }}
+          <div className="flex-1 flex items-center gap-2">
+            <div className="flex-1 h-2 bg-black/50 rounded-full overflow-hidden border border-white/20">
+              <motion.div className="h-full rounded-full" style={{ background: 'linear-gradient(to right,#58CC02,#FFD700,#EF4444)' }}
                 animate={{ width: `${(matched.size / group.length) * 100}%` }} />
             </div>
-            <span className="text-[10px] font-black text-white/90">{matched.size}/{group.length}</span>
+            <span className="text-xs font-black text-white bg-white/15 px-2 py-0.5 rounded-lg">{matched.size}/{group.length}</span>
           </div>
-          {errors > 0 && <div className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: 'rgba(239,68,68,0.2)', color: '#fca5a5' }}><X size={9} /> {errors}</div>}
+          {errors > 0 && <div className="px-2 py-1 rounded-full text-[10px] font-black flex items-center gap-1" style={{ background: 'rgba(239,68,68,0.3)', color: '#FCA5A5', border: '1px solid rgba(239,68,68,0.5)' }}><X size={10} /> {errors}</div>}
         </div>
-        <div className="w-full flex flex-col items-center gap-1">
-          <span className="text-[9px] text-cyan-300/80 font-black uppercase">الرموز</span>
-          <div className="flex items-center justify-center gap-1.5 flex-wrap" dir="ltr">{group.map((c: PronounItem) => renderCard(c, 'image'))}</div>
+        <div className="w-full flex flex-col items-center gap-2 mt-2">
+          <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full" style={{ color: '#7DD3FC', background: 'rgba(6,182,212,0.2)', border: '1px solid rgba(6,182,212,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>الرموز</span>
+          <div className="flex items-center justify-center gap-2 flex-wrap" dir="ltr">{group.map((c: HolidayItem) => renderCard(c, 'image'))}</div>
         </div>
-        <div className="w-full max-w-xs flex items-center gap-2 my-0.5">
-          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-          <Sparkles size={10} className="text-white/30" />
-          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <div className="w-full max-w-xs flex items-center gap-2 my-1 opacity-60">
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+          <Sparkles size={12} className="text-white/50" />
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
         </div>
-        <div className="w-full flex flex-col items-center gap-1">
-          <span className="text-[9px] text-pink-300/80 font-black uppercase">الضمائر — اسحب</span>
-          <div className="flex items-center justify-center gap-1.5 flex-wrap" dir="ltr">{shuffledWords.map(w => renderCard(w, 'word'))}</div>
+        <div className="w-full flex flex-col items-center gap-2 mb-1">
+          <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full" style={{ color: '#FCA5A5', background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>المناسبات — اسحب</span>
+          <div className="flex items-center justify-center gap-2 flex-wrap" dir="ltr">{shuffledWords.map(w => renderCard(w, 'word'))}</div>
         </div>
       </motion.div>
     </>
@@ -1121,7 +1148,7 @@ function MatchGame({ group, onComplete, onCorrect, onKarlReact, onCombo }: any) 
 // ═══════════════════════════════════════
 // 🏠 Main
 // ═══════════════════════════════════════
-function GermanPronounsLessonInner() {
+function GermanHolidaysLessonInner() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const isKeyboardOpen = useKeyboardOpen();
@@ -1138,7 +1165,7 @@ function GermanPronounsLessonInner() {
   const [karlMood, setKarlMood] = useState<KarlMood>('idle');
   const [karlMessage, setKarlMessage] = useState<{ de: string; ar: string } | null>(null);
 
-  const currentGroup = PRONOUN_GROUPS[groupIdx];
+  const currentGroup = HOLIDAY_GROUPS[groupIdx];
   const currentItem = currentGroup?.numbers[itemIdx];
   const treasureState: 'closed' | 'half' | 'opend' = correctInGroup < 2 ? 'closed' : correctInGroup < 5 ? 'half' : 'opend';
 
@@ -1167,7 +1194,7 @@ function GermanPronounsLessonInner() {
 
   const handleCombo = () => { };
 
-  const calcRating = (s: number) => { const r = s / (PRONOUNS.length * 3); return r >= .67 ? 3 : r >= .34 ? 2 : 1; };
+  const calcRating = (s: number) => { const r = s / (HOLIDAYS.length * 3); return r >= .67 ? 3 : r >= .34 ? 2 : 1; };
   const savePos = (g: number, i: number, p: Phase) => saveLessonProgress(LESSON_ID, calcRating(totalStars), false, { current_group: g, current_letter: i, current_phase: p });
 
   const handleCorrect = useCallback((cx: number, cy: number) => {
@@ -1201,7 +1228,7 @@ function GermanPronounsLessonInner() {
   };
 
   const nextGroup = async () => {
-    if (groupIdx < PRONOUN_GROUPS.length - 1) {
+    if (groupIdx < HOLIDAY_GROUPS.length - 1) {
       const n = groupIdx + 1; setGroupIdx(n); setItemIdx(0); setPhase('listen');
       setTestSuccess(false); setCorrectInGroup(0); savePos(n, 0, 'listen');
     } else {
@@ -1214,19 +1241,21 @@ function GermanPronounsLessonInner() {
 
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#07090D]">
-      <div className="text-6xl mb-4 animate-pulse">🎓</div>
-      <p className="text-white font-bold">جاري التحميل...</p>
+      <div className="flex flex-col items-center gap-4">
+        <div className="text-7xl animate-bounce">🎄</div>
+        <p className="text-white font-black text-lg tracking-widest animate-pulse">جاري التحميل...</p>
+      </div>
     </div>
   );
 
   if (!currentGroup || !currentItem) return null;
 
   return (
-    <div className="text-white relative" style={{ fontFamily: "'Tajawal',sans-serif", minHeight: '100vh' }} dir="rtl">
+    <div className="text-white relative" style={{ fontFamily: "'Tajawal',sans-serif", minHeight: '100vh', overflowX: 'hidden' }} dir="rtl">
       <ScreenBackground groupIdx={groupIdx} isMobile={isMobile} activeColor={currentItem.color} />
       {!(isMobile && isKeyboardOpen) && (
         <div style={{ transform: isMobile ? 'scale(0.4)' : 'scale(0.55)', transformOrigin: 'bottom right', position: 'fixed', bottom: isMobile ? 110 : 130, right: 0, zIndex: 25, pointerEvents: 'none' }}>
-          <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#9D4EDD" />
+          <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#EF4444" />
         </div>
       )}
       <FlyingItems items={flyingItems} />
@@ -1234,20 +1263,23 @@ function GermanPronounsLessonInner() {
       <div className="flex flex-col items-center justify-center relative px-3 md:px-6 mx-auto w-full"
         style={{ zIndex: 10, minHeight: '100vh', maxWidth: '1400px', paddingTop: isMobile ? '110px' : '130px', paddingBottom: isMobile ? '95px' : '120px' }}>
         <AnimatePresence mode="wait">
-          {phase === 'listen' && <ListenPhase key={`l-${groupIdx}-${itemIdx}`} item={currentItem} allItems={PRONOUNS} onDone={handleListenDone} onKarlReact={handleKarlReact} onCombo={handleCombo} onCorrect={handleCorrect} isMobile={isMobile} />}
+          {phase === 'listen' && <ListenPhase key={`l-${groupIdx}-${itemIdx}`} item={currentItem} allItems={HOLIDAYS} onDone={handleListenDone} onKarlReact={handleKarlReact} onCombo={handleCombo} onCorrect={handleCorrect} isMobile={isMobile} />}
           {phase === 'write' && <WritePhase key={`w-${groupIdx}-${itemIdx}`} item={currentItem} onDone={handleWriteDone} onKarlReact={handleKarlReact} onCombo={handleCombo} onCorrect={handleCorrect} isMobile={isMobile} />}
           {phase === 'speak' && <SpeakPhase key={`s-${groupIdx}-${itemIdx}`} item={currentItem} isMobile={isMobile} onSuccess={(cx: number, cy: number) => { handleCorrect(cx, cy); handleKarlReact('celebrate'); setTimeout(handleSpeakDone, 800); }} onSkip={handleSpeakDone} />}
           {phase === 'test' && !testSuccess && <MatchGame key={`m-${groupIdx}`} group={currentGroup.numbers} onComplete={() => setTestSuccess(true)} onCorrect={handleCorrect} onKarlReact={handleKarlReact} onCombo={handleCombo} />}
           {testSuccess && (
-            <motion.div key="success" initial={{ opacity: 0, scale: .85 }} animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center gap-6 text-center px-6 max-w-md mx-auto">
-              <div className="text-9xl">🎓</div>
-              <h2 className="text-4xl font-black text-white mb-2">أحسنت! 🎉</h2>
-              <p className="text-white/50 text-lg">أنهيت {currentGroup.title} بنجاح</p>
-              <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: .97 }} onClick={nextGroup}
-                className="font-black px-12 py-5 rounded-2xl text-lg text-white"
-                style={{ background: 'linear-gradient(135deg,#9D4EDD,#7209B7)', boxShadow: '0 10px 40px rgba(157,78,221,0.5)' }}>
-                {groupIdx < PRONOUN_GROUPS.length - 1 ? 'المجموعة التالية ←' : '🗺️ رجوع للخريطة'}
+            <motion.div key="success" initial={{ opacity: 0, scale: .85, y: 50 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="flex flex-col items-center gap-6 text-center px-8 py-10 max-w-md mx-auto rounded-[3rem] shadow-[0_0_100px_rgba(239,68,68,0.4)]"
+              style={{ background: 'rgba(15,10,35,0.9)', border: '2px solid rgba(255,255,255,0.25)', backdropFilter: 'blur(30px)' }}>
+              <motion.div animate={{ rotate: [0, -10, 10, -10, 10, 0], scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }} className="text-[8rem] drop-shadow-2xl">🎄</motion.div>
+              <div>
+                <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-500 mb-2" style={{ WebkitTextStroke: '0.5px rgba(0,0,0,0.3)' }}>احتفال رائع! 🎉</h2>
+                <p className="text-white text-lg font-bold" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>أنهيت قسم "{currentGroup.title}" بنجاح</p>
+              </div>
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: .95 }} onClick={nextGroup}
+                className="font-black px-12 py-5 rounded-3xl text-lg text-white w-full border border-white/30 shadow-xl"
+                style={{ background: 'linear-gradient(135deg,#EF4444,#B91C1C)', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                {groupIdx < HOLIDAY_GROUPS.length - 1 ? 'المجموعة التالية 🚀' : '🗺️ رجوع للخريطة'}
               </motion.button>
             </motion.div>
           )}
@@ -1258,10 +1290,10 @@ function GermanPronounsLessonInner() {
   );
 }
 
-export default function GermanPronounsLesson() {
+export default function GermanHolidaysLesson() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#07090D]"><div className="text-6xl animate-pulse">🎓</div></div>}>
-      <GermanPronounsLessonInner />
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#07090D]"><div className="text-6xl animate-bounce">🎄</div></div>}>
+      <GermanHolidaysLessonInner />
     </Suspense>
   );
 }

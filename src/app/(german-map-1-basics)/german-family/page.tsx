@@ -33,105 +33,34 @@ function compareWords(input: string, target: string): boolean {
 // ═══════════════════════════════════════
 // خلفية بوابة براندنبورغ
 // ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// خلفية جديدة - صورتين بس من البحيرة
+// ═══════════════════════════════════════
 function BrandenburgBackground({ activeColor }: { activeColor: string }) {
-  const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number; xOffset: number }>>([]);
-  const [stars, setStars] = useState<Array<{ left: number; top: number; size: number; duration: number; delay: number }>>([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const p = Array.from({ length: 20 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      delay: Math.random() * 10,
-      size: 2 + Math.random() * 8,
-      duration: 10 + Math.random() * 10,
-      xOffset: Math.random() * 50 - 25,
-    }));
-    setParticles(p);
-
-    const s = Array.from({ length: 40 }, () => ({
-      left: Math.random() * 100,
-      top: Math.random() * 50,
-      size: 1.5 + Math.random() * 1.5,
-      duration: 2 + Math.random() * 3,
-      delay: Math.random() * 5,
-    }));
-    setStars(s);
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
+
+  // نفس الصورتين اللي اخترناهم
+  const bgImage = isMobile 
+    ? '/card-image/lake-group1-mob.webp' 
+    : '/card-image/lake-group1-pc.webp';
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      <div className="absolute inset-0" style={{
-        background: 'radial-gradient(ellipse at 30% 20%, #1a0a3e 0%, #0d0620 50%, #050210 100%)',
-      }} />
-
-      <motion.div
-        className="absolute inset-0 opacity-40"
-        style={{
-          background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${activeColor}33, transparent 70%)`,
-        }}
-        animate={{ opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+      {/* الصورة واضحة بدون أي blur */}
+      <img 
+        src={bgImage} 
+        alt="background" 
+        className="absolute inset-0 w-full h-full object-cover" 
       />
-
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 h-1/3 opacity-30"
-        style={{
-          background: `linear-gradient(to top, ${activeColor}22, transparent)`,
-        }}
-        animate={{ opacity: [0.2, 0.4, 0.2] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-
-      {particles.map(p => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full"
-          style={{
-            left: `${p.x}%`,
-            bottom: -20,
-            width: p.size,
-            height: p.size,
-            background: `radial-gradient(circle, ${activeColor}aa, transparent)`,
-            boxShadow: `0 0 ${p.size * 2}px ${activeColor}66`,
-          }}
-          animate={{
-            y: [0, -(typeof window !== 'undefined' ? window.innerHeight : 800) - 100],
-            opacity: [0, 0.8, 0.8, 0],
-            x: [0, p.xOffset, 0],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
-        />
-      ))}
-
-      {stars.map((s, i) => (
-        <motion.div
-          key={`star-${i}`}
-          className="absolute rounded-full"
-          style={{
-            left: `${s.left}%`,
-            top: `${s.top}%`,
-            width: s.size,
-            height: s.size,
-            background: 'white',
-          }}
-          animate={{ opacity: [0.2, 1, 0.2] }}
-          transition={{
-            duration: s.duration,
-            delay: s.delay,
-            repeat: Infinity,
-          }}
-        />
-      ))}
-
-      <div className="absolute inset-0 opacity-[0.015]" style={{
-        backgroundImage: `linear-gradient(${activeColor} 1px, transparent 1px), linear-gradient(90deg, ${activeColor} 1px, transparent 1px)`,
-        backgroundSize: '50px 50px',
-      }} />
+      {/* طبقة خفيفة جدا عشان الكلام يبان - لو عايزها أوضح شيل السطر ده خالص */}
+      <div className="absolute inset-0 bg-black/15" />
     </div>
   );
 }

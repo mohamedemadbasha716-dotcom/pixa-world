@@ -218,8 +218,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 function getGroupBackground(groupIdx: number, isMobile: boolean): string {
   const suffix = isMobile ? 'mob' : 'pc';
-  const groupNum = Math.min(groupIdx + 1, 3);
-  return `/card-image/transport/bg-group${groupNum}-${suffix}.webp`;
+  return `/card-image/lake-group1-${suffix}.webp`;
 }
 
 function ScreenBackground({ groupIdx, isMobile, activeColor }: { 
@@ -341,7 +340,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
                 boxShadow: '0 0 10px rgba(255,215,0,0.5)',
                 background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
               }}>
-              <img src="/characters/karl-3d.png" alt="character" className="w-full h-full object-cover" />
+              <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
             </motion.div>
             <div className="flex flex-col items-start leading-none gap-0.5">
               <span className="text-[7px] font-bold text-white/80">المستوى</span>
@@ -364,7 +363,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
                 background: 'rgba(15,10,45,0.7)', backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255,215,0,0.35)',
               }}>
-              <img id="star-target" src="/treasuer/star.png" alt="star" className="w-3 h-3 flex-shrink-0" 
+              <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-3 h-3 flex-shrink-0" 
                 style={{ filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.8))' }} />
               <span className="font-black text-[10px] text-white truncate">{stats.points}</span>
             </motion.div>
@@ -427,7 +426,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
               boxShadow: '0 0 15px rgba(255,215,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
               background: 'linear-gradient(135deg, #4CC9F0, #7209B7)',
             }}>
-            <img src="/characters/karl-3d.png" alt="character" className="w-full h-full object-cover" />
+            <img src="/characters/karl-3d.webp" alt="character" className="w-full h-full object-cover" />
           </motion.div>
           <div className="flex flex-col items-start">
             <span className="text-[9px] md:text-[10px] font-bold text-white/80 mb-0.5">المستوى</span>
@@ -490,7 +489,7 @@ function TopHUD({ stats, level, currentStep, totalSteps, onHome, isMobile }: {
               boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
             }}>
             <span className="font-black text-xs md:text-sm text-white">{stats.points}</span>
-            <img id="star-target" src="/treasuer/star.png" alt="star" className="w-5 h-5 md:w-6 md:h-6" 
+            <img id="star-target" src="/treasuer/star.webp" alt="star" className="w-5 h-5 md:w-6 md:h-6" 
               style={{ filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.8))' }} />
           </motion.div>
 
@@ -559,11 +558,11 @@ function FlyingItems({ items }: { items: FlyingItem[] }) {
                   style={{ background: color, opacity: 0.8, transform: 'scale(2.5)' }} />
                 <div className="relative flex items-center justify-center w-full h-full">
                   {item.type === 'star' && (
-                    <img src="/treasuer/star.png" alt="star" className="w-10 h-10"
+                    <img src="/treasuer/star.webp" alt="star" className="w-10 h-10"
                       style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />
                   )}
                   {item.type === 'energy' && (
-                    <img src="/treasuer/energy.png" alt="energy" className="w-10 h-10"
+                    <img src="/treasuer/energy.webp" alt="energy" className="w-10 h-10"
                       style={{ filter: `drop-shadow(0 0 15px ${color}) drop-shadow(0 0 25px ${color})` }} />
                   )}
                   {item.type === 'gem' && (
@@ -613,7 +612,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
   stats: GameStats; treasureState: 'closed' | 'half' | 'opend';
   onHint: () => void; onMap: () => void; isMobile: boolean;
 }) {
-  const treasureImg = `/treasuer/${treasureState}.png`;
+  const treasureImg = `/treasuer/${treasureState}.webp`;
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 px-2 md:px-4 pb-1 md:pb-1.5 pointer-events-none"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 4px)' }}>
@@ -632,9 +631,9 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
           </div>
           <div className="flex items-end justify-around gap-2 md:gap-3">
             <FloatingIconButton onClick={onMap} label="خريطة" color="#4CC9F0" isMobile={isMobile}
-              iconSrc="/treasuer/map-icon.png" iconAlt="map" />
+              iconSrc="/treasuer/map-icon.webp" iconAlt="map" />
             <FloatingIconButton label="نجوم" color="#FFD700" isMobile={isMobile} disabled
-              iconSrc="/treasuer/star.png" iconAlt="star" />
+              iconSrc="/treasuer/star.webp" iconAlt="star" />
             <motion.div id="treasure-box" whileHover={{ scale: 1.08, y: -2 }}
               animate={treasureState === 'opend' ? { y: [0, -3, 0] } : {}}
               transition={{ duration: 1.5, repeat: treasureState === 'opend' ? Infinity : 0 }}
@@ -646,7 +645,7 @@ function BottomHUD({ stats, treasureState, onHint, onMap, isMobile }: {
               <span className="text-[7px] md:text-[9px] font-black text-yellow-400 leading-none">صندوق</span>
             </motion.div>
             <FloatingIconButton label="طاقة" color="#4CC9F0" isMobile={isMobile} disabled
-              iconSrc="/treasuer/energy.png" iconAlt="energy" />
+              iconSrc="/treasuer/energy.webp" iconAlt="energy" />
             <FloatingIconButton onClick={onHint} label="تلميح" color="#FFD700" isMobile={isMobile}
               badge={stats.hints} disabled={stats.hints === 0}
               iconSrc="/treasuer/HINT.svg" iconAlt="hint" />

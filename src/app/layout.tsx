@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AdminInit from "@/components/AdminInit"; // 🆕 استيراد الأدمن
+import GlobalReturnFix from "./components/GlobalReturnFix"; // 🆕 زر العودة الموحد - يظبط كل الدروس تلقائي
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AdminInit /> {/* 🆕 هيشتغل في كل الصفحات */}
+        <GlobalReturnFix /> {/* 🆕 يظبط كل الدروس تلقائي - يرجع لنفس الخريطة */}
         {children}
       </body>
     </html>

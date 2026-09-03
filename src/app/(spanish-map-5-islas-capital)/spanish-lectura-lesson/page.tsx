@@ -530,7 +530,7 @@ function SpanishLecturaLessonInner() {
               
               <div className="flex items-center gap-1 flex-1 justify-center max-w-[230px]">
                 <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/50 backdrop-blur-md border border-yellow-400/40 flex-1 justify-center">
-                  <img src="/treasuer/star.png" className="w-3 h-3" alt="" />
+                  <img src="/treasuer/star.webp" className="w-3 h-3" alt="" />
                   <span className="font-black text-[10px] text-white">{points}</span>
                 </div>
                 <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/50 backdrop-blur-md border border-orange-400/40 flex-1 justify-center">
@@ -564,7 +564,7 @@ function SpanishLecturaLessonInner() {
                 <Home size={20} />
               </button>
               <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-black/50 backdrop-blur-xl border-2 border-yellow-400/40">
-                <img src="/treasuer/star.png" className="w-6 h-6" alt="" />
+                <img src="/treasuer/star.webp" className="w-6 h-6" alt="" />
                 <span className="font-black text-white">{points}</span>
               </div>
               <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-black/50 backdrop-blur-xl border-2 border-orange-400/40">
@@ -961,7 +961,7 @@ function SpanishLecturaLessonInner() {
               </p>
               <div className="flex justify-center gap-3">
                 {[1,2,3].map(i => (
-                  <motion.img key={i} src="/treasuer/star.png" alt="star" 
+                  <motion.img key={i} src="/treasuer/star.webp" alt="star" 
                     className="w-12 h-12 md:w-16 md:h-16"
                     initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }}
                     transition={{ delay: 0.3 + i * 0.2, type: 'spring' }}
@@ -1007,13 +1007,13 @@ function SpanishLecturaLessonInner() {
             <div className="flex items-end justify-around gap-2 md:gap-3">
               <button onClick={() => router.push('/spanish-character-and-map?map=5')}
                 className="flex flex-col items-center gap-0.5">
-                <img src="/treasuer/map-icon.png" alt="map" className="w-9 h-9 md:w-11 md:h-11 object-contain" 
+                <img src="/treasuer/map-icon.webp" alt="map" className="w-9 h-9 md:w-11 md:h-11 object-contain" 
                   style={{ filter: 'drop-shadow(0 2px 8px rgba(76,201,240,0.6))' }} />
                 <span className="text-[8px] md:text-[9px] font-black" style={{ color: '#4CC9F0' }}>خريطة</span>
               </button>
 
               <div className="flex flex-col items-center gap-0.5 opacity-70">
-                <img src="/treasuer/star.png" alt="star" className="w-9 h-9 md:w-11 md:h-11 object-contain"
+                <img src="/treasuer/star.webp" alt="star" className="w-9 h-9 md:w-11 md:h-11 object-contain"
                   style={{ filter: 'drop-shadow(0 2px 8px rgba(255,215,0,0.6))' }} />
                 <span className="text-[8px] md:text-[9px] font-black text-yellow-400">نجوم</span>
               </div>
@@ -1021,13 +1021,13 @@ function SpanishLecturaLessonInner() {
               <motion.div animate={treasureState === 'opend' ? { y: [0, -3, 0] } : { y: 0 }}
                 transition={{ duration: 1.5, repeat: treasureState === 'opend' ? Infinity : 0, ease: 'easeInOut' }}
                 className="flex flex-col items-center gap-0.5">
-                <img src={`/treasuer/${treasureState}.png`} alt="treasure" className="w-9 h-9 md:w-11 md:h-11 object-contain"
+                <img src={`/treasuer/${treasureState}.webp`} alt="treasure" className="w-9 h-9 md:w-11 md:h-11 object-contain"
                   style={{ filter: treasureState === 'opend' ? 'drop-shadow(0 0 10px rgba(255,215,0,0.9))' : 'drop-shadow(0 2px 6px rgba(0,0,0,0.6))' }} />
                 <span className="text-[8px] md:text-[9px] font-black text-yellow-400">صندوق</span>
               </motion.div>
 
               <div className="flex flex-col items-center gap-0.5 opacity-70">
-                <img src="/treasuer/energy.png" alt="energy" className="w-9 h-9 md:w-11 md:h-11 object-contain"
+                <img src="/treasuer/energy.webp" alt="energy" className="w-9 h-9 md:w-11 md:h-11 object-contain"
                   style={{ filter: 'drop-shadow(0 2px 8px rgba(76,201,240,0.6))' }} />
                 <span className="text-[8px] md:text-[9px] font-black" style={{ color: '#4CC9F0' }}>طاقة</span>
               </div>

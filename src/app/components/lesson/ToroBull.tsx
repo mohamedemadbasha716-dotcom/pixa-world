@@ -99,7 +99,7 @@ export default function ToroBull({
             transition={{ duration: 2, repeat: Infinity }}
           />
 
-          {/* 🐂 صورة Toro (من الفولدر المخصص) */}
+          {/* 🐂 صورة Toro (المسار الصحيح) */}
           <img
             src="/spanish/characters/toro.webp"
             alt="Toro the Bull"

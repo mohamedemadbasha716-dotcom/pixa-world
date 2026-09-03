@@ -1084,7 +1084,14 @@ function GermanFrankTestInner() {
 
   return (
     <div className="min-h-screen relative text-white" 
-      style={{ fontFamily: "'Tajawal', sans-serif", background: '#07090D' }} 
+      style={{ 
+        fontFamily: "'Tajawal', sans-serif",
+        backgroundColor: '#07090D',
+        backgroundImage: `url(${isMobile ? '/card-image/lake-group2-mob.webp' : '/card-image/lake-group2-pc.webp'})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }} 
       dir="rtl"
     >
       <div className="fixed inset-0 pointer-events-none">

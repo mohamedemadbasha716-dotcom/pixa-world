@@ -1,392 +1,315 @@
 'use client';
-import { motion } from 'framer-motion';
+
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Crown, ArrowRight, Sparkle, CheckCircle, Shield, Star, Zap, Trophy } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { 
+  Crown, ArrowRight, Sparkle, CheckCircle2, Star, 
+  Gift, X, LogIn, UserPlus, Globe2, Zap 
+} from 'lucide-react';
+import { getPlayer } from '@/lib/playerData';
 
 export default function PlansPage() {
   const router = useRouter();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [showAuthChoice, setShowAuthChoice] = useState(false);
+  const [showLangChoice, setShowLangChoice] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [hasCharacter, setHasCharacter] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(false);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const player = await getPlayer();
+      const heroName = localStorage.getItem('heroName');
+      const heroType = localStorage.getItem('heroType');
+      if (player || (heroName && heroType)) {
+        setIsLoggedIn(true);
+        if (heroName && heroType) {
+          setHasCharacter(true);
+        }
+      }
+    } catch {}
+  };
 
   const handleSelectPlan = (plan: 'monthly' | 'quarterly' | 'yearly') => {
     setLoadingPlan(plan);
     router.push(`/checkout?plan=${plan}&country=eg`);
   };
 
+  const handleFreeTrialClick = async () => {
+    setCheckingAuth(true);
+    try {
+      const player = await getPlayer();
+      const heroName = localStorage.getItem('heroName');
+      const heroType = localStorage.getItem('heroType');
+      const loggedIn = !!(player || (heroName && heroType));
+      const hasChar = !!(heroName && heroType);
+      
+      setIsLoggedIn(loggedIn);
+      setHasCharacter(hasChar);
+      
+      if (!loggedIn) {
+        setShowAuthChoice(true);
+      } else {
+        setShowLangChoice(true);
+      }
+    } catch {
+      setShowAuthChoice(true);
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
+
+  const handleLangSelect = (lang: 'de' | 'es') => {
+    localStorage.setItem('freeTrialMode', 'true');
+    localStorage.setItem('freeTrialLanguage', lang);
+    localStorage.setItem('firstLessonOnly', 'true');
+    setShowLangChoice(false);
+
+    // ✅ تم إصلاح مسار الإسباني وتوحيد الـ Routes
+    const spanishRoute = '/spanish-character-and-map'; 
+    const germanRoute = '/character-and-map';
+
+    if (hasCharacter) {
+      if (lang === 'de') {
+        router.push(`${germanRoute}?freeTrial=de&map=1&firstLessonOnly=true&from=freeTrial`);
+      } else {
+        router.push(`${spanishRoute}?freeTrial=es&map=1&firstLessonOnly=true&from=freeTrial`);
+      }
+    } else {
+      if (lang === 'de') {
+        router.push(`${germanRoute}?freeTrial=de&firstLessonOnly=true&setup=true`);
+      } else {
+        router.push(`${spanishRoute}?freeTrial=es&firstLessonOnly=true&setup=true`);
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a1a3e] via-[#2d1b4e] to-[#1e1b4b] text-white font-sans overflow-x-hidden relative" dir="rtl">
-      {/* خلفية */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute inset-0" style={{
-          background: `
-            radial-gradient(circle at 20% 20%, rgba(255, 77, 109, 0.15) 0%, transparent 50%),
-            radial-gradient(circle at 80% 30%, rgba(6, 214, 160, 0.15) 0%, transparent 50%),
-            radial-gradient(circle at 40% 70%, rgba(157, 78, 221, 0.18) 0%, transparent 50%)
-          `,
-        }} />
-        {Array.from({ length: 15 }).map((_, i) => (
-          <motion.div key={i} className="absolute"
-            style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
-            animate={{ scale: [0,1.5,0], opacity: [0,1,0], rotate: [0,180] }}
-            transition={{ duration: 3, repeat: Infinity, delay: Math.random() * 3 }}
-          >
-            <Sparkle size={10} className="text-yellow-200" />
-          </motion.div>
-        ))}
+    <div className="min-h-screen bg-[#0A0A1A] text-white font-sans overflow-x-hidden relative" dir="rtl">
+      {/* 🌌 خلفية احترافية */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#FF4D6D] rounded-full mix-blend-screen filter blur-[120px] opacity-10" />
+        <div className="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-[#4CC9F0] rounded-full mix-blend-screen filter blur-[120px] opacity-10" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[60%] h-[60%] bg-[#9D4EDD] rounded-full mix-blend-screen filter blur-[150px] opacity-15" />
+        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.03]" />
       </div>
 
-      {/* Header */}
-      <motion.header initial={{ y: -100 }} animate={{ y: 0 }}
-        className="w-full max-w-7xl mx-auto px-6 py-4 flex justify-between items-center border-b border-white/10 backdrop-blur-xl bg-[#1a1a3e]/50 sticky top-0 z-50"
-      >
-        <motion.div className="flex items-center gap-3 cursor-pointer" whileHover={{ scale: 1.02 }}
-          onClick={() => router.push('/')}
-        >
-          <span className="text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-200">
-            PIXA WORLD
-          </span>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#FF4D6D] to-[#9D4EDD] flex items-center justify-center font-black text-lg shadow-lg shadow-[#FF4D6D]/40">
-            P
-          </div>
-        </motion.div>
+      {/* 👑 الهيدر */}
+      <motion.header initial={{ y: -100 }} animate={{ y: 0 }} className="relative z-50 w-full px-6 py-4 flex justify-between items-center backdrop-blur-md bg-[#0A0A1A]/60 border-b border-white/5">
+        <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
+          <motion.div className="flex items-center gap-3 cursor-pointer" whileHover={{ scale: 1.02 }} onClick={() => router.push('/')}>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#4CC9F0] to-[#9D4EDD] flex items-center justify-center font-black text-xl shadow-[0_0_20px_rgba(76,201,240,0.3)] text-white">P</div>
+            <span className="text-xl md:text-2xl font-black tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">PIXA</span>
+          </motion.div>
+          <button onClick={() => router.push('/')} className="text-sm font-bold text-white/50 hover:text-white transition-colors">
+            العودة للرئيسية ←
+          </button>
+        </div>
       </motion.header>
 
-      {/* المحتوى */}
-      <main className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-20">
-        {/* العنوان */}
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4 mb-12"
-        >
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FF4D6D]/20 to-[#9D4EDD]/20 border border-[#FF4D6D]/30 px-5 py-2 rounded-full text-xs font-bold text-white backdrop-blur-sm"
-          >
-            <Sparkle size={14} className="text-yellow-300" />
-            <span>اختار الخطة المناسبة لطفلك</span>
-            <span className="text-lg">✨</span>
+      <main className="relative z-10 max-w-7xl mx-auto px-4 py-12 md:py-20">
+        
+        {/* 🚀 قسم العنوان والتجربة المجانية */}
+        <div className="text-center mb-16 space-y-6">
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-bold text-cyan-300">
+            <Sparkle size={16} className="text-yellow-400" /> استثمر في مستقبل طفلك
           </motion.div>
-
-          <h1 className="text-3xl md:text-5xl font-black flex items-center justify-center gap-3 flex-wrap">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
-              ابدأ رحلة طفلك اليوم
+          
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-6xl font-black leading-tight">
+            اختر الخطة المناسبة لبطل <br className="hidden md:block" />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#4CC9F0] via-[#9D4EDD] to-[#FF4D6D]">
+              رحلة التعلم الممتعة
             </span>
-            <motion.span
-              className="inline-block"
-              animate={{ y: [0, -8, 0], rotate: [0, -10, 10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              style={{
-                WebkitTextFillColor: 'initial',
-                filter: 'drop-shadow(0 4px 12px rgba(255,77,109,0.5))'
-              }}
+          </motion.h1>
+
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-white/60 text-lg max-w-2xl mx-auto font-medium">
+            3 خطط مرنة بأسعار ممتازة تناسب ميزانيتك. ابدأ الآن وافتح أبواب اللغات لطفلك!
+          </motion.p>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="pt-6">
+            <motion.button 
+              whileHover={{ scale: 1.05, boxShadow: '0 10px 40px rgba(6, 214, 160, 0.4)' }} 
+              whileTap={{ scale: 0.95 }} 
+              onClick={handleFreeTrialClick} 
+              disabled={checkingAuth}
+              className="relative inline-flex items-center gap-3 px-8 py-4 rounded-full font-black text-lg bg-gradient-to-r from-[#06D6A0] to-[#04aa7d] text-white shadow-xl border border-[#06D6A0]/50 overflow-hidden"
             >
-              🚀
-            </motion.span>
-          </h1>
-          <p className="text-gray-300 text-sm md:text-base max-w-2xl mx-auto font-medium">
-            3 خطط مرنة تناسب كل احتياجاتك — من لغة واحدة لجميع اللغات المتاحة والقادمة
-          </p>
-        </motion.div>
-
-        {/* الخطط الثلاثة */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-6 max-w-6xl mx-auto">
-
-          {/* 1️⃣ الخطة الشهرية */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            whileHover={{ y: -8, scale: 1.02 }}
-            className="relative rounded-[28px] overflow-hidden backdrop-blur-md bg-gradient-to-b from-[#4CC9F0]/10 to-[#4CC9F0]/5 border-2 border-[#4CC9F0]/40 shadow-2xl shadow-[#4CC9F0]/20 cursor-pointer group"
-            onClick={() => handleSelectPlan('monthly')}
-          >
-            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-40 rounded-full blur-[80px] bg-[#4CC9F0] opacity-20" />
-            <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-[#4CC9F0]/20 border border-[#4CC9F0]/40 text-[10px] font-black text-[#4CC9F0]">
-              ⚡ الأنسب للتجربة
-            </div>
-
-            <div className="relative z-10 p-6 md:p-8 space-y-5">
-              <div className="text-center space-y-3">
-                <motion.div
-                  animate={{ rotate: [0,10,-10,0], scale: [1,1.1,1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="inline-block text-5xl"
-                  style={{ filter: 'drop-shadow(0 4px 15px rgba(76,201,240,0.5))' }}
-                >⚡</motion.div>
-
-                <div className="space-y-2">
-                  <h2 className="text-xl md:text-2xl font-black text-white">الخطة الشهرية</h2>
-                  <p className="text-[#4CC9F0] font-black text-xs">لغة واحدة من اختيارك</p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-gray-500 text-lg font-bold line-through">400</span>
-                    <span className="text-4xl font-black text-[#4CC9F0]">
-                      200
-                    </span>
-                    <span className="text-gray-300 text-xs font-bold">جنيه / شهر</span>
-                  </div>
-                  <div className="inline-block px-2 py-0.5 rounded-full bg-[#4CC9F0]/20 border border-[#4CC9F0]/40">
-                    <span className="text-[10px] font-black text-[#4CC9F0]">🎁 وفر 50%</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="h-[1px] bg-gradient-to-r from-transparent via-[#4CC9F0]/40 to-transparent" />
-
-              <div className="space-y-2.5">
-                {[
-                  'لغة واحدة من اختيارك (ألماني أو إسباني)',
-                  'أو أي لغة جديدة عند إضافتها',
-                  'وصول كامل لكل دروس اللغة',
-                  'نطق ناطقين أصليين',
-                  'شهادات وأوسمة رقمية',
-                ].map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#4CC9F0]/25 flex-shrink-0">
-                      <CheckCircle size={12} className="text-[#4CC9F0]" />
-                    </div>
-                    <span className="text-[12px] text-gray-200 font-medium">{feature}</span>
-                  </div>
-                ))}
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.03, boxShadow: '0 0 40px rgba(76,201,240,0.5)' }}
-                whileTap={{ scale: 0.97 }}
-                onClick={(e) => { e.stopPropagation(); handleSelectPlan('monthly'); }}
-                disabled={loadingPlan === 'monthly'}
-                className="w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-[#4CC9F0] to-[#4361EE] text-white shadow-lg shadow-[#4CC9F0]/40 disabled:opacity-70"
-              >
-                {loadingPlan === 'monthly' ? (
-                  <>
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                    />
-                    <span>جاري التحويل...</span>
-                  </>
-                ) : (
-                  <>
-                    <Zap size={16} />
-                    <span>اشترك شهرياً</span>
-                    <ArrowRight size={14} className="rotate-180" />
-                  </>
-                )}
-              </motion.button>
-
-              <p className="text-center text-[10px] text-gray-400 font-bold">💡 مرن — الغِ أي وقت</p>
-            </div>
-          </motion.div>
-
-          {/* 2️⃣ الخطة الربع سنوية - الأكثر شعبية */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            whileHover={{ y: -8, scale: 1.02 }}
-            className="relative rounded-[28px] overflow-hidden backdrop-blur-md bg-gradient-to-b from-[#9D4EDD]/15 to-[#F72585]/5 border-2 border-[#9D4EDD]/50 shadow-2xl shadow-[#9D4EDD]/30 cursor-pointer group md:scale-105"
-            onClick={() => handleSelectPlan('quarterly')}
-          >
-            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-40 rounded-full blur-[80px] bg-[#9D4EDD] opacity-30" />
-            <div className="absolute top-0 left-0 right-0 py-2 text-center text-xs font-black text-white z-10"
-              style={{ background: 'linear-gradient(135deg, #9D4EDD, #F72585)', boxShadow: '0 4px 15px rgba(157,78,221,0.5)' }}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <Star size={14} fill="white" /><span>الأكثر شعبية 🔥</span><Star size={14} fill="white" />
-              </div>
-            </div>
-
-            <div className="relative z-10 p-6 md:p-8 pt-12 space-y-5">
-              <div className="text-center space-y-3">
-                <motion.div
-                  animate={{ y: [0,-8,0], rotate: [0,5,-5,0] }}
-                  transition={{ duration: 2.5, repeat: Infinity }}
-                  className="inline-block text-5xl"
-                  style={{ filter: 'drop-shadow(0 4px 15px rgba(157,78,221,0.5))' }}
-                >🎯</motion.div>
-
-                <div className="space-y-2">
-                  <h2 className="text-xl md:text-2xl font-black text-white">الخطة الربع سنوية</h2>
-                  <p className="text-[#F72585] font-black text-xs">3 أشهر — 3 لغات</p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-gray-500 text-lg font-bold line-through">700</span>
-                    <span className="text-4xl font-black"
-                      style={{ backgroundImage: 'linear-gradient(135deg, #9D4EDD, #F72585)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
-                    >
-                      350
-                    </span>
-                    <span className="text-gray-300 text-xs font-bold">جنيه</span>
-                  </div>
-                  <div className="inline-block px-2 py-0.5 rounded-full bg-[#F72585]/20 border border-[#F72585]/40">
-                    <span className="text-[10px] font-black text-[#F72585]">🎁 وفر 50%</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="h-[1px] bg-gradient-to-r from-transparent via-[#9D4EDD]/40 to-transparent" />
-
-              <div className="space-y-2.5">
-                {[
-                  { text: '✅ اللغة الألمانية كاملة', highlight: false },
-                  { text: '✅ اللغة الإسبانية كاملة', highlight: false },
-                  { text: '🎁 لغة ثالثة مجاناً عند إضافتها', highlight: true },
-                  { text: 'نطق ناطقين أصليين', highlight: false },
-                  { text: 'شهادات وأوسمة رقمية', highlight: false },
-                ].map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#F72585]/25 flex-shrink-0">
-                      <CheckCircle size={12} className="text-[#F72585]" />
-                    </div>
-                    <span className={`text-[12px] font-medium ${feature.highlight ? 'text-[#F72585] font-black' : 'text-gray-200'}`}>
-                      {feature.text}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.03, boxShadow: '0 0 40px rgba(157,78,221,0.5)' }}
-                whileTap={{ scale: 0.97 }}
-                onClick={(e) => { e.stopPropagation(); handleSelectPlan('quarterly'); }}
-                disabled={loadingPlan === 'quarterly'}
-                className="w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 text-white shadow-lg shadow-[#9D4EDD]/40 disabled:opacity-70"
-                style={{ background: 'linear-gradient(135deg, #9D4EDD, #F72585)' }}
-              >
-                {loadingPlan === 'quarterly' ? (
-                  <>
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                    />
-                    <span>جاري التحويل...</span>
-                  </>
-                ) : (
-                  <>
-                    <Star size={16} fill="white" />
-                    <span>اشترك ربع سنوي</span>
-                    <ArrowRight size={14} className="rotate-180" />
-                  </>
-                )}
-              </motion.button>
-
-              <div className="flex items-center justify-center gap-2 text-gray-400">
-                <Shield size={12} />
-                <span className="text-[10px] font-bold">آمن 100% | تفعيل فوري</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* 3️⃣ الخطة السنوية - الأفضل قيمة */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            whileHover={{ y: -8, scale: 1.02 }}
-            className="relative rounded-[28px] overflow-hidden backdrop-blur-md bg-gradient-to-b from-[#FFD700]/10 to-[#FF6B35]/5 border-2 border-[#FFD700]/40 shadow-2xl shadow-[#FFD700]/20 cursor-pointer group"
-            onClick={() => handleSelectPlan('yearly')}
-          >
-            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-40 rounded-full blur-[80px] bg-[#FFD700] opacity-20" />
-            <div className="absolute top-0 left-0 right-0 py-2 text-center text-xs font-black text-white z-10"
-              style={{ background: 'linear-gradient(135deg, #FFD700, #FF6B35)', boxShadow: '0 4px 15px rgba(255,215,0,0.5)' }}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <Crown size={14} /><span>الأفضل قيمة 👑</span><Crown size={14} />
-              </div>
-            </div>
-
-            <div className="relative z-10 p-6 md:p-8 pt-12 space-y-5">
-              <div className="text-center space-y-3">
-                <motion.div
-                  animate={{ y: [0,-8,0], rotate: [0,5,-5,0] }}
-                  transition={{ duration: 2.5, repeat: Infinity }}
-                  className="inline-block text-5xl"
-                  style={{ filter: 'drop-shadow(0 4px 15px rgba(255,215,0,0.5))' }}
-                >👑</motion.div>
-
-                <div className="space-y-2">
-                  <h2 className="text-xl md:text-2xl font-black text-white">الخطة السنوية</h2>
-                  <p className="text-[#FFD700] font-black text-xs">شامل كل اللغات — دلوقتي والمستقبل</p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-gray-500 text-lg font-bold line-through">1000</span>
-                    <span className="text-4xl font-black"
-                      style={{ backgroundImage: 'linear-gradient(135deg, #FFD700, #FF6B35)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
-                    >
-                      500
-                    </span>
-                    <span className="text-gray-300 text-xs font-bold">جنيه</span>
-                  </div>
-                  <div className="inline-block px-2 py-0.5 rounded-full bg-[#FFD700]/20 border border-[#FFD700]/40">
-                    <span className="text-[10px] font-black text-[#FFD700]">🎁 وفر 50%</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="h-[1px] bg-gradient-to-r from-transparent via-[#FFD700]/40 to-transparent" />
-
-              <div className="space-y-2.5">
-                {[
-                  { text: '🏆 اللغات المتاحة حالياً: 🇩🇪 الألماني + 🇪🇸 الإسباني', highlight: true },
-                  { text: '🎁 كل اللغات القادمة مجاناً مدى الحياة:', highlight: true },
-                  { text: '(🇬🇧 إنجليزي، 🇫🇷 فرنساوي، 🇮🇹 إيطالي، 🇷🇺 روسي، 🇯🇵 ياباني، 🇨🇳 صيني، 🇹🇷 تركي، 🇰🇷 كوري)', highlight: false },
-                  { text: '✨ شهادات وأوسمة رقمية لكل لغة عند الإنجاز', highlight: false },
-                  { text: '👑 أولوية الدعم الفني والمساعدة للأبطال', highlight: false },
-                ].map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#FFD700]/25 flex-shrink-0">
-                      <CheckCircle size={12} className="text-[#FFD700]" />
-                    </div>
-                    <span className={`text-[12px] font-medium ${feature.highlight ? 'text-[#FFD700] font-black' : 'text-gray-200'}`}>
-                      {feature.text}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.03, boxShadow: '0 0 40px rgba(255,215,0,0.5)' }}
-                whileTap={{ scale: 0.97 }}
-                onClick={(e) => { e.stopPropagation(); handleSelectPlan('yearly'); }}
-                disabled={loadingPlan === 'yearly'}
-                className="w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 text-white shadow-lg shadow-[#FFD700]/40 disabled:opacity-70"
-                style={{ background: 'linear-gradient(135deg, #FFD700, #FF6B35)' }}
-              >
-                {loadingPlan === 'yearly' ? (
-                  <>
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                    />
-                    <span>جاري التحويل...</span>
-                  </>
-                ) : (
-                  <>
-                    <Trophy size={16} />
-                    <span>اشترك سنوياً</span>
-                    <ArrowRight size={14} className="rotate-180" />
-                  </>
-                )}
-              </motion.button>
-
-              <div className="flex items-center justify-center gap-2 text-gray-400">
-                <Shield size={12} />
-                <span className="text-[10px] font-bold">آمن 100% | تفعيل فوري</span>
-              </div>
-            </div>
+              <Gift size={22} className="relative z-10" />
+              <span className="relative z-10">{checkingAuth ? 'جاري التحضير...' : 'جرب أول درس مجاناً'}</span>
+              <ArrowRight size={18} className="rotate-180 relative z-10" />
+            </motion.button>
+            <p className="text-white/40 text-xs mt-3 font-bold">بدون بطاقة ائتمانية • دخول فوري</p>
           </motion.div>
         </div>
 
-        {/* رجوع */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
-          className="text-center mt-10"
-        >
-          <button onClick={() => router.push('/')}
-            className="text-gray-400 text-sm font-bold hover:text-white transition-colors"
-          >
-            ← الرجوع للصفحة الرئيسية
-          </button>
-        </motion.div>
+        {/* 💳 كروت الاشتراكات */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto items-center">
+          
+          {/* 🥉 الخطة الشهرية */}
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} 
+            className="relative rounded-3xl p-8 bg-gradient-to-b from-white/[0.08] to-transparent border border-white/10 hover:border-[#4CC9F0]/50 transition-colors group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#4CC9F0]/10 rounded-full blur-3xl group-hover:bg-[#4CC9F0]/20 transition-colors" />
+            <div className="relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-[#4CC9F0]/20 flex items-center justify-center mb-6">
+                <Zap className="text-[#4CC9F0]" size={24} />
+              </div>
+              <h3 className="text-2xl font-black mb-2">الشهرية</h3>
+              <p className="text-white/50 text-sm font-bold mb-6">لغة واحدة من اختيارك</p>
+              <div className="flex items-baseline gap-2 mb-8">
+                <span className="text-5xl font-black text-white">200</span>
+                <span className="text-white/40 font-bold">ج.م/شهر</span>
+                <span className="text-white/30 text-sm line-through ml-2">400</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                {['لغة واحدة (ألماني أو إسباني)','الوصول لكل الدروس والألعاب','نطق صوتي أصلي'].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-white/80 text-sm font-bold">
+                    <CheckCircle2 size={18} className="text-[#4CC9F0]" /> {item}
+                  </li>
+                ))}
+              </ul>
+              <motion.button onClick={() => handleSelectPlan('monthly')} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                className="w-full py-3.5 rounded-xl font-black text-sm bg-white/10 hover:bg-[#4CC9F0] text-white transition-colors border border-white/10 hover:border-transparent">
+                اشترك الآن
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {/* 🥇 الخطة الربع سنوية (الأساسية) */}
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} 
+            className="relative rounded-3xl p-8 bg-gradient-to-b from-[#9D4EDD]/20 to-[#1a0b2e] border-2 border-[#9D4EDD] shadow-[0_0_40px_rgba(157,78,221,0.2)] transform md:-translate-y-4">
+            <div className="absolute top-0 inset-x-0 flex justify-center -translate-y-1/2">
+              <div className="bg-gradient-to-r from-[#FF4D6D] to-[#9D4EDD] px-4 py-1.5 rounded-full text-xs font-black flex items-center gap-1 shadow-lg">
+                <Star size={12} className="fill-white" /> الأكثر توفيراً وطلباً
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-full h-40 bg-[#9D4EDD]/20 rounded-full blur-[80px]" />
+            
+            <div className="relative z-10 pt-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#9D4EDD] to-[#FF4D6D] flex items-center justify-center mb-6 shadow-lg shadow-[#9D4EDD]/30">
+                <Globe2 className="text-white" size={28} />
+              </div>
+              <h3 className="text-3xl font-black mb-2">الربع سنوية</h3>
+              <p className="text-[#F72585] text-sm font-black mb-6">3 شهور — كل اللغات الحالية</p>
+              <div className="flex items-baseline gap-2 mb-8">
+                <span className="text-6xl font-black text-white">350</span>
+                <span className="text-white/40 font-bold">ج.م</span>
+                <span className="text-white/30 text-sm line-through ml-2">700</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                {['الألمانية كاملة','الإسبانية كاملة','لغة ثالثة مجاناً (قريباً)','شهادات تقدير للطفل'].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-white text-sm font-bold">
+                    <CheckCircle2 size={20} className="text-[#F72585]" /> {item}
+                  </li>
+                ))}
+              </ul>
+              <motion.button onClick={() => handleSelectPlan('quarterly')} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                className="w-full py-4 rounded-xl font-black text-base bg-gradient-to-r from-[#9D4EDD] to-[#F72585] text-white shadow-lg shadow-[#9D4EDD]/25">
+                اشترك ووفر 50%
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {/* 👑 الخطة السنوية */}
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} 
+            className="relative rounded-3xl p-8 bg-gradient-to-b from-white/[0.08] to-transparent border border-white/10 hover:border-[#FFD700]/50 transition-colors group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFD700]/10 rounded-full blur-3xl group-hover:bg-[#FFD700]/20 transition-colors" />
+            <div className="relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-[#FFD700]/20 flex items-center justify-center mb-6">
+                <Crown className="text-[#FFD700]" size={24} />
+              </div>
+              <h3 className="text-2xl font-black mb-2">السنوية</h3>
+              <p className="text-white/50 text-sm font-bold mb-6">شاملة ومستمرة</p>
+              <div className="flex items-baseline gap-2 mb-8">
+                <span className="text-5xl font-black text-white">500</span>
+                <span className="text-white/40 font-bold">ج.م/سنة</span>
+                <span className="text-white/30 text-sm line-through ml-2">1000</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                {['وصول مفتوح لكل اللغات','تحديثات اللغات الجديدة مجاناً','أولوية الدعم الفني'].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-white/80 text-sm font-bold">
+                    <CheckCircle2 size={18} className="text-[#FFD700]" /> {item}
+                  </li>
+                ))}
+              </ul>
+              <motion.button onClick={() => handleSelectPlan('yearly')} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                className="w-full py-3.5 rounded-xl font-black text-sm bg-white/10 hover:bg-[#FFD700] hover:text-black text-white transition-colors border border-white/10 hover:border-transparent">
+                اشترك سنوياً
+              </motion.button>
+            </div>
+          </motion.div>
+
+        </div>
       </main>
+
+      {/* 🔐 مودال تسجيل الدخول للتجربة */}
+      <AnimatePresence>
+        {showAuthChoice && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setShowAuthChoice(false)}>
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} onClick={e => e.stopPropagation()} className="w-full max-w-md rounded-3xl bg-[#13132B] border border-white/10 p-8 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#4CC9F0] to-[#9D4EDD]" />
+              <button onClick={() => setShowAuthChoice(false)} className="absolute top-6 left-6 text-white/40 hover:text-white"><X size={20} /></button>
+              
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10"><Gift size={32} className="text-[#4CC9F0]" /></div>
+                <h3 className="text-2xl font-black text-white mb-2">خطوة واحدة للبدء</h3>
+                <p className="text-white/60 text-sm font-medium">سجل دخول لحفظ تقدم طفلك في التجربة المجانية</p>
+              </div>
+
+              <div className="space-y-4">
+                <button onClick={() => router.push('/login?redirect=/plans&freeTrial=true')} className="w-full py-4 rounded-xl font-black flex items-center justify-center gap-2 bg-white text-black hover:bg-gray-100 transition-colors">
+                  <LogIn size={18} /> لدي حساب بالفعل
+                </button>
+                <button onClick={() => router.push('/signup?redirect=/plans&freeTrial=true')} className="w-full py-4 rounded-xl font-black flex items-center justify-center gap-2 bg-[#1A1A3A] border border-white/10 hover:bg-[#25254A] text-white transition-colors">
+                  <UserPlus size={18} /> إنشاء حساب جديد
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 🌍 مودال اختيار لغة التجربة المجانية */}
+      <AnimatePresence>
+        {showLangChoice && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setShowLangChoice(false)}>
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} onClick={e => e.stopPropagation()} className="w-full max-w-xl rounded-3xl bg-[#13132B] border border-[#06D6A0]/30 p-8 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#06D6A0] to-[#4CC9F0]" />
+              <button onClick={() => setShowLangChoice(false)} className="absolute top-6 left-6 text-white/40 hover:text-white"><X size={20} /></button>
+              
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-black text-white mb-2">اختر لغتك المفضلة 🚀</h3>
+                <p className="text-white/60 text-sm font-medium">ابدأ الآن أول درس مجاناً، وتقدر تغير اللغة بعدين.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onClick={() => handleLangSelect('de')} className="group relative rounded-2xl border border-white/10 bg-white/5 p-6 text-right hover:border-[#FFD700] hover:bg-[#FFD700]/5 transition-all text-right">
+                  <div className="text-5xl mb-4">🇩🇪</div>
+                  <h4 className="font-black text-xl text-white mb-1">اللغة الألمانية</h4>
+                  <p className="text-xs text-white/50 font-bold mb-4">الدرس الأول: الحروف والميناء</p>
+                  <div className="flex items-center gap-2 text-sm font-black text-[#FFD700] group-hover:translate-x-[-5px] transition-transform">
+                    <span>جرب الآن</span><ArrowRight size={16} className="rotate-180" />
+                  </div>
+                </button>
+
+                <button onClick={() => handleLangSelect('es')} className="group relative rounded-2xl border border-white/10 bg-white/5 p-6 text-right hover:border-[#F72585] hover:bg-[#F72585]/5 transition-all text-right">
+                  <div className="text-5xl mb-4">🇪🇸</div>
+                  <h4 className="font-black text-xl text-white mb-1">اللغة الإسبانية</h4>
+                  <p className="text-xs text-white/50 font-bold mb-4">الدرس الأول: غابات الشمال</p>
+                  <div className="flex items-center gap-2 text-sm font-black text-[#F72585] group-hover:translate-x-[-5px] transition-transform">
+                    <span>جرب الآن</span><ArrowRight size={16} className="rotate-180" />
+                  </div>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -952,15 +952,32 @@ export default function CharacterAndMapPage() {
   // 🆕 نظام الخرايط المتعددة (مع خريطة 5)
   const getInitialMap = (): MapNumber => {
     if (typeof window === 'undefined') return 1;
-    const param = new URLSearchParams(window.location.search).get('map');
-    if (param === '2') return 2;
-    if (param === '3') return 3;
-    if (param === '4') return 4;
-    if (param === '5') return 5;
+    const params = new URLSearchParams(window.location.search);
+    const param = params.get('map') || params.get('fromMap');
+    if (param === '2' || param === 'map-2' || param === '2-daily-life') return 2;
+    if (param === '3' || param === 'map-3') return 3;
+    if (param === '4' || param === 'map-4') return 4;
+    if (param === '5' || param === 'map-5') return 5;
+    
+    // ✅ جديد: لو مفيش map في الـ URL، جيب آخر خريطة محفوظة
+    const lastMap = localStorage.getItem('lastGermanMap');
+    if (lastMap) {
+      if (lastMap === '2' || lastMap === 'map-2' || lastMap.includes('2')) return 2;
+      if (lastMap === '3' || lastMap === 'map-3' || lastMap.includes('3')) return 3;
+      if (lastMap === '4' || lastMap === 'map-4' || lastMap.includes('4')) return 4;
+      if (lastMap === '5' || lastMap === 'map-5' || lastMap.includes('5')) return 5;
+    }
+    
     return 1;
   };
 
   const [currentMap, setCurrentMap] = useState<MapNumber>(getInitialMap);
+
+  // ✅ جديد: احفظ الخريطة كل ما تتغير
+  useEffect(() => {
+    localStorage.setItem('lastGermanMap', String(currentMap));
+    console.log('💾 حفظ الخريطة الحالية:', currentMap);
+  }, [currentMap]);
   const [showMapTransition, setShowMapTransition] = useState(false);
   const [mapCompletedFlag, setMapCompletedFlag] = useState<number | null>(null);
   
@@ -1029,6 +1046,15 @@ export default function CharacterAndMapPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('from') === 'lesson') {
       setStep('map');
+      // ✅ جديد: لو راجع من درس، افتح نفس الخريطة اللي كان فيها
+      const mapFromLesson = params.get('map') || params.get('fromMap') || localStorage.getItem('lastGermanMap');
+      if (mapFromLesson) {
+        const mapNum = parseInt(String(mapFromLesson).replace('map-', '')) as MapNumber;
+        if (mapNum >= 1 && mapNum <= 5) {
+          setCurrentMap(mapNum);
+          console.log('📍 راجع من درس، افتح خريطة:', mapNum);
+        }
+      }
     }
     if (params.get('debug') === '1') {
       setDebugMode(true);
@@ -1229,7 +1255,11 @@ export default function CharacterAndMapPage() {
 
   const handleLandmarkStart = () => {
     if (!selectedLandmark) return;
-    router.push(selectedLandmark.route);
+    // ✅ احفظ الخريطة قبل ما تروح للدرس
+    localStorage.setItem('lastGermanMap', String(currentMap));
+    localStorage.setItem(`map_for_${selectedLandmark.id}`, String(currentMap));
+    // ✅ ابعت الخريطة مع الدرس
+    router.push(`${selectedLandmark.route}?fromMap=${currentMap}`);
   };
 
   const handleGoToNextMap = () => {

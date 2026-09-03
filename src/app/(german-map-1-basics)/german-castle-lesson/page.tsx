@@ -37,94 +37,31 @@ interface SpeechRecognitionEvent {
 type Phase = 'learn' | 'speak' | 'group-success' | 'all-done';
 
 // ═══════════════════════════════════════
-// 🏰 خلفية القلعة الملكية
+// 🏰 خلفية القلعة - نفس الخلفيتين lake-group3
 // ═══════════════════════════════════════
 function RoyalCastleBackground({ activeColor }: { activeColor: string }) {
-  const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; size: number; duration: number; xOffset: number }>>([]);
-  const [stars, setStars] = useState<Array<{ left: number; top: number; size: number; duration: number; delay: number }>>([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const p = Array.from({ length: 20 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      delay: Math.random() * 10,
-      size: 8 + Math.random() * 16,
-      duration: 15 + Math.random() * 10,
-      xOffset: Math.random() * 60 - 30,
-    }));
-    setParticles(p);
-
-    const s = Array.from({ length: 40 }, () => ({
-      left: Math.random() * 100,
-      top: Math.random() * 70,
-      size: 1.5 + Math.random() * 2,
-      duration: 2 + Math.random() * 3,
-      delay: Math.random() * 5,
-    }));
-    setStars(s);
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
+
+  // نفس الصورتين اللي معلم عليهم في الدرس اللي فات
+  const bgImage = isMobile 
+    ? '/card-image/lake-group3-mob.webp' 
+    : '/card-image/lake-group3-pc.webp';
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      <div className="absolute inset-0" style={{
-        background: 'radial-gradient(ellipse at 50% 30%, #1a0a3e 0%, #0d0820 50%, #050210 100%)',
-      }} />
-
-      <motion.div
-        className="absolute inset-0 opacity-40"
-        style={{ background: `radial-gradient(ellipse 90% 60% at 50% 0%, ${activeColor}33, transparent 70%)` }}
-        animate={{ opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+      <img 
+        src={bgImage} 
+        alt="background" 
+        className="absolute inset-0 w-full h-full object-cover" 
       />
-
-      {particles.map(p => (
-        <motion.div
-          key={p.id}
-          className="absolute select-none"
-          style={{
-            left: `${p.x}%`,
-            top: -30,
-            fontSize: p.size,
-            filter: `drop-shadow(0 0 8px ${activeColor}66)`,
-          }}
-          animate={{
-            y: [(typeof window !== 'undefined' ? window.innerHeight : 800) + 50],
-            x: [0, p.xOffset, -p.xOffset, 0],
-            rotate: [0, 360],
-            opacity: [0, 0.7, 0.7, 0],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
-        >
-          {p.id % 3 === 0 ? '👑' : p.id % 3 === 1 ? '❄️' : '✨'}
-        </motion.div>
-      ))}
-
-      {stars.map((s, i) => (
-        <motion.div
-          key={`star-${i}`}
-          className="absolute rounded-full"
-          style={{
-            left: `${s.left}%`,
-            top: `${s.top}%`,
-            width: s.size,
-            height: s.size,
-            background: 'white',
-            boxShadow: '0 0 4px white',
-          }}
-          animate={{ opacity: [0.2, 1, 0.2] }}
-          transition={{ duration: s.duration, delay: s.delay, repeat: Infinity }}
-        />
-      ))}
-
-      <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1200 200" preserveAspectRatio="none" style={{ height: '30%', opacity: 0.3 }}>
-        <path d="M0,150 L200,50 L400,120 L600,30 L800,100 L1000,40 L1200,130 L1200,200 L0,200 Z" fill="#1a0a3e" />
-        <path d="M0,180 L150,100 L350,150 L550,80 L750,140 L950,70 L1200,160 L1200,200 L0,200 Z" fill="#0d0820" />
-      </svg>
+      <div className="absolute inset-0 bg-black/15" />
     </div>
   );
 }

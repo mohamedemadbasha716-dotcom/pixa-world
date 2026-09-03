@@ -10,6 +10,7 @@ import {
   getUserPlanStatus,
   type LessonProgress 
 } from '@/lib/playerData';
+import { supabase } from '@/lib/supabase';
 import {
   getAllSpanishProgress,
   isSpanishMapCompleted,
@@ -704,18 +705,29 @@ export default function SpanishCharacterAndMapPage() {
   
   const [isMobileView, setIsMobileView] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const getInitialMap = (): MapNumber => {
     if (typeof window === 'undefined') return 1;
-    const param = new URLSearchParams(window.location.search).get('map');
+    const params = new URLSearchParams(window.location.search);
+    const param = params.get('map') || params.get('fromMap');
     if (param) {
-      const num = parseInt(param);
+      const num = parseInt(param.replace('map-', ''));
       if (num >= 1 && num <= 5) return num as MapNumber;
+    }
+    const freeTrial = params.get('freeTrial');
+    if (freeTrial) {
+      return 1;
     }
     try {
       const saved = localStorage.getItem(CURRENT_MAP_STORAGE_KEY);
       if (saved) {
         const num = parseInt(saved);
+        if (num >= 1 && num <= 5) return num as MapNumber;
+      }
+      const lastMap = localStorage.getItem('lastSpanishMap') || localStorage.getItem('lastGermanMap');
+      if (lastMap) {
+        const num = parseInt(lastMap.replace('map-', ''));
         if (num >= 1 && num <= 5) return num as MapNumber;
       }
     } catch {}
@@ -782,7 +794,7 @@ export default function SpanishCharacterAndMapPage() {
       if (player) {
         setHeroName(player.hero_name);
         setSelectedHero(player.hero_type);
-        setStep('map'); // 🚀 فك اللوب: توجيه مباشر للخريطة إذا كان البطل مسجلاً سابقاً
+        setStep('map');
       } else {
         const savedName = localStorage.getItem('heroName');
         const savedHero = localStorage.getItem('heroType');
@@ -797,6 +809,15 @@ export default function SpanishCharacterAndMapPage() {
     const loadUserStatus = async () => {
       const status = await getUserPlanStatus();
       setUserStatus({ ...status, loaded: true });
+      
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email) {
+          setUserEmail(user.email.toLowerCase().trim());
+        }
+      } catch (err) {
+        console.error("Error loading user email:", err);
+      }
     };
     
     loadPlayer();
@@ -881,8 +902,22 @@ export default function SpanishCharacterAndMapPage() {
   }, [isMobileView, step, currentMap]);
 
   const isLocked = (lesson: number) => {
+    // 🔓 استثناء كامل: فتح كل الدروس لحسابك الشخصي فقط
+    if (userEmail === 'mohamedemadbasha716@gmail.com') {
+      return false;
+    }
+
+    // ✅ تجربة مجانية: أول درس بس
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const isFreeTrial = params.get('firstLessonOnly') === 'true' || params.get('freeTrial') || localStorage.getItem('firstLessonOnly') === 'true';
+      if (isFreeTrial) {
+        return lesson !== 1;
+      }
+    }
+
     if (!userStatus.loaded) return lesson !== 1;
-    if (userStatus.isSuperAdmin) return false;
+    // 🔑 في الإسباني: الأدمن يعامل كـ مستخدم عادي (تم التغاضي عن isSuperAdmin هنا)
 
     if (userStatus.isPremium) {
       return lesson > unlockedLessonInMap;
@@ -895,7 +930,12 @@ export default function SpanishCharacterAndMapPage() {
 
   // 🔒 التحقق إذا كان الدرس مكتمل وعايز يفتح درس تاني بحساب مجاني
   const shouldRedirectToPlans = (landmark: typeof LANDMARKS[0]) => {
-    if (userStatus.isSuperAdmin) return false;
+    // 🔓 منع تحويل حسابك الشخصي لصفحة الدفع
+    if (userEmail === 'mohamedemadbasha716@gmail.com') {
+      return false;
+    }
+
+    // 🔑 في الإسباني: الأدمن يعامل كـ مستخدم عادي (تم التغاضي عن isSuperAdmin هنا)
     if (userStatus.isPremium) return false;
     if (!userStatus.loaded) return false;
     
@@ -950,8 +990,16 @@ export default function SpanishCharacterAndMapPage() {
     if (!selectedLandmark) return;
     try {
       localStorage.setItem(CURRENT_MAP_STORAGE_KEY, String(currentMap));
+      localStorage.setItem('lastSpanishMap', String(currentMap));
+      localStorage.setItem('lastGermanMap', String(currentMap));
     } catch {}
-    router.push(selectedLandmark.route);
+    const params = new URLSearchParams(window.location.search);
+    const isFreeTrial = params.get('freeTrial') || params.get('firstLessonOnly');
+    if (isFreeTrial) {
+      router.push(`${selectedLandmark.route}?fromMap=${currentMap}&freeTrial=es&firstLessonOnly=true`);
+    } else {
+      router.push(`${selectedLandmark.route}?fromMap=${currentMap}`);
+    }
   };
 
   const handleGoToNextMap = () => {
@@ -1691,7 +1739,7 @@ export default function SpanishCharacterAndMapPage() {
                     className="w-12 h-12 object-contain flex-shrink-0" 
                   />
                   <div>
-                    <div className="text-xs font-bold text-[#DC2626] mb-1">Toro الثور يقول:</div>
+                    <div className="text-xs font-bold text-[#DC2626] mb-1">Toro الثور</div>
                     <p className="text-sm text-white/90 leading-relaxed font-medium">
                       &quot;¡Vamos a la siguiente aventura! يلا نخش على {MAPS_DATA[(currentMap + 1) as MapNumber]?.titleAr}! 🚀&quot;
                     </p>

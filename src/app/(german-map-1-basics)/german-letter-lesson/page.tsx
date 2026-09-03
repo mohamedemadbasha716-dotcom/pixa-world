@@ -2410,13 +2410,11 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full" style={{ height: '100%', minHeight: 0 }}>
       {isMobile ? (
-        <div className="flex flex-col w-full" style={{ height: '100%', padding: '0 5px' }}>
-          <InfoCardMobile />
-          <div style={{ height: '2px', flexShrink: 0 }} />
-          <div className="flex-1 min-h-0 w-full flex items-center justify-center">
-            <ImageCard />
-          </div>
-        </div>
+        <MobileTestLayout 
+          harborImage={harborImage}
+          InfoCardMobile={InfoCardMobile}
+          ImageCard={ImageCard}
+        />
       ) : (
         <div className="flex items-stretch justify-center gap-3 w-full max-w-[1500px] mx-auto px-3" style={{ height: 'calc(100vh - 175px)' }}>
           <div className="flex-shrink-0" style={{ width: '270px' }}><InfoCardDesktop /></div>
@@ -2424,6 +2422,59 @@ function HarborTest({ groupLetters, onPass, onFail, onKarlReact, onCombo, onCorr
         </div>
       )}
     </motion.div>
+  );
+}
+
+// 🆕 Component منفصل يحسب عرض الصورة ويطبقه على الكارت
+function MobileTestLayout({ 
+  harborImage, 
+  InfoCardMobile, 
+  ImageCard 
+}: { 
+  harborImage: { src: string; width: number; height: number };
+  InfoCardMobile: React.FC;
+  ImageCard: React.FC;
+}) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [imageWidth, setImageWidth] = useState<number>(0);
+
+  useEffect(() => {
+    const calculateImageWidth = () => {
+      if (!wrapperRef.current) return;
+      const containerHeight = wrapperRef.current.clientHeight;
+      const containerWidth = wrapperRef.current.clientWidth;
+      const imageAspect = harborImage.width / harborImage.height;
+      
+      // نخصم مساحة الكارت المتوقعة (~ 50px) والفراغ (~ 4px)
+      const availableHeightForImage = containerHeight - 54;
+      const widthByHeight = availableHeightForImage * imageAspect;
+      
+      // العرض الفعلي = الأصغر بين (عرض الحاوية) و (العرض المحسوب من الارتفاع)
+      const actualWidth = Math.min(containerWidth, widthByHeight);
+      setImageWidth(actualWidth);
+    };
+
+    calculateImageWidth();
+    window.addEventListener('resize', calculateImageWidth);
+    const observer = new ResizeObserver(calculateImageWidth);
+    if (wrapperRef.current) observer.observe(wrapperRef.current);
+    
+    return () => {
+      window.removeEventListener('resize', calculateImageWidth);
+      observer.disconnect();
+    };
+  }, [harborImage]);
+
+  return (
+    <div ref={wrapperRef} className="flex flex-col items-center w-full" style={{ height: '100%', padding: '0 5px' }}>
+      <div style={{ width: imageWidth > 0 ? imageWidth : '100%', maxWidth: '100%', flexShrink: 0 }}>
+        <InfoCardMobile />
+      </div>
+      <div style={{ height: '4px', flexShrink: 0 }} />
+      <div className="flex-1 min-h-0 w-full flex items-center justify-center">
+        <ImageCard />
+      </div>
+    </div>
   );
 }
 
