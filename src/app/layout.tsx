@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AdminInit from "@/components/AdminInit";
 import GlobalReturnFix from "./components/GlobalReturnFix";
-import AddToHomeScreen from "./components/AddToHomeScreen";
+import AddToHomeScreen from "@/app/components/AddToHomeScreen"; // 🆕 استيراد بوب أب الإضافة للشاشة
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// 🆕 إعدادات الميتا داتا الجديدة اللي بتعرف الموبايل إن ده أبلكيشن (PWA)
 export const metadata: Metadata = {
   title: "Pixa World - تعلم الألمانية",
   description: "تطبيق تفاعلي لتعلم اللغة الألمانية بطريقة ممتعة",
@@ -26,11 +27,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/app-icon.jpg", sizes: "192x192", type: "image/jpeg" },
-      { url: "/app-icon.jpg", sizes: "512x512", type: "image/jpeg" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [
-      { url: "/app-icon.jpg", sizes: "180x180", type: "image/jpeg" },
+      { url: "/icons/icon-192.png", sizes: "180x180", type: "image/png" },
     ],
   },
   other: {
@@ -59,10 +60,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AdminInit />
-        <GlobalReturnFix />
+        <AdminInit /> {/* هيشتغل في كل الصفحات */}
+        <GlobalReturnFix /> {/* يظبط كل الدروس تلقائي - يرجع لنفس الخريطة */}
+        
         {children}
-        <AddToHomeScreen />
+        
+        <AddToHomeScreen /> {/* 🆕 البوب أب بتاع تثبيت المنصة على الموبايل */}
       </body>
     </html>
   );

@@ -44,8 +44,10 @@ function SignUpContent() {
       setError('من فضلك اكتب اسمك كامل');
       return;
     }
-    if (!email.includes('@')) {
-      setError('الايميل مش صح');
+    const emailTrimmed = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailTrimmed)) {
+      setError('الايميل مش صح، اكتبه بالشكل ده: name@gmail.com');
       return;
     }
     if (password.length < 6) {
@@ -176,7 +178,7 @@ function SignUpContent() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
             {/* الاسم */}
             <div className="space-y-2">
               <label className="text-xs font-black text-white/80 flex items-center gap-2">
@@ -226,7 +228,9 @@ function SignUpContent() {
                 الايميل
               </label>
               <input
-                type="email"
+                type="text"
+                inputMode="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"

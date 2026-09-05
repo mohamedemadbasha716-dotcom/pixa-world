@@ -129,7 +129,7 @@ export default function AddToHomeScreen() {
                 <X size={16} />
               </button>
 
-              {/* أيقونة المنصة */}
+              {/* 🆕 أيقونة المنصة الجديدة المظبوطة */}
               <motion.div
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
@@ -137,7 +137,7 @@ export default function AddToHomeScreen() {
                 style={{ boxShadow: '0 0 20px rgba(255,215,0,0.4)' }}
               >
                 <img
-                  src="/app-icon.jpg"
+                  src="/icons/icon-192.png"
                   alt="Pixa World"
                   className="w-full h-full object-cover"
                 />
