@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import AdminInit from "@/components/AdminInit"; // 🆕 استيراد الأدمن
-import GlobalReturnFix from "./components/GlobalReturnFix"; // 🆕 زر العودة الموحد - يظبط كل الدروس تلقائي
+import AdminInit from "@/components/AdminInit";
+import GlobalReturnFix from "./components/GlobalReturnFix";
+import AddToHomeScreen from "./components/AddToHomeScreen";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,6 +18,24 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Pixa World - تعلم الألمانية",
   description: "تطبيق تفاعلي لتعلم اللغة الألمانية بطريقة ممتعة",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Pixa World",
+  },
+  icons: {
+    icon: [
+      { url: "/app-icon.jpg", sizes: "192x192", type: "image/jpeg" },
+      { url: "/app-icon.jpg", sizes: "512x512", type: "image/jpeg" },
+    ],
+    apple: [
+      { url: "/app-icon.jpg", sizes: "180x180", type: "image/jpeg" },
+    ],
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
@@ -40,9 +59,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AdminInit /> {/* 🆕 هيشتغل في كل الصفحات */}
-        <GlobalReturnFix /> {/* 🆕 يظبط كل الدروس تلقائي - يرجع لنفس الخريطة */}
+        <AdminInit />
+        <GlobalReturnFix />
         {children}
+        <AddToHomeScreen />
       </body>
     </html>
   );
