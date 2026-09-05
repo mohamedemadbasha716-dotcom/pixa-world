@@ -316,6 +316,15 @@ export default function PixiHomePage() {
         className="w-full max-w-7xl mx-auto px-3 md:px-6 py-3 md:py-4 flex justify-between items-center gap-2 border-b border-white/10 backdrop-blur-xl bg-[#1a1a3e]/50 sticky top-0 z-50"
       >
         <div className="flex items-center gap-2 md:gap-3 order-2">
+          {/* 👨‍👩‍👧 زر لوحة الآباء الجديد */}
+          <button 
+            onClick={() => window.location.href = '/parents'}
+            className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-xl hover:bg-white/10"
+          >
+            <span className="text-lg">👨‍👩‍👧</span>
+            <span>لوحة الآباء</span>
+          </button>
+
           <button 
             onClick={() => window.location.href = '/login'}
             className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-xl hover:bg-white/10"
@@ -604,7 +613,7 @@ export default function PixiHomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 3. عرض الكتب - اللغات المتاحة (اتنقل هنا - أول حاجة بعد الهيرو) */}
+      {/* 3. عرض الكتب - اللغات المتاحة */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <section className="w-full max-w-6xl mx-auto px-6 mb-28 z-10 relative">
         <motion.div
@@ -834,7 +843,6 @@ export default function PixiHomePage() {
 
           {/* أزرار التحكم في الفيديو */}
           <div className="absolute bottom-6 left-6 z-20 flex items-center gap-3">
-            {/* زر تشغيل / إيقاف */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -860,7 +868,6 @@ export default function PixiHomePage() {
               )}
             </motion.button>
 
-            {/* زر كتم / تشغيل الصوت */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -883,7 +890,6 @@ export default function PixiHomePage() {
             </motion.button>
           </div>
 
-          {/* رسالة تشغيل الصوت */}
           <AnimatePresence>
             {isMuted && (
               <motion.div
@@ -990,7 +996,7 @@ export default function PixiHomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 5.5 قسم الآباء والتوافق مع الأجهزة (جديد) */}
+      {/* 5.5 قسم الآباء والتوافق مع الأجهزة */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <section className="w-full max-w-6xl mx-auto px-6 mb-24 z-10 relative">
         <motion.div
@@ -999,7 +1005,6 @@ export default function PixiHomePage() {
           viewport={{ once: true }}
           className="rounded-[32px] overflow-hidden border border-white/10 bg-gradient-to-br from-[#1a1a3e]/80 to-[#2d1b4e]/80 backdrop-blur-xl flex flex-col lg:flex-row shadow-2xl"
         >
-          {/* محتوى النص */}
           <div className="p-8 md:p-12 lg:w-1/2 flex flex-col justify-center space-y-6">
             <div className="inline-flex items-center gap-2 bg-[#06D6A0]/20 border border-[#06D6A0]/30 px-4 py-1.5 rounded-full text-xs font-bold text-[#6ee7b7] w-fit">
               <ShieldCheck size={14} /> راحة بال للآباء
@@ -1029,12 +1034,10 @@ export default function PixiHomePage() {
             </div>
           </div>
 
-          {/* الجزء البصري (Mockup) */}
           <div className="lg:w-1/2 relative min-h-[300px] bg-gradient-to-br from-white/5 to-white/0 p-8 flex items-center justify-center overflow-hidden border-t lg:border-t-0 lg:border-r border-white/10">
             <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.05]" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#06D6A0]/20 rounded-full blur-[80px]" />
             
-            {/* بطاقة تقرير مصغرة */}
             <motion.div 
               animate={{ y: [-10, 10, -10] }} 
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -1241,7 +1244,6 @@ export default function PixiHomePage() {
               سجّلوا مجاناً دلوقتي وخلّوا طفلكم يبدأ رحلة تعلم اللغات بأسلوب ممتع ومختلف — مش هيحس إنه بيذاكر!
             </p>
 
-            {/* نقاط سريعة */}
             <div className="flex flex-wrap justify-center gap-4 text-sm font-bold text-white/90">
               {[
                 '✅ مجاني تماماً للبداية',
@@ -1383,13 +1385,13 @@ export default function PixiHomePage() {
             <div className="space-y-4">
               <h4 className="font-black text-sm text-white">روابط سريعة</h4>
               {[
-                { label: 'عن المنصة' },
-                { label: 'المنهج التعليمي' },
-                { label: 'الأسعار والاشتراكات' },
-                { label: 'الأسئلة الشائعة' },
-                { label: 'تواصل معنا' },
+                { label: 'عن المنصة', href: '/plans' },
+                { label: 'المنهج التعليمي', href: '/plans' },
+                { label: 'الأسعار والاشتراكات', href: '/plans' },
+                { label: 'لوحة تحكم الآباء', href: '/parents' },
+                { label: 'الأسئلة الشائعة', href: '/plans' },
               ].map((link, i) => (
-                <a key={i} href="/plans" className="block text-gray-300 text-sm hover:text-[#4CC9F0] transition-colors font-medium">
+                <a key={i} href={link.href} className="block text-gray-300 text-sm hover:text-[#4CC9F0] transition-colors font-medium">
                   {link.label}
                 </a>
               ))}
@@ -1410,20 +1412,21 @@ export default function PixiHomePage() {
             </div>
           </div>
 
+          {/* 🟢 الروابط المعدلة هنا لصفحة الخصوصية وشروط الاستخدام */}
           <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-[11px] text-gray-400 font-bold">
               © {new Date().getFullYear()} <span dir="ltr" className="inline-block mx-1">PIXA WORLD</span>. جميع الحقوق محفوظة 🎮✨
             </p>
-<div className="flex gap-6 text-[11px] text-gray-400 font-bold">
-  <a href="/privacy" className="hover:text-white transition-colors">سياسة الخصوصية</a>
-  <a href="/terms" className="hover:text-white transition-colors">شروط الاستخدام</a>
-</div>
+            <div className="flex gap-6 text-[11px] text-gray-400 font-bold">
+              <a href="/privacy" className="hover:text-white transition-colors">سياسة الخصوصية</a>
+              <a href="/terms" className="hover:text-white transition-colors">شروط الاستخدام</a>
+            </div>
           </div>
         </div>
       </footer>
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 11. الزر العائم للموبايل (يظهر فقط في الشاشات الصغيرة) */}
+      {/* 11. الزر العائم للموبايل */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <motion.div 
         initial={{ y: 100 }}
