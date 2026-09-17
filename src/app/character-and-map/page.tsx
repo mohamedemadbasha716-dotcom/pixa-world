@@ -286,7 +286,7 @@ const LANDMARKS_MAP_4 = [
 ];
 
 // ═══════════════════════════════════════
-// 🎨 بيانات الخريطة 5 (مدن الثقافة) 🆕
+// 🎨 بيانات الخريطة 5 (مدن الثقافة)
 // ═══════════════════════════════════════
 const LANDMARKS_MAP_5 = [
   {
@@ -351,9 +351,6 @@ const LANDMARKS_MAP_5 = [
   },
 ];
 
-// ═══════════════════════════════════════
-// 🎯 نوع الـ Polygon
-// ═══════════════════════════════════════
 type MapPolygon = number[];
 
 type LandmarkCoords = {
@@ -363,9 +360,7 @@ type LandmarkCoords = {
   polygon?: MapPolygon;
 };
 
-// ═══════════════════════════════════════
 // 🖥️ إحداثيات الديسكتوب — الخريطة 1
-// ═══════════════════════════════════════
 const COORDS_DESKTOP_MAP_1: Record<string, LandmarkCoords> = {
   hamburg        : { centerX: 40.5, centerY: 12.5, clickArea: { x: 39.4, y: 6,    w: 9.2,  h: 13.7 } },
   cologne        : { centerX: 25.5, centerY: 30.9, clickArea: { x: 18.7, y: 24.4, w: 13.1, h: 27.8 } },
@@ -375,9 +370,7 @@ const COORDS_DESKTOP_MAP_1: Record<string, LandmarkCoords> = {
   neuschwanstein : { centerX: 52.6, centerY: 65.4, clickArea: { x: 48.3, y: 59.1, w: 14.5, h: 28.1 } },
 };
 
-// ═══════════════════════════════════════
 // 📱 إحداثيات الموبايل — الخريطة 1
-// ═══════════════════════════════════════
 const COORDS_MOBILE_MAP_1: Record<string, LandmarkCoords> = {
   hamburg        : { centerX: 36.6, centerY: 13.7, clickArea: { x: 40.6, y: 4.7,  w: 40,   h: 13.4 } },
   cologne        : { centerX: 18.5, centerY: 24.9, clickArea: { x: 6.8,  y: 20.4, w: 25.8, h: 18.9 } },
@@ -387,9 +380,7 @@ const COORDS_MOBILE_MAP_1: Record<string, LandmarkCoords> = {
   neuschwanstein : { centerX: 59.4, centerY: 55.5, clickArea: { x: 46.5, y: 56.9, w: 32.5, h: 19.6 } },
 };
 
-// ═══════════════════════════════════════
 // 🖥️ إحداثيات الديسكتوب — الخريطة 2
-// ═══════════════════════════════════════
 const COORDS_DESKTOP_MAP_2: Record<string, LandmarkCoords> = {
   'heidelberg-school' : { centerX: 18,   centerY: 18,   clickArea: { x: 8,    y: 6,   w: 22,  h: 26 } },
   'karl-house'        : { centerX: 47,   centerY: 17,   clickArea: { x: 36,   y: 7,   w: 22,  h: 24 } },
@@ -399,9 +390,7 @@ const COORDS_DESKTOP_MAP_2: Record<string, LandmarkCoords> = {
   'adventurer-castle' : { centerX: 84,   centerY: 70,   clickArea: { x: 70,   y: 53,  w: 26,  h: 32 } },
 };
 
-// ═══════════════════════════════════════
 // 📱 إحداثيات الموبايل — الخريطة 2
-// ═══════════════════════════════════════
 const COORDS_MOBILE_MAP_2: Record<string, LandmarkCoords> = {
   'heidelberg-school' : { centerX: 35,   centerY: 11,   clickArea: { x: 18,  y: 4,   w: 38, h: 14 } },
   'karl-house'        : { centerX: 60,   centerY: 30,   clickArea: { x: 42,  y: 22,  w: 40, h: 16 } },
@@ -411,9 +400,7 @@ const COORDS_MOBILE_MAP_2: Record<string, LandmarkCoords> = {
   'adventurer-castle' : { centerX: 60,   centerY: 90,   clickArea: { x: 42,  y: 83,  w: 42, h: 14 } },
 };
 
-// ═══════════════════════════════════════
 // 🖥️ إحداثيات الديسكتوب — الخريطة 3 (فرانكفورت)
-// ═══════════════════════════════════════
 const COORDS_DESKTOP_MAP_3: Record<string, LandmarkCoords> = {
   'zeil-street'        : { centerX: 22,   centerY: 32,   clickArea: { x: 12,   y: 18,  w: 22,  h: 26 } },
   'senckenberg-museum' : { centerX: 48,   centerY: 38,   clickArea: { x: 38,   y: 26,  w: 22,  h: 22 } },
@@ -423,9 +410,7 @@ const COORDS_DESKTOP_MAP_3: Record<string, LandmarkCoords> = {
   'main-tower'         : { centerX: 18,   centerY: 70,   clickArea: { x: 8,    y: 55,  w: 18,  h: 30 } },
 };
 
-// ═══════════════════════════════════════
 // 📱 إحداثيات الموبايل — الخريطة 3 (فرانكفورت)
-// ═══════════════════════════════════════
 const COORDS_MOBILE_MAP_3: Record<string, LandmarkCoords> = {
   'zeil-street'        : { centerX: 30,   centerY: 15,   clickArea: { x: 10,  y: 8,   w: 40, h: 14 } },
   'senckenberg-museum' : { centerX: 65,   centerY: 28,   clickArea: { x: 45,  y: 22,  w: 42, h: 14 } },
@@ -435,9 +420,7 @@ const COORDS_MOBILE_MAP_3: Record<string, LandmarkCoords> = {
   'main-tower'         : { centerX: 65,   centerY: 90,   clickArea: { x: 45,  y: 83,  w: 42, h: 14 } },
 };
 
-// ═══════════════════════════════════════
 // 🖥️ إحداثيات الديسكتوب — الخريطة 4 (برلين)
-// ═══════════════════════════════════════
 const COORDS_DESKTOP_MAP_4: Record<string, LandmarkCoords> = {
   'berlin-hauptbahnhof' : { centerX: 18,   centerY: 25,   clickArea: { x: 8,    y: 12,  w: 22,  h: 26 } },
   'brandenburg-gate-2'  : { centerX: 50,   centerY: 22,   clickArea: { x: 39,   y: 10,  w: 22,  h: 24 } },
@@ -447,9 +430,7 @@ const COORDS_DESKTOP_MAP_4: Record<string, LandmarkCoords> = {
   'fernsehturm'         : { centerX: 82,   centerY: 72,   clickArea: { x: 70,   y: 55,  w: 24,  h: 32 } },
 };
 
-// ═══════════════════════════════════════
 // 📱 إحداثيات الموبايل — الخريطة 4 (برلين)
-// ═══════════════════════════════════════
 const COORDS_MOBILE_MAP_4: Record<string, LandmarkCoords> = {
   'berlin-hauptbahnhof' : { centerX: 50,   centerY: 10,   clickArea: { x: 25,  y: 4,   w: 50, h: 14 } },
   'brandenburg-gate-2'  : { centerX: 28,   centerY: 25,   clickArea: { x: 8,   y: 19,  w: 42, h: 14 } },
@@ -459,9 +440,7 @@ const COORDS_MOBILE_MAP_4: Record<string, LandmarkCoords> = {
   'fernsehturm'         : { centerX: 50,   centerY: 90,   clickArea: { x: 25,  y: 84,  w: 50, h: 14 } },
 };
 
-// ═══════════════════════════════════════
-// 🖥️ إحداثيات الديسكتوب — الخريطة 5 (مدن الثقافة) 🆕
-// ═══════════════════════════════════════
+// 🖥️ إحداثيات الديسكتوب — الخريطة 5 (مدن الثقافة)
 const COORDS_DESKTOP_MAP_5: Record<string, LandmarkCoords> = {
   'heidelberg-uni'       : { centerX: 18,   centerY: 25,   clickArea: { x: 8,    y: 12,  w: 22,  h: 26 } },
   'anna-amalia-library'  : { centerX: 50,   centerY: 22,   clickArea: { x: 39,   y: 10,  w: 22,  h: 24 } },
@@ -471,9 +450,7 @@ const COORDS_DESKTOP_MAP_5: Record<string, LandmarkCoords> = {
   'goethe-institut'      : { centerX: 82,   centerY: 72,   clickArea: { x: 70,   y: 55,  w: 24,  h: 32 } },
 };
 
-// ═══════════════════════════════════════
-// 📱 إحداثيات الموبايل — الخريطة 5 (مدن الثقافة) 🆕
-// ═══════════════════════════════════════
+// 📱 إحداثيات الموبايل — الخريطة 5 (مدن الثقافة)
 const COORDS_MOBILE_MAP_5: Record<string, LandmarkCoords> = {
   'heidelberg-uni'       : { centerX: 50,   centerY: 10,   clickArea: { x: 25,  y: 4,   w: 50, h: 14 } },
   'anna-amalia-library'  : { centerX: 28,   centerY: 25,   clickArea: { x: 8,   y: 19,  w: 42, h: 14 } },
@@ -483,9 +460,6 @@ const COORDS_MOBILE_MAP_5: Record<string, LandmarkCoords> = {
   'goethe-institut'      : { centerX: 50,   centerY: 90,   clickArea: { x: 25,  y: 84,  w: 50, h: 14 } },
 };
 
-// ═══════════════════════════════════════
-// 🗺️ تجميع بيانات الخرايط في object واحد
-// ═══════════════════════════════════════
 const MAPS_DATA = {
   1: {
     landmarks: LANDMARKS_MAP_1,
@@ -542,33 +516,6 @@ const MAPS_DATA = {
 type MapNumber = 1 | 2 | 3 | 4 | 5;
 const TOTAL_MAPS_COUNT = 5;
 
-// ═══════════════════════════════════════
-// 🎯 Helper Functions
-// ═══════════════════════════════════════
-function isPointInMapPolygon(px: number, py: number, polygon: MapPolygon): boolean {
-  let inside = false;
-  const len = polygon.length;
-  for (let i = 0, j = len - 2; i < len; j = i, i += 2) {
-    const xi = polygon[i], yi = polygon[i + 1];
-    const xj = polygon[j], yj = polygon[j + 1];
-    const intersect = ((yi > py) !== (yj > py)) &&
-      (px < ((xj - xi) * (py - yi)) / (yj - yi) + xi);
-    if (intersect) inside = !inside;
-  }
-  return inside;
-}
-
-function polygonToSvgPoints(polygon: MapPolygon): string {
-  const points: string[] = [];
-  for (let i = 0; i < polygon.length; i += 2) {
-    points.push(`${polygon[i]},${polygon[i + 1]}`);
-  }
-  return points.join(' ');
-}
-
-// ═══════════════════════════════════════
-// 🔊 أصوات
-// ═══════════════════════════════════════
 function playClickSound() {
   if (typeof window === 'undefined') return;
   try {
@@ -949,7 +896,7 @@ export default function CharacterAndMapPage() {
   const [isMobileView, setIsMobileView] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // 🆕 نظام الخرايط المتعددة (مع خريطة 5)
+  // نظام الخرايط المتعددة
   const getInitialMap = (): MapNumber => {
     if (typeof window === 'undefined') return 1;
     const params = new URLSearchParams(window.location.search);
@@ -959,7 +906,6 @@ export default function CharacterAndMapPage() {
     if (param === '4' || param === 'map-4') return 4;
     if (param === '5' || param === 'map-5') return 5;
     
-    // ✅ جديد: لو مفيش map في الـ URL، جيب آخر خريطة محفوظة
     const lastMap = localStorage.getItem('lastGermanMap');
     if (lastMap) {
       if (lastMap === '2' || lastMap === 'map-2' || lastMap.includes('2')) return 2;
@@ -973,11 +919,11 @@ export default function CharacterAndMapPage() {
 
   const [currentMap, setCurrentMap] = useState<MapNumber>(getInitialMap);
 
-  // ✅ جديد: احفظ الخريطة كل ما تتغير
   useEffect(() => {
     localStorage.setItem('lastGermanMap', String(currentMap));
     console.log('💾 حفظ الخريطة الحالية:', currentMap);
   }, [currentMap]);
+
   const [showMapTransition, setShowMapTransition] = useState(false);
   const [mapCompletedFlag, setMapCompletedFlag] = useState<number | null>(null);
   
@@ -1033,7 +979,6 @@ export default function CharacterAndMapPage() {
       }
     };
     
-    // 👑 جلب حالة اشتراك المستخدم
     const loadUserStatus = async () => {
       const status = await getUserPlanStatus();
       setUserStatus({ ...status, loaded: true });
@@ -1046,7 +991,6 @@ export default function CharacterAndMapPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('from') === 'lesson') {
       setStep('map');
-      // ✅ جديد: لو راجع من درس، افتح نفس الخريطة اللي كان فيها
       const mapFromLesson = params.get('map') || params.get('fromMap') || localStorage.getItem('lastGermanMap');
       if (mapFromLesson) {
         const mapNum = parseInt(String(mapFromLesson).replace('map-', '')) as MapNumber;
@@ -1069,9 +1013,7 @@ export default function CharacterAndMapPage() {
   const [map1Complete, setMap1Complete] = useState(false);
   const [map2Complete, setMap2Complete] = useState(false);
   const [map3Complete, setMap3Complete] = useState(false);
-  const [map4Complete, setMap4Complete] = useState(false);
   
-  // 👑 حالة اشتراك المستخدم
   const [userStatus, setUserStatus] = useState({ 
     isPremium: false, 
     isSuperAdmin: false, 
@@ -1096,39 +1038,32 @@ export default function CharacterAndMapPage() {
       setMap2Complete(m2Done);
       setMap3Complete(m3Done);
 
-      let currentMapLessons: string[];
+      // جلب الدروس للخريطة الحالية ديناميكياً لدعم جميع المراحل بالتساوي
+      let currentMapLessons: string[] = [];
       if (currentMap === 1) currentMapLessons = MAP_1_LESSONS;
       else if (currentMap === 2) currentMapLessons = MAP_2_LESSONS;
       else if (currentMap === 3) currentMapLessons = MAP_3_LESSONS;
-      else if (currentMap === 4) {
-        currentMapLessons = LANDMARKS_MAP_4.map(l => l.id);
-      } else {
-        // 🆕 خريطة 5: كل المعالم مفتوحة
-        currentMapLessons = LANDMARKS_MAP_5.map(l => l.id);
-      }
+      else if (currentMap === 4) currentMapLessons = LANDMARKS_MAP_4.map(l => l.id);
+      else if (currentMap === 5) currentMapLessons = LANDMARKS_MAP_5.map(l => l.id);
 
+      // حساب أول درس غير منتهي لفتحه تلقائياً
       let lastUnlocked = 1;
       for (let i = 0; i < currentMapLessons.length; i++) {
         const lessonId = currentMapLessons[i];
         const progress = map[lessonId];
         
         if (progress?.completed) {
-          lastUnlocked = i + 2;
+          lastUnlocked = i + 2; // تخطي للدرس الذي يليه مباشرة بشكل فوري
         } else {
           break;
         }
       }
       
-      // 🆕 خريطة 4 و 5: كل المعالم مفتوحة
-      if (currentMap === 4 || currentMap === 5) {
-        setUnlockedLessonInMap(99);
-      } else {
-        setUnlockedLessonInMap(Math.min(lastUnlocked, currentMapLessons.length));
-      }
+      // فتح تلقائي للمرحلة بالكامل للجميع أو حساب التقدم التدريجي بناء على الاشتراك
+      setUnlockedLessonInMap(lastUnlocked);
       
       console.log('🗺️ التقدم المحمّل:', map);
-      console.log('🔓 آخر درس مفتوح في الخريطة', currentMap, ':', lastUnlocked);
-      console.log('✅ Map 1:', m1Done, '| Map 2:', m2Done, '| Map 3:', m3Done);
+      console.log('🔓 آخر درس مفتوح في الخريطة الحالية', currentMap, ':', lastUnlocked);
 
       const params = new URLSearchParams(window.location.search);
       if (params.get('from') === 'lesson') {
@@ -1147,7 +1082,6 @@ export default function CharacterAndMapPage() {
           setMapCompletedFlag(3);
           setTimeout(() => setShowMapTransition(true), 500);
         } else if (!seenTransition4 && currentMap === 4) {
-          // 🆕 شيك على خريطة 4 - بنفس منطق الخرايط التانية
           setMapCompletedFlag(4);
           setTimeout(() => setShowMapTransition(true), 500);
         }
@@ -1173,7 +1107,7 @@ export default function CharacterAndMapPage() {
     const current = LANDMARKS.find(l => l.lesson === unlockedLessonInMap);
     if (current) {
       setEaglePos({ x: current.centerX, y: current.centerY });
-    } else if (currentMap === 4 || currentMap === 5) {
+    } else {
       const first = LANDMARKS[0];
       if (first) setEaglePos({ x: first.centerX, y: first.centerY });
     }
@@ -1185,22 +1119,21 @@ export default function CharacterAndMapPage() {
   }, [isMobileView, step, currentMap]);
 
   // ═══════════════════════════════════════
-  // 🔓 نظام الأقفال حسب نوع الحساب
+  // 🔓 نظام التحكم بالأقفال الذكي حسب الاشتراك
   // ═══════════════════════════════════════
   const isLocked = (lesson: number) => {
-    // ⏳ لسة بيحمل الحالة - اقفل الكل مؤقتاً ماعدا الأول
+    // ⏳ حالة التحميل: قفل الأمان مؤقتاً لتفادي ظهور وميض الأزرار
     if (!userStatus.loaded) return lesson !== 1;
 
-    // 👑 حسابك الشخصي - كل شيء مفتوح
+    // 👑 الإدارة والحسابات الفائقة: كل شيء مفتوح مباشرة لتسهيل المراجعة والتجربة
     if (userStatus.isSuperAdmin) return false;
 
-    // ⭐ حساب مدفوع - النظام التدريجي القديم
+    // ⭐ المشترك الفعال (Premium): يتبع المسار التعليمي وتفتح له الدروس تلقائياً بالتسلسل
     if (userStatus.isPremium) {
-      if (currentMap === 4 || currentMap === 5) return false;
       return lesson > unlockedLessonInMap;
     }
 
-    // 🎁 حساب مجاني - أول درس في أول خريطة فقط
+    // 🎁 الحساب المجاني: يُتاح له فقط الدرس الأول في الخريطة الأولى
     if (currentMap === 1 && lesson === 1) return false;
     return true;
   };
@@ -1242,7 +1175,6 @@ export default function CharacterAndMapPage() {
     }
     if (isLocked(landmark.lesson)) {
       playLockedSound();
-      // 🎁 لو حساب مجاني (مش سوبر أدمن ومش بريميوم) - حوله لصفحة الخطط
       if (userStatus.loaded && !userStatus.isSuperAdmin && !userStatus.isPremium) {
         setTimeout(() => router.push('/plans'), 200);
       }
@@ -1255,10 +1187,8 @@ export default function CharacterAndMapPage() {
 
   const handleLandmarkStart = () => {
     if (!selectedLandmark) return;
-    // ✅ احفظ الخريطة قبل ما تروح للدرس
     localStorage.setItem('lastGermanMap', String(currentMap));
     localStorage.setItem(`map_for_${selectedLandmark.id}`, String(currentMap));
-    // ✅ ابعت الخريطة مع الدرس
     router.push(`${selectedLandmark.route}?fromMap=${currentMap}`);
   };
 
@@ -1292,7 +1222,7 @@ export default function CharacterAndMapPage() {
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setClickedCoords({ x: parseFloat(x.toFixed(1)), y: parseFloat(y.toFixed(1)) });
-    console.log(`📍 [${isMobileView ? '📱 MOBILE' : '🖥️ DESKTOP'}] [MAP ${currentMap}] Clicked at: x=${x.toFixed(1)}%, y=${y.toFixed(1)}%`);
+    console.log(`📍 [${isMobileView ? '📱 MOBILE' : '🖥️ DESKTOP'}] [MAP {currentMap}] Clicked at: x=${x.toFixed(1)}%, y=${y.toFixed(1)}%`);
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -1598,9 +1528,7 @@ export default function CharacterAndMapPage() {
                 className="font-black text-[#58CC02] whitespace-nowrap"
                 style={{ fontSize: 'clamp(11px, 1.3vw, 14px)' }}
               >
-                {(currentMap === 4 || currentMap === 5)
-                  ? `${LANDMARKS.length} / ${LANDMARKS.length}` 
-                  : `${LANDMARKS.filter(l => l.lesson < unlockedLessonInMap).length} / ${LANDMARKS.length}`}
+                {`${LANDMARKS.filter(l => l.lesson < unlockedLessonInMap).length} / ${LANDMARKS.length}`}
               </div>
             </div>
             <div style={{ fontSize: 'clamp(14px, 1.6vw, 20px)' }}>🗺️</div>

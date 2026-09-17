@@ -36,6 +36,18 @@ const BOOKS_DATA = [
   },
   {
     id: 3,
+    title: 'اللغة الإنجليزية',
+    color: '#4361EE',
+    img: '/books/english-book.webp',
+    students: '5,840',
+    flag: '🇬🇧',
+    desc: 'لغة العالم الأولى',
+    route: '/english-character-and-map',
+    available: true,
+    langCode: 'en'
+  },
+  {
+    id: 4,
     title: 'اللغة الروسية',
     color: '#9D4EDD',
     img: '/books/russian.webp',
@@ -47,7 +59,7 @@ const BOOKS_DATA = [
     langCode: 'ru'
   },
   {
-    id: 4,
+    id: 5,
     title: 'اللغة اليابانية',
     color: '#FF4D6D',
     img: '/books/japanese.webp',
@@ -59,7 +71,7 @@ const BOOKS_DATA = [
     langCode: 'ja'
   },
   {
-    id: 5,
+    id: 6,
     title: 'اللغة الصينية',
     color: '#4CC9F0',
     img: '/books/chinees.webp',
@@ -307,55 +319,60 @@ export default function PixiHomePage() {
       <FloatingParticles />
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 1. الهيدر */}
+      {/* 1. الهيدر المحدث ليدعم الموبايل والكمبيوتر */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <motion.header
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: 'spring', stiffness: 100 }}
-        className="w-full max-w-7xl mx-auto px-3 md:px-6 py-3 md:py-4 flex justify-between items-center gap-2 border-b border-white/10 backdrop-blur-xl bg-[#1a1a3e]/50 sticky top-0 z-50"
+        className="w-full max-w-7xl mx-auto px-3 md:px-6 py-3 md:py-4 flex justify-between items-center gap-1 border-b border-white/10 backdrop-blur-xl bg-[#1a1a3e]/50 sticky top-0 z-50"
       >
-        <div className="flex items-center gap-2 md:gap-3 order-2">
-          {/* 👨‍👩‍👧 زر لوحة الآباء الجديد */}
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-3 order-2">
+          {/* 👨‍👩‍👧 زر لوحة الآباء */}
           <button 
             onClick={() => window.location.href = '/parents'}
-            className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-xl hover:bg-white/10"
+            className="flex items-center justify-center gap-1.5 md:gap-2 text-[11px] md:text-sm font-bold text-gray-300 hover:text-white transition-all duration-300 px-2 sm:px-3 md:px-4 py-2 rounded-xl hover:bg-white/10"
+            title="لوحة الآباء"
           >
-            <span className="text-lg">👨‍👩‍👧</span>
-            <span>لوحة الآباء</span>
+            <span className="text-base md:text-lg">👨‍👩‍👧</span>
+            <span className="hidden md:inline">لوحة الآباء</span>
           </button>
 
+          {/* 👋 زر تسجيل الدخول */}
           <button 
             onClick={() => window.location.href = '/login'}
-            className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-xl hover:bg-white/10"
+            className="flex items-center justify-center gap-1.5 md:gap-2 text-[11px] md:text-sm font-bold text-gray-300 hover:text-white transition-all duration-300 px-2 sm:px-3 md:px-4 py-2 rounded-xl hover:bg-white/10"
+            title="تسجيل دخول الأبطال"
           >
-            <span>تسجيل دخول الأبطال</span>
-            <span className="text-lg">👋</span>
+            <span className="hidden md:inline">تسجيل دخول الأبطال</span>
+            <span className="text-base md:text-lg">👋</span>
           </button>
+
+          {/* 🚀 الزر الرئيسي */}
           <motion.button
             whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(255,77,109,0.5)' }}
             whileTap={{ scale: 0.95 }}
             onClick={() => window.location.href = '/plans'}
-            className="bg-gradient-to-r from-[#FF4D6D] to-[#F72585] text-white px-3 md:px-7 py-2 md:py-3 rounded-xl md:rounded-2xl font-black text-[11px] md:text-sm shadow-lg shadow-[#FF4D6D]/30 flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
+            className="bg-gradient-to-r from-[#FF4D6D] to-[#F72585] text-white px-3 sm:px-5 md:px-7 py-2 md:py-3 rounded-xl md:rounded-2xl font-black text-[11px] md:text-sm shadow-lg shadow-[#FF4D6D]/30 flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
           >
-            <Rocket size={14} className="md:w-4 md:h-4" />
-            <span>ابدأ المغامرة</span>
-            <span className="hidden md:inline">مجاناً</span>
+            <Rocket size={14} className="hidden sm:block md:w-4 md:h-4" />
+            <span>ابدأ</span>
+            <span className="hidden sm:inline"> المغامرة</span>
           </motion.button>
         </div>
 
         <motion.div
-          className="flex items-center gap-2 md:gap-3 cursor-pointer order-1 flex-shrink-0"
+          className="flex items-center gap-1.5 md:gap-3 cursor-pointer order-1 flex-shrink-0"
           whileHover={{ scale: 1.02 }}
           onClick={() => window.location.href = '/'}
         >
-          <span className="text-base md:text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-200 whitespace-nowrap">
+          <span className="text-xs sm:text-base md:text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-200 whitespace-nowrap">
             PIXA WORLD
           </span>
           <motion.div
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl bg-gradient-to-tr from-[#FF4D6D] via-[#F72585] to-[#9D4EDD] flex items-center justify-center font-black text-base md:text-xl shadow-lg shadow-[#FF4D6D]/40 flex-shrink-0"
+            className="w-7 h-7 sm:w-9 sm:h-9 md:w-11 md:h-11 rounded-lg md:rounded-2xl bg-gradient-to-tr from-[#FF4D6D] via-[#F72585] to-[#9D4EDD] flex items-center justify-center font-black text-xs md:text-xl shadow-lg shadow-[#FF4D6D]/40 flex-shrink-0"
           >
             P
           </motion.div>
@@ -632,7 +649,7 @@ export default function PixiHomePage() {
           <p className="text-gray-300 text-sm">اضغط على أي كتاب وابدأ رحلة طفلك التعليمية</p>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 md:gap-6 pt-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-8 md:gap-6 pt-10">
           {BOOKS_DATA.map((book, index) => (
             <motion.div
               key={book.id}
@@ -1412,7 +1429,6 @@ export default function PixiHomePage() {
             </div>
           </div>
 
-          {/* 🟢 الروابط المعدلة هنا لصفحة الخصوصية وشروط الاستخدام */}
           <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-[11px] text-gray-400 font-bold">
               © {new Date().getFullYear()} <span dir="ltr" className="inline-block mx-1">PIXA WORLD</span>. جميع الحقوق محفوظة 🎮✨
@@ -1426,21 +1442,42 @@ export default function PixiHomePage() {
       </footer>
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 11. الزر العائم للموبايل */}
+      {/* 11. شريط التنقل السفلي للموبايل (Navigation Bar) المحدث */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <motion.div 
         initial={{ y: 100 }}
         animate={{ y: 0 }}
-        transition={{ delay: 2, type: 'spring' }}
-        className="fixed bottom-0 left-0 right-0 p-4 z-50 md:hidden bg-gradient-to-t from-[#0a0a1a] via-[#0a0a1a]/90 to-transparent pb-6 pt-10"
+        transition={{ delay: 1, type: 'spring' }}
+        className="fixed bottom-0 left-0 right-0 p-3 z-50 md:hidden bg-gradient-to-t from-[#0a0a1a] via-[#0a0a1a]/95 to-transparent pb-4 pt-12"
       >
-        <button
-          onClick={() => window.location.href = '/plans'}
-          className="w-full bg-gradient-to-r from-[#FF4D6D] to-[#F72585] text-white px-6 py-4 rounded-2xl font-black text-base shadow-[0_0_30px_rgba(255,77,109,0.4)] flex items-center justify-center gap-2"
-        >
-          <Rocket size={18} />
-          ابدأ رحلة طفلك مجاناً الآن
-        </button>
+        <div className="flex items-center gap-2">
+          {/* زر دخول الآباء */}
+          <button
+            onClick={() => window.location.href = '/parents'}
+            className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 text-white py-2.5 rounded-2xl font-bold text-[11px] flex flex-col items-center justify-center gap-1 shadow-lg hover:bg-white/20 active:scale-95 transition-all"
+          >
+            <span className="text-xl leading-none">👨‍👩‍👧</span>
+            <span>لوحة الآباء</span>
+          </button>
+
+          {/* الزر الرئيسي */}
+          <button
+            onClick={() => window.location.href = '/plans'}
+            className="flex-[1.5] bg-gradient-to-r from-[#FF4D6D] to-[#F72585] text-white py-3 rounded-2xl font-black text-sm shadow-[0_0_30px_rgba(255,77,109,0.4)] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all"
+          >
+            <Rocket size={20} />
+            <span>ابدأ مجاناً</span>
+          </button>
+
+          {/* زر دخول الأبطال */}
+          <button
+            onClick={() => window.location.href = '/login'}
+            className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 text-white py-2.5 rounded-2xl font-bold text-[11px] flex flex-col items-center justify-center gap-1 shadow-lg hover:bg-white/20 active:scale-95 transition-all"
+          >
+            <span className="text-xl leading-none">👋</span>
+            <span>دخول</span>
+          </button>
+        </div>
       </motion.div>
       
     </div>
