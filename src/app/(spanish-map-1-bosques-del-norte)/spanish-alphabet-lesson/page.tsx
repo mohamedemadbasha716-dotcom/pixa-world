@@ -939,11 +939,14 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
   );
 }
 
-// 🖥️ Desktop: Listen Phase (مع GhostInput)
+// 🖥️ Desktop: Listen Phase (مع GhostInput والكيبورد الإسباني)
 function ListenPhaseDesktop({ letterData, input, status, onChange, onCheck, inputRef }: {
   letterData: SpanishLetter; input: string; status: 'idle' | 'correct' | 'wrong';
   onChange: (v: string) => void; onCheck: (e?: React.MouseEvent) => void; inputRef: InputRefType;
 }) {
+  // 🌟 جلب الحروف الخاصة إذا كان الحرف يحتاج لذلك (مثل Ñ)
+  const requiredChars = getRequiredSpanishSpecialChars(letterData.letter);
+
   return (
     <div className="flex items-stretch justify-center gap-5 w-full max-w-4xl mx-auto">
       <GlassCard className="flex-1 max-w-sm p-5" accentColor={letterData.color}>
@@ -967,11 +970,26 @@ function ListenPhaseDesktop({ letterData, input, status, onChange, onCheck, inpu
             <span className="font-black text-white text-lg">اكتب الحرف</span>
             <span className="text-xl">✏️</span>
           </div>
-          <div className="w-full max-w-[280px]">
+          
+          {/* 🌟 تم إضافة مسافة (space-y-3) لاحتواء حقل الإدخال والزر */}
+          <div className="w-full max-w-[280px] space-y-3">
             <GhostInput ref={inputRef} value={input} onChange={onChange} onEnter={onCheck}
               ghostText={letterData.letter} color={letterData.color} status={status} 
               fontSize="2.2rem" maxLength={1} uppercase />
+              
+            {/* 🌟 إضافة زر الحرف الإسباني أسفل حقل الإدخال */}
+            {requiredChars.length > 0 && (
+              <SpanishCharsKeyboard 
+                chars={requiredChars} 
+                onChar={(c) => { 
+                  onChange(c.toUpperCase()); // كتابة الحرف مباشرة داخل الخانة
+                  inputRef.current?.focus(); 
+                }} 
+                color={letterData.color} 
+              />
+            )}
           </div>
+
           <AnimatePresence>
             {status !== 'idle' && (
               <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
