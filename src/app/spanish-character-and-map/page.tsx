@@ -840,9 +840,46 @@ export default function SpanishCharacterAndMapPage() {
       const allProgress = await getAllSpanishProgress();
       
       const map: Record<string, LessonProgress> = {};
+
+      // 🌟 تجميع كافة معالم الخرائط الخمسة للربط الذكي
+      const allLandmarksList = [
+        ...LANDMARKS_MAP_1,
+        ...LANDMARKS_MAP_2,
+        ...LANDMARKS_MAP_3,
+        ...LANDMARKS_MAP_4,
+        ...LANDMARKS_MAP_5,
+      ];
+
       allProgress.forEach(p => {
+        if (!p.lesson_id) return;
+
+        // 1. التخزين بالمعرّف المباشر لقاعدة البيانات (مثلاً: /spanish-alphabet-lesson)
         map[p.lesson_id] = p as LessonProgress;
+
+        // 2. تنظيف المسار وحذف السلاش البادئ (مثلاً: spanish-alphabet-lesson)
+        const cleanSavedId = p.lesson_id.toLowerCase().replace(/^\//, '').trim();
+        map[cleanSavedId] = p as LessonProgress;
+
+        // 3. البحث والمطابقة الذكية بين معرف المعلم والمعرف المخزن
+        const matchingLandmark = allLandmarksList.find(l => {
+          const cleanRoute = l.route.toLowerCase().replace(/^\//, '').trim();
+          return (
+            l.id.toLowerCase() === p.lesson_id.toLowerCase() ||
+            cleanRoute === cleanSavedId ||
+            l.route.toLowerCase() === p.lesson_id.toLowerCase() ||
+            cleanRoute.replace('-lesson', '') === cleanSavedId ||
+            cleanSavedId.replace('-lesson', '') === cleanRoute
+          );
+        });
+
+        // 4. مطابقة المعلم بشكل كامل مع كل الاحتمالات لضمان قراءة الخريطة لتقدم المشترك بنسبة 100%
+        if (matchingLandmark) {
+          map[matchingLandmark.id] = p as LessonProgress;
+          map[matchingLandmark.route] = p as LessonProgress;
+          map[matchingLandmark.route.replace(/^\//, '')] = p as LessonProgress;
+        }
       });
+
       setProgressMap(map);
 
       let currentMapLessons: string[];
@@ -917,9 +954,9 @@ export default function SpanishCharacterAndMapPage() {
     }
 
     if (!userStatus.loaded) return lesson !== 1;
-    // 🔑 في الإسباني: الأدمن يعامل كـ مستخدم عادي (تم التغاضي عن isSuperAdmin هنا)
 
-    if (userStatus.isPremium) {
+    // 🔑 للمشتركين والأدمن: يتم حساب الفتح التسلسلي بناء على آخر درس مكتمل
+    if (userStatus.isPremium || userStatus.isSuperAdmin) {
       return lesson > unlockedLessonInMap;
     }
 
@@ -935,8 +972,8 @@ export default function SpanishCharacterAndMapPage() {
       return false;
     }
 
-    // 🔑 في الإسباني: الأدمن يعامل كـ مستخدم عادي (تم التغاضي عن isSuperAdmin هنا)
-    if (userStatus.isPremium) return false;
+    // السماح للأدمن والمشتركين بدخول أي درس دون تحويل لصفحة الدفع
+    if (userStatus.isPremium || userStatus.isSuperAdmin) return false;
     if (!userStatus.loaded) return false;
     
     // لو مش أول درس في أول خريطة → حوله للدفع
