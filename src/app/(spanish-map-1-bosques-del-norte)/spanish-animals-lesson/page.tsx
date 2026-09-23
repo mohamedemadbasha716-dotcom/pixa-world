@@ -218,6 +218,7 @@ function SpanishAnimalsLessonInner() {
   const [gems, setGems] = useState(35);
   const [hints] = useState(3);
   const [correctInGroup, setCorrectInGroup] = useState(0);
+  const [totalStars, setTotalStars] = useState(0); // 🆕 نظام تتبع النجوم الجديد
 
   const group = SPANISH_ANIMAL_GROUPS[groupIdx];
   const animal = group?.animals[animalIdx];
@@ -228,9 +229,13 @@ function SpanishAnimalsLessonInner() {
   useEffect(() => {
     const load = async () => {
       const progress = await getSpanishLessonProgress(LESSON_ID);
-      if (progress && !progress.completed) {
-        setGroupIdx(progress.current_group || 0);
-        setAnimalIdx(progress.current_letter || 0);
+      if (progress) {
+        setTotalStars(progress.stars || 0); // 🆕 استرجاع النجوم المحفوظة
+        if (!progress.completed) {
+          if (progress.current_group != null) setGroupIdx(progress.current_group);
+          if (progress.current_letter != null) setAnimalIdx(progress.current_letter);
+          if (progress.current_phase) setPhase(progress.current_phase as Phase); // 🆕 العودة لآخر مرحلة وقف عندها المستخدم
+        }
       }
       setIsLoading(false);
     };
@@ -247,6 +252,25 @@ function SpanishAnimalsLessonInner() {
     }
   }, [animalIdx, groupIdx, phase]);
 
+  // 🆕 حساب التقييم الفعلي بناءً على النجوم المكتسبة
+  const calculateRating = (starsCount: number): number => {
+    const totalPossibleStars = SPANISH_ANIMALS.length * 3;
+    const progressRatio = starsCount / totalPossibleStars;
+    if (progressRatio >= 0.67) return 3;
+    if (progressRatio >= 0.34) return 2;
+    return 1;
+  };
+
+  // 🆕 دالة الحفظ التلقائي في قواعد البيانات لضمان عدم ضياع تقدم ومرحلة المستخدم
+  const savePosition = (newGroup: number, newItem: number, newPhase: Phase, currentStars: number) => {
+    const rating = calculateRating(currentStars);
+    saveSpanishLessonProgress(LESSON_ID, rating, false, {
+      current_group: newGroup,
+      current_letter: newItem,
+      current_phase: newPhase,
+    });
+  };
+
   const handleToroReact = (mood: ToroMood) => {
     setToroMood(mood);
     const msg = mood === 'happy' ? SPANISH_ENCOURAGEMENTS : SPANISH_SAD_MESSAGES;
@@ -259,18 +283,37 @@ function SpanishAnimalsLessonInner() {
     setPoints(p => p + 10);
     setStreak(s => s + 1);
     setCorrectInGroup(c => c + 1);
+
+    // 🆕 تحديث النجوم وحسابها بشكل فوري لتمريرها لدالة الحفظ بدقة
+    const updatedStars = totalStars + 1;
+    setTotalStars(updatedStars);
+
     setConfettiPos({ x: cx, y: cy });
     setConfettiTrigger(t => t + 1);
     handleToroReact('happy');
     
     setTimeout(() => {
-      if (phase === 'listen') { setPhase('write'); setInput(''); setStatus('idle'); }
-      else if (phase === 'write') { setPhase('speak'); setInput(''); setStatus('idle'); }
+      if (phase === 'listen') { 
+        setPhase('write'); 
+        setInput(''); 
+        setStatus('idle'); 
+        savePosition(groupIdx, animalIdx, 'write', updatedStars); // 🆕 حفظ الانتقال لمرحلة الكتابة
+      }
+      else if (phase === 'write') { 
+        setPhase('speak'); 
+        setInput(''); 
+        setStatus('idle'); 
+        savePosition(groupIdx, animalIdx, 'speak', updatedStars); // 🆕 حفظ الانتقال لمرحلة التحدث
+      }
       else if (phase === 'speak') {
         if (animalIdx < group.animals.length - 1) {
-          setAnimalIdx(n => n + 1); setPhase('listen');
+          const nextIdx = animalIdx + 1;
+          setAnimalIdx(nextIdx); 
+          setPhase('listen');
+          savePosition(groupIdx, nextIdx, 'listen', updatedStars); // 🆕 الانتقال للحيوان التالي وحفظ التقدم
         } else {
           setPhase('group-success');
+          savePosition(groupIdx, animalIdx, 'group-success', updatedStars); // 🆕 حفظ الوصول لشاشة نجاح المجموعة
         }
       }
     }, 1400);
@@ -764,10 +807,15 @@ function SpanishAnimalsLessonInner() {
               <button 
                 onClick={() => {
                   if (groupIdx < SPANISH_ANIMAL_GROUPS.length - 1) {
-                    setGroupIdx(g => g + 1); setAnimalIdx(0); setPhase('listen');
+                    const nextGroupIdx = groupIdx + 1;
+                    setGroupIdx(nextGroupIdx); 
+                    setAnimalIdx(0); 
+                    setPhase('listen');
                     setCorrectInGroup(0);
+                    savePosition(nextGroupIdx, 0, 'listen', totalStars); // 🆕 حفظ الانتقال للمجموعة التالية والبدء من الاستماع
                   } else {
                     setPhase('all-done');
+                    savePosition(groupIdx, animalIdx, 'all-done', totalStars); // 🆕 حفظ التوقف عند شاشة نهاية الدرس الإجمالية
                   }
                 }}
                 className="px-8 md:px-12 py-3 md:py-4 rounded-2xl font-black text-lg md:text-xl text-white"
@@ -802,9 +850,18 @@ function SpanishAnimalsLessonInner() {
 
               <div className="text-7xl md:text-8xl">🏆</div>
               <h1 className="text-3xl md:text-5xl font-black text-white">¡Animales completos!</h1>
-              <p className="text-lg md:text-xl text-white/60 max-w-md mx-auto">تعلمت 10 حيوانات بالإسباني!</p>
+              <p className="text-lg md:text-xl text-white/60 max-w-md mx-auto mb-2">تعلمت 10 حيوانات بالإسباني!</p>
+
+              {/* 🆕 عرض إجمالي النجوم المحفوظة رقمياً بشكل جذاب ومتناسق */}
+              <div className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl backdrop-blur-md border border-yellow-400/40 max-w-[220px] mx-auto mb-4" style={{ background: 'rgba(255,215,0,0.15)', boxShadow: '0 8px 30px rgba(255,215,0,0.3)' }}>
+                <img src="/treasuer/star.webp" alt="star" className="w-7 h-7 md:w-8 md:h-8" style={{ filter: 'drop-shadow(0 0 8px #FFD700)' }} />
+                <span className="font-black text-3xl md:text-4xl text-yellow-400">{totalStars}</span>
+                <span className="font-bold text-white/80 text-base md:text-lg">نجمة!</span>
+              </div>
+
+              {/* 🆕 عرض النجوم الثلاثية ديناميكياً بحسب النسبة المئوية لإنجاز الدرس */}
               <div className="flex justify-center gap-3">
-                {[1,2,3].map(i => (
+                {Array.from({ length: calculateRating(totalStars) }).map((_, i) => (
                   <motion.img key={i} src="/treasuer/star.webp" alt="star" 
                     className="w-12 h-12 md:w-16 md:h-16"
                     initial={{ scale: 0 }} animate={{ scale: 1 }}
