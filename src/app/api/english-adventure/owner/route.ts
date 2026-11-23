@@ -1,0 +1,2 @@
+import {identity,privateHeaders,errorStatus} from '@/lib/englishAdventure/server';
+export async function GET(request:Request){try{const {actor}=await identity(request);if(!actor.isAdmin)return Response.json({owner:false},{status:403,headers:privateHeaders});return Response.json({owner:true,practice:true,saving:false},{headers:privateHeaders});}catch(error){return Response.json({owner:false},{status:errorStatus(error),headers:privateHeaders});}}
