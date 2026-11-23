@@ -79,21 +79,21 @@ function darkenColor(hex: string, amount: number): string {
 }
 
 const BODY_IMAGES: Record<string, string> = {
-  'body-1': '/card-image/body/kopf.webp',
-  'body-2': '/card-image/body/auge.webp',
-  'body-3': '/card-image/body/ohr.webp',
-  'body-4': '/card-image/body/nase.webp',
-  'body-5': '/card-image/body/mund.webp',
-  'body-6': '/card-image/body/zahn.webp',
-  'body-7': '/card-image/body/hals.webp',
-  'body-8': '/card-image/body/schulter.webp',
-  'body-9': '/card-image/body/arm.webp',
-  'body-10': '/card-image/body/hand.webp',
-  'body-11': '/card-image/body/finger.webp',
-  'body-12': '/card-image/body/bauch.webp',
-  'body-13': '/card-image/body/bein.webp',
-  'body-14': '/card-image/body/knie.webp',
-  'body-15': '/card-image/body/fuss.webp',
+  'body-1': '/card-image/body/1-kopf.webp',
+  'body-2': '/card-image/body/2-auge.webp',
+  'body-3': '/card-image/body/3-ohr.webp',
+  'body-4': '/card-image/body/4-nase.webp',
+  'body-5': '/card-image/body/5-mund.webp',
+  'body-6': '/card-image/body/6-zahn.webp',
+  'body-7': '/card-image/body/7-hals.webp',
+  'body-8': '/card-image/body/8-schulter.webp',
+  'body-9': '/card-image/body/9-arm.webp',
+  'body-10': '/card-image/body/10-hand.webp',
+  'body-11': '/card-image/body/11-finger.webp',
+  'body-12': '/card-image/body/12-bauch.webp',
+  'body-13': '/card-image/body/13-bein.webp',
+  'body-14': '/card-image/body/14-knie.webp',
+  'body-15': '/card-image/body/15-fuss.webp',
 };
 
 function normalizeGerman(s: string): string {
@@ -2305,4 +2305,4 @@ export default function GermanBodyLesson() {
       <GermanBodyLessonInner />
     </Suspense>
   );
-}
+                  }
