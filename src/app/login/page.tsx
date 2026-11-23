@@ -32,6 +32,7 @@ function LoginContent() {
       return;
     }
 
+    if(searchParams.get('next')==='english-preview'){router.push('/english-adventure?practice=1&map=1');return;}
     if (planType === 'paid') {
       router.push('/pricing');
     } else {
