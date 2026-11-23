@@ -43,7 +43,7 @@ const BOOKS_DATA = [
     students: '5,840',
     flag: '🇬🇧',
     desc: 'لغة العالم الأولى',
-    route: '/english-character-and-map',
+    route: '/english-entry',
     available: true,
     langCode: 'en'
   },
@@ -295,7 +295,7 @@ function FloatingParticles() {
 
 export default function PixiHomePage() {
   const [ownerPreview,setOwnerPreview]=useState(false);
-  const books=BOOKS_DATA.map(book=>ownerPreview&&book.langCode==='en'?{...book,route:'/english-adventure?practice=1&map=1',desc:'المغامرة الجديدة · معاينة المالك بلا حفظ'}:book);
+  const books=BOOKS_DATA.map(book=>ownerPreview&&book.langCode==='en'?{...book,route:'/english-entry',desc:'المغامرة الجديدة · معاينة المالك بلا حفظ'}:book);
   useEffect(()=>{let active=true,version=0;const check=async()=>{const run=++version;setOwnerPreview(false);const {data}=await supabase.auth.getSession();if(!data.session)return;try{const response=await fetch('/api/english-adventure/owner',{headers:{Authorization:'Bearer '+data.session.access_token},cache:'no-store'});if(active&&run===version&&response.ok)setOwnerPreview(true);}catch{}};void check();const {data}=supabase.auth.onAuthStateChange(()=>{void check()});return()=>{active=false;version++;data.subscription.unsubscribe()};},[]);
   const [activeBook, setActiveBook] = useState<number | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -1487,4 +1487,4 @@ export default function PixiHomePage() {
       
     </div>
   );
-                      }
+      }
