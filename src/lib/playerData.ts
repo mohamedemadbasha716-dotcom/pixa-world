@@ -1,3 +1,4 @@
+import { currentAccountId, isPlatformOwner, activeSubscription } from './accountAccess';
 import { supabase } from './supabase';
 import { canonicalLessonId, equivalentLessonIds, normalizeProgressRows } from './lessonAliases';
 
@@ -112,19 +113,21 @@ export function getMapLessons(mapNumber: number): string[] {
 // 💾 حفظ أو تحديث بيانات اللاعب
 // ═══════════════════════════════════════
 export async function savePlayer(heroName: string, heroType: string): Promise<Player | null> {
-  const deviceId = getDeviceId();
+  const userId = await currentAccountId();
+  if (!userId) return null;
+  const deviceId = 'account_' + userId;
   
   const { data: existingPlayer } = await supabase
     .from('players')
     .select('*')
-    .eq('device_id', deviceId)
-    .single();
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
 
   if (existingPlayer) {
     const { data, error } = await supabase
       .from('players')
       .update({ hero_name: heroName, hero_type: heroType })
-      .eq('device_id', deviceId)
+      .eq('id', existingPlayer.id).eq('user_id', userId)
       .select()
       .single();
     
@@ -141,6 +144,7 @@ export async function savePlayer(heroName: string, heroType: string): Promise<Pl
         hero_name: heroName,
         hero_type: heroType,
         device_id: deviceId,
+        user_id: userId,
         current_lesson: 1,
         total_stars: 0,
         xp: 0,
@@ -161,13 +165,15 @@ export async function savePlayer(heroName: string, heroType: string): Promise<Pl
 // 📥 جلب بيانات اللاعب
 // ═══════════════════════════════════════
 export async function getPlayer(): Promise<Player | null> {
-  const deviceId = getDeviceId();
+  const userId = await currentAccountId();
+  if (!userId) return null;
+  const deviceId = 'account_' + userId;
   
   const { data, error } = await supabase
     .from('players')
     .select('*')
-    .eq('device_id', deviceId)
-    .single();
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
   
   if (error) {
     console.log('⚠️ لا يوجد لاعب محفوظ:', error.message);
@@ -185,7 +191,10 @@ export async function updatePlayerProgress(
   totalStars?: number,
   xp?: number
 ): Promise<Player | null> {
-  const deviceId = getDeviceId();
+  const userId = await currentAccountId();
+  if (!userId) return null;
+  const player = await getPlayer();
+  if (!player?.id) return null;
   const updates: any = {};
   
   if (currentLesson !== undefined) updates.current_lesson = currentLesson;
@@ -195,7 +204,7 @@ export async function updatePlayerProgress(
   const { data, error } = await supabase
     .from('players')
     .update(updates)
-    .eq('device_id', deviceId)
+    .eq('id', player.id).eq('user_id', userId)
     .select()
     .single();
   
@@ -220,16 +229,18 @@ export async function saveLessonProgress(
     current_phase?: string;
   }
 ): Promise<LessonProgress | null> {
-  const deviceId = getDeviceId();
+  const userId = await currentAccountId();
+  if (!userId) return null;
+  const deviceId = 'account_' + userId;
   // 🔑 نحفظ دائمًا بالمعرف القانوني حتى لو الدرس مرّر معرفًا قديمًا
   lessonId = canonicalLessonId(lessonId);
 
   const { data: existing } = await supabase
     .from('lesson_progress')
     .select('*')
-    .eq('device_id', deviceId)
+    .eq('user_id', userId)
     .eq('lesson_id', lessonId)
-    .single();
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
 
   if (existing) {
     const newStars = Math.max(existing.stars, stars);
@@ -250,7 +261,7 @@ export async function saveLessonProgress(
     const { data, error } = await supabase
       .from('lesson_progress')
       .update(updateData)
-      .eq('device_id', deviceId)
+      .eq('id', existing.id).eq('user_id', userId)
       .eq('lesson_id', lessonId)
       .select()
       .single();
@@ -265,6 +276,7 @@ export async function saveLessonProgress(
 
   const insertData: any = {
     device_id: deviceId,
+        user_id: userId,
     lesson_id: lessonId,
     stars,
     completed,
@@ -295,13 +307,15 @@ export async function saveLessonProgress(
 // 📥 جلب تقدم درس واحد
 // ═══════════════════════════════════════
 export async function getLessonProgress(lessonId: string): Promise<LessonProgress | null> {
-  const deviceId = getDeviceId();
+  const userId = await currentAccountId();
+  if (!userId) return null;
+  const deviceId = 'account_' + userId;
 
   // نقرأ كل المعرفات المكافئة (القانوني + القديمة) وندمجها
   const { data, error } = await supabase
     .from('lesson_progress')
     .select('*')
-    .eq('device_id', deviceId)
+    .eq('user_id', userId)
     .in('lesson_id', equivalentLessonIds(lessonId));
 
   if (error || !data || data.length === 0) {
@@ -315,12 +329,14 @@ export async function getLessonProgress(lessonId: string): Promise<LessonProgres
 // 📥 جلب كل تقدم اللاعب
 // ═══════════════════════════════════════
 export async function getAllProgress(): Promise<LessonProgress[]> {
-  const deviceId = getDeviceId();
+  const userId = await currentAccountId();
+  if (!userId) return [];
+  const deviceId = 'account_' + userId;
 
   const { data, error } = await supabase
     .from('lesson_progress')
     .select('*')
-    .eq('device_id', deviceId);
+    .eq('user_id', userId);
 
   if (error) {
     console.error('❌ خطأ في جلب التقدم:', error);
@@ -447,28 +463,11 @@ export async function getUserPlanStatus(): Promise<{
       return { isPremium: false, isSuperAdmin: false, isLoggedIn: false };
     }
 
-    // 👑 حسابك الشخصي الاستثنائي - كل شيء مفتوح
-    if (user.email?.trim().toLowerCase() === 'mohamedemadbasha716@gmail.com') {
-      console.log('👑 Super Admin logged in!');
-      return { isPremium: true, isSuperAdmin: true, isLoggedIn: true };
-    }
-
-    // ⭐ التحقق من وجود اشتراك فعال
-    const { data: subData } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .limit(1);
-
-    const hasActiveSubscription = !!subData && subData.length > 0;
-
-    return { 
-      isPremium: hasActiveSubscription, 
-      isSuperAdmin: false,
-      isLoggedIn: true,
-    };
+    if (await isPlatformOwner()) return { isPremium: true, isSuperAdmin: true, isLoggedIn: true };
+    const { data: subscriptions } = await supabase.from('subscriptions').select('*').eq('user_id', user.id);
+    return { isPremium: (subscriptions || []).some(s => activeSubscription(s)), isSuperAdmin: false, isLoggedIn: true };
   } catch (error) {
     console.error('❌ خطأ في جلب حالة الاشتراك:', error);
     return { isPremium: false, isSuperAdmin: false, isLoggedIn: false };
   }
-}
+  }
