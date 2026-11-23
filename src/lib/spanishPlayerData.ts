@@ -1,3 +1,4 @@
+import { currentAccountId, isPlatformOwner, activeSubscription } from './accountAccess';
 import { supabase } from './supabase';
 import { getDeviceId } from './playerData';
 
@@ -128,14 +129,16 @@ export async function saveSpanishLessonProgress(
     current_phase?: string;
   }
 ): Promise<SpanishLessonProgress | null> {
-  const deviceId = getDeviceId();
+  const userId = await currentAccountId();
+  if (!userId) return null;
+  const deviceId = 'account_' + userId;
 
   const { data: existing } = await supabase
     .from('lesson_progress')
     .select('*')
-    .eq('device_id', deviceId)
+    .eq('user_id', userId)
     .eq('lesson_id', lessonId)
-    .single();
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
 
   if (existing) {
     const newStars = Math.max(existing.stars, stars);
@@ -156,7 +159,7 @@ export async function saveSpanishLessonProgress(
     const { data, error } = await supabase
       .from('lesson_progress')
       .update(updateData)
-      .eq('device_id', deviceId)
+      .eq('id', existing.id).eq('user_id', userId)
       .eq('lesson_id', lessonId)
       .select()
       .single();
@@ -171,6 +174,7 @@ export async function saveSpanishLessonProgress(
 
   const insertData: any = {
     device_id: deviceId,
+        user_id: userId,
     lesson_id: lessonId,
     stars,
     completed,
@@ -201,14 +205,16 @@ export async function saveSpanishLessonProgress(
 // 📥 جلب تقدم درس أسباني واحد
 // ═══════════════════════════════════════
 export async function getSpanishLessonProgress(lessonId: string): Promise<SpanishLessonProgress | null> {
-  const deviceId = getDeviceId();
+  const userId = await currentAccountId();
+  if (!userId) return null;
+  const deviceId = 'account_' + userId;
 
   const { data, error } = await supabase
     .from('lesson_progress')
     .select('*')
-    .eq('device_id', deviceId)
+    .eq('user_id', userId)
     .eq('lesson_id', lessonId)
-    .single();
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
 
   if (error) return null;
   return data;
@@ -218,12 +224,14 @@ export async function getSpanishLessonProgress(lessonId: string): Promise<Spanis
 // 📥 جلب كل تقدم اللاعب في الأسباني
 // ═══════════════════════════════════════
 export async function getAllSpanishProgress(): Promise<SpanishLessonProgress[]> {
-  const deviceId = getDeviceId();
+  const userId = await currentAccountId();
+  if (!userId) return [];
+  const deviceId = 'account_' + userId;
 
   const { data, error } = await supabase
     .from('lesson_progress')
     .select('*')
-    .eq('device_id', deviceId)
+    .eq('user_id', userId)
     .like('lesson_id', 'es-%'); // 🔑 فلتر للأسباني فقط!
 
   if (error) {

@@ -7,18 +7,22 @@ import {
   Crown
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { isPlatformOwner } from '@/lib/accountAccess';
 import { useRouter } from 'next/navigation';
-
-// كلمة سر الأدمن الصعبة عشان محدش يقدر يدخل
-const ADMIN_SECRET = 'PIXA_ADMIN_2025';
 
 export default function AdminPanelPage() {
   const router = useRouter();
   
   // 🔒 حالات الحماية
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [passwordInput, setPasswordInput] = useState('');
-  const [loginError, setLoginError] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
+  useEffect(() => {
+    let alive = true;
+    const check = async () => { const owner = await isPlatformOwner(); if (alive) { setIsAuthenticated(owner); setCheckingAccess(false); } };
+    check();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => { setIsAuthenticated(false); setTimeout(check, 0); });
+    return () => { alive = false; subscription.unsubscribe(); };
+  }, []);
 
   // 📝 حالات البحث وتفعيل الاشتراك
   const [emailInput, setEmailInput] = useState('');
@@ -34,17 +38,6 @@ export default function AdminPanelPage() {
   // -------------------------------------------------------------
   // 1. تسجيل دخول الأدمن
   // -------------------------------------------------------------
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordInput === ADMIN_SECRET) {
-      setIsAuthenticated(true);
-      setLoginError(false);
-    } else {
-      setLoginError(true);
-      setTimeout(() => setLoginError(false), 3000);
-    }
-  };
-
   // -------------------------------------------------------------
   // 2. البحث عن المستخدم بالإيميل
   // -------------------------------------------------------------
@@ -62,28 +55,9 @@ export default function AdminPanelPage() {
     }
 
     try {
-      // البحث في جدول profiles
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .ilike('email', emailInput.trim())
-        .single();
-
-      if (profileError || !profileData) {
-        setErrorMsg('مفيش حساب مسجل بالإيميل ده ❌');
-        setIsLoading(false);
-        return;
-      }
-
-      // البحث عن اشتراكه الحالي
-      const { data: subData } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', profileData.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
+      const { data: profileData, error: profileError } = await supabase.rpc('pixa_admin_find_account', { p_email: emailInput.trim() });
+      if (profileError || !profileData) throw new Error('Account not found');
+      const subData = profileData.subscription;
       setFoundUser({
         ...profileData,
         subscription: subData || null
@@ -106,42 +80,10 @@ export default function AdminPanelPage() {
     setSuccessMsg('');
 
     try {
-      const now = new Date();
-      
-      // إذا كان عنده اشتراك فعّال حالياً، هنزود على تاريخ الانتهاء بتاعه
-      // لو معندوش، هنبدأ من تاريخ النهاردة
-      let currentExpire = now;
-      if (foundUser.subscription?.is_active && foundUser.subscription?.expires_at) {
-        const existingExpire = new Date(foundUser.subscription.expires_at);
-        if (existingExpire > now) {
-          currentExpire = existingExpire;
-        }
-      }
-
-      // إضافة المدة الجديدة
-      const newExpireDate = new Date(currentExpire);
-      newExpireDate.setMonth(newExpireDate.getMonth() + monthsToAdd);
-
-      // 1. وقف أي اشتراكات قديمة لنفس اليوزر
-      await supabase
-        .from('subscriptions')
-        .update({ is_active: false })
-        .eq('user_id', foundUser.id);
-
-      // 2. إنشاء الاشتراك الجديد القوي
-      const { error: insertError } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: foundUser.id,
-          device_id: foundUser.device_id, // ربط نفس الجهاز
-          plan_type: selectedPlan,
-          is_active: true,
-          started_at: now.toISOString(),
-          expires_at: newExpireDate.toISOString(),
-        });
-
+      const { error: insertError } = await supabase.rpc('pixa_admin_extend_subscription', {
+        p_user: foundUser.id, p_plan: selectedPlan,
+      });
       if (insertError) throw insertError;
-
       setSuccessMsg('✅ تم تفعيل الاشتراك بنجاااح! الدروس اتفتحت.');
       
       // تحديث البيانات في الشاشة فوراً
@@ -159,40 +101,7 @@ export default function AdminPanelPage() {
   // 🔒 شاشة تسجيل الدخول
   // ==============================================================
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-[#07090D] flex items-center justify-center p-6 text-white font-sans" dir="rtl">
-        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-[#07090D] to-[#07090D]" />
-        
-        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-          className="relative z-10 w-full max-w-sm p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl">
-          
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(59,130,246,0.3)]">
-            <ShieldCheck size={32} className="text-white" />
-          </div>
-
-          <h1 className="text-2xl font-black text-center mb-2">لوحة الإدارة السريعة</h1>
-          <p className="text-center text-sm text-gray-400 font-medium mb-8">أدخل كلمة المرور السرية للوصول</p>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <input
-                type="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="كلمة المرور..."
-                className={`w-full bg-black/40 border ${loginError ? 'border-red-500' : 'border-white/10'} rounded-xl px-4 py-3 text-center font-bold outline-none focus:border-blue-500 transition-colors`}
-                dir="ltr"
-              />
-              {loginError && <p className="text-red-400 text-xs text-center mt-2 font-bold">كلمة المرور غير صحيحة ❌</p>}
-            </div>
-            <button type="submit"
-              className="w-full py-3 rounded-xl font-black text-white bg-blue-600 hover:bg-blue-500 transition-colors">
-              دخول 🚀
-            </button>
-          </form>
-        </motion.div>
-      </div>
-    );
+    return <main className="min-h-screen bg-[#07090D] text-white flex items-center justify-center p-6" dir="rtl"><section className="max-w-md text-center space-y-5"><ShieldCheck size={48} className="mx-auto" /><h1 className="text-2xl font-bold">إدارة الحسابات</h1><p>{checkingAccess ? 'جاري التحقق من صلاحية الحساب...' : 'هذه الصفحة متاحة لحساب مدير المنصة فقط. سجل الدخول بحسابك المعتمد.'}</p><button className="rounded-xl bg-blue-600 px-6 py-3" onClick={() => router.push('/login')}>تسجيل الدخول</button></section></main>;
   }
 
   // ==============================================================

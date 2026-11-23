@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { getDeviceId } from './playerData';
+
 
 // ═══════════════════════════════════════════════════════
 // 📝 أنواع البيانات
@@ -41,6 +41,7 @@ export async function signUp(data: SignUpData): Promise<{
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
+      options: { data: { full_name: data.fullName, country_code: data.countryCode } },
     });
 
     if (authError) {
@@ -51,27 +52,7 @@ export async function signUp(data: SignUpData): Promise<{
       return { success: false, error: 'حدث خطأ غير متوقع' };
     }
 
-    // 2️⃣ إنشاء الـ profile في جدول profiles
-    const deviceId = getDeviceId();
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: authData.user.id,
-        full_name: data.fullName,
-        country_code: data.countryCode,
-        email: data.email,
-        device_id: deviceId,
-      });
-
-    if (profileError) {
-      console.error('❌ خطأ في إنشاء الـ profile:', profileError);
-      return { success: false, error: 'حدث خطأ في حفظ بياناتك' };
-    }
-
-    // 3️⃣ ربط الـ device_id بالحساب الجديد (لو فيه بيانات قديمة)
-    await linkDeviceToUser(authData.user.id, deviceId);
-
+    // Profiles are created by the trusted auth trigger, including email-confirmation flows.
     console.log('✅ تم إنشاء الحساب بنجاح:', authData.user.email);
     return { success: true, userId: authData.user.id };
   } catch (err: any) {
@@ -102,10 +83,6 @@ export async function signIn(data: SignInData): Promise<{
     if (!authData.user) {
       return { success: false, error: 'حدث خطأ غير متوقع' };
     }
-
-    // ربط الـ device_id بالحساب (لو دخل من جهاز جديد)
-    const deviceId = getDeviceId();
-    await linkDeviceToUser(authData.user.id, deviceId);
 
     console.log('✅ تم تسجيل الدخول:', authData.user.email);
     return { success: true, userId: authData.user.id };
@@ -166,37 +143,6 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 // ═══════════════════════════════════════════════════════
 // 🔗 ربط الـ device_id بالحساب
 // ═══════════════════════════════════════════════════════
-
-async function linkDeviceToUser(userId: string, deviceId: string): Promise<void> {
-  if (!deviceId) return;
-
-  try {
-    // ربط الـ players القديمة بالحساب
-    await supabase
-      .from('players')
-      .update({ user_id: userId })
-      .eq('device_id', deviceId)
-      .is('user_id', null);
-
-    // ربط الـ lesson_progress القديمة بالحساب
-    await supabase
-      .from('lesson_progress')
-      .update({ user_id: userId })
-      .eq('device_id', deviceId)
-      .is('user_id', null);
-
-    // ربط الـ subscriptions القديمة بالحساب
-    await supabase
-      .from('subscriptions')
-      .update({ user_id: userId })
-      .eq('device_id', deviceId)
-      .is('user_id', null);
-
-    console.log('✅ تم ربط الجهاز بالحساب');
-  } catch (err) {
-    console.error('⚠️ خطأ في ربط الجهاز بالحساب:', err);
-  }
-}
 
 // ═══════════════════════════════════════════════════════
 // 🔍 التحقق إذا كان المستخدم مسجل دخول

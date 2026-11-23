@@ -1,3 +1,4 @@
+import { currentAccountId, isPlatformOwner, activeSubscription } from './accountAccess';
 import { supabase } from './supabase';
 import { getDeviceId, isLessonUnlocked } from './playerData';
 import { isSpanishLessonUnlocked } from './spanishPlayerData';
@@ -9,6 +10,7 @@ export type LanguageCode = 'de' | 'es' | 'ru' | 'ja' | 'zh';
 export interface Subscription {
   id?: string;
   device_id: string;
+  user_id?: string;
   plan_type: PlanType;
   is_active: boolean;
   started_at?: string;
@@ -32,60 +34,30 @@ export const FULL_ACCESS_EMAILS = [
   'mohamedemadbasha716@gmail.com',
 ];
 
-const ADMIN_STORAGE_KEY = 'pixa_admin_mode';
-const ADMIN_SECRET = 'PIXA_ADMIN_2025';
-
-export function isAdmin(): boolean {
-  if (typeof window === 'undefined') return false;
-  return localStorage.getItem(ADMIN_STORAGE_KEY) === ADMIN_SECRET;
-}
-
-export function enableAdminMode(secret: string): boolean {
-  if (typeof window === 'undefined') return false;
-  if (secret !== ADMIN_SECRET) {
-    console.error('❌ كلمة سر خاطئة!');
-    return false;
-  }
-  localStorage.setItem(ADMIN_STORAGE_KEY, ADMIN_SECRET);
-  return true;
-}
-
+// Legacy synchronous helpers no longer confer privileges.
+export function isAdmin(): boolean { return false; }
+export function enableAdminMode(_secret: string): boolean { return false; }
 export function disableAdminMode(): void {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(ADMIN_STORAGE_KEY);
+  if (typeof window !== 'undefined') localStorage.removeItem('pixa_admin_mode');
 }
-
-// 🔑 دالة الوصول الكامل مع دعم اختيار lessonId اختياري
-export async function hasFullAccess(lessonId?: string): Promise<boolean> {
-  if (isAdmin()) return true;
-  try {
-    const user = await getCurrentUser();
-    const email = user?.email?.toLowerCase()?.trim();
-    if (email && FULL_ACCESS_EMAILS.map(e => e.toLowerCase()).includes(email)) {
-      // 🔑 إذا كان الدرس إسبانياً (يبدأ بـ es-) ينطبق عليه النظام العادي ولا يُفتح كأدمن
-      if (lessonId && lessonId.startsWith('es-')) {
-        return false;
-      }
-      return true;
-    }
-  } catch {}
-  return false;
+export async function hasFullAccess(_lessonId?: string): Promise<boolean> {
+  return isPlatformOwner();
 }
 
 export async function getUserSubscription(): Promise<Subscription | null> {
-  const deviceId = getDeviceId();
-  if (!deviceId) return null;
+  const userId = await currentAccountId();
+  if (!userId) return null;
 
   const { data, error } = await supabase
     .from('subscriptions')
     .select('*')
-    .eq('device_id', deviceId)
+    .eq('user_id', userId)
     .eq('is_active', true)
     .order('created_at', { ascending: false })
     .limit(1)
     .single();
 
-  if (error) return null;
+  if (error || !activeSubscription(data)) return null;
   return data;
 }
 
@@ -135,77 +107,12 @@ export async function canAccessLesson(lessonId: string): Promise<{
   return { canAccess: true, reason: 'subscribed' };
 }
 
-export async function createFreeSubscription(): Promise<Subscription | null> {
-  const deviceId = getDeviceId();
-  if (!deviceId) return null;
-
-  const { data: existing } = await supabase
-    .from('subscriptions')
-    .select('*')
-    .eq('device_id', deviceId)
-    .eq('plan_type', 'free')
-    .single();
-
-  if (existing) return existing;
-
-  const { data, error } = await supabase
-    .from('subscriptions')
-    .insert({
-      device_id: deviceId,
-      plan_type: 'free',
-      is_active: true,
-    })
-    .select()
-    .single();
-
-  if (error) return null;
-  return data;
-}
-
-export async function upgradeSubscription(
-  planType: 'monthly' | 'quarterly' | 'yearly'
-): Promise<Subscription | null> {
-  const deviceId = getDeviceId();
-  if (!deviceId) return null;
-
-  const now = new Date();
-  const expiresAt = new Date();
-  
-  switch (planType) {
-    case 'monthly':
-      expiresAt.setMonth(now.getMonth() + 1);
-      break;
-    case 'quarterly':
-      expiresAt.setMonth(now.getMonth() + 3);
-      break;
-    case 'yearly':
-      expiresAt.setFullYear(now.getFullYear() + 1);
-      break;
-  }
-
-  await supabase
-    .from('subscriptions')
-    .update({ is_active: false })
-    .eq('device_id', deviceId);
-
-  const { data, error } = await supabase
-    .from('subscriptions')
-    .insert({
-      device_id: deviceId,
-      plan_type: planType,
-      is_active: true,
-      started_at: now.toISOString(),
-      expires_at: expiresAt.toISOString(),
-    })
-    .select()
-    .single();
-
-  if (error) return null;
-  return data;
-}
+// A free account needs no entitlement row. Purchases must be granted by the owner workflow.
+export async function createFreeSubscription(): Promise<Subscription | null> { return null; }
+export async function upgradeSubscription(_planType: 'monthly' | 'quarterly' | 'yearly'): Promise<Subscription | null> { return null; }
 
 export async function getSubscriptionStatus() {
-  const adminMode = isAdmin();
+  const adminMode = await isPlatformOwner();
   const fullAccess = await hasFullAccess();
 
   if (fullAccess) {
@@ -232,7 +139,7 @@ export async function getSubscriptionStatus() {
     };
   }
 
-  const isSubscribed = subscription.plan_type !== 'free' && subscription.is_active;
+  const isSubscribed = activeSubscription(subscription);
   let daysRemaining: number | null = null;
   if (subscription.expires_at) {
     const expiresAt = new Date(subscription.expires_at);

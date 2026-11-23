@@ -1,0 +1,26 @@
+begin;
+create or replace function public.pixa_is_owner() returns boolean language sql stable security definer set search_path='' as $$ select exists(select 1 from auth.users where id=auth.uid() and id='1b694d2b-2127-4950-8874-639ff9791ae3'::uuid and lower(email)='mohamedemadbasha716@gmail.com' and email_confirmed_at is not null and not is_anonymous); $$;
+revoke all on function public.pixa_is_owner() from public,anon;
+grant execute on function public.pixa_is_owner() to authenticated;
+create function public.pixa_registered() returns boolean language sql stable security definer set search_path='' as $$ select exists(select 1 from auth.users where id=auth.uid() and email_confirmed_at is not null and not is_anonymous); $$;
+revoke all on function public.pixa_registered() from public,anon;
+grant execute on function public.pixa_registered() to authenticated;
+-- No row data is deleted or reassigned. Null-user legacy records remain inaccessible.
+alter table public.players enable row level security;
+do $$ declare p record; begin for p in select tablename,policyname from pg_policies where schemaname='public' and tablename in ('players','lesson_progress','profiles','subscriptions') loop execute format('drop policy %I on public.%I',p.policyname,p.tablename); end loop; end $$;
+revoke all on public.players,public.lesson_progress,public.profiles,public.subscriptions from anon,authenticated;
+grant select,insert,update on public.players,public.lesson_progress,public.profiles to authenticated;
+grant select on public.subscriptions to authenticated;
+create policy account_players on public.players for all to authenticated using (user_id=auth.uid() and public.pixa_registered()) with check(user_id=auth.uid() and public.pixa_registered());
+create policy account_progress on public.lesson_progress for all to authenticated using (user_id=auth.uid() and public.pixa_registered()) with check(user_id=auth.uid() and public.pixa_registered());
+create policy account_profiles on public.profiles for all to authenticated using (id=auth.uid() and public.pixa_registered()) with check(id=auth.uid() and public.pixa_registered());
+create policy account_subscription_read on public.subscriptions for select to authenticated using (user_id=auth.uid() and public.pixa_registered());
+create function public.pixa_admin_find_account(p_email text) returns jsonb language plpgsql security definer set search_path='' as $$ declare u auth.users; p public.profiles; s jsonb; begin if not public.pixa_is_owner() then raise exception 'forbidden' using errcode='42501'; end if; select * into u from auth.users where lower(email)=lower(trim(p_email)) and email_confirmed_at is not null and not is_anonymous; if not found then return null; end if; select * into p from public.profiles where id=u.id; select to_jsonb(x) into s from public.subscriptions x where user_id=u.id order by is_active desc,expires_at desc nulls last,created_at desc limit 1; return jsonb_build_object('id',u.id,'email',u.email,'full_name',coalesce(p.full_name,'حساب مسجل'),'subscription',s); end; $$;
+create function public.pixa_admin_extend_subscription(p_user uuid,p_plan text) returns jsonb language plpgsql security definer set search_path='' as $$ declare months integer; base timestamptz; result public.subscriptions; begin if not public.pixa_is_owner() then raise exception 'forbidden' using errcode='42501'; end if; months:=case p_plan when 'monthly' then 1 when 'quarterly' then 3 when 'yearly' then 12 else null end; if months is null then raise exception 'invalid plan'; end if; perform 1 from auth.users where id=p_user and email_confirmed_at is not null and not is_anonymous for update; if not found then raise exception 'confirmed account required'; end if; select greatest(now(),coalesce(max(expires_at),now())) into base from public.subscriptions where user_id=p_user and is_active and plan_type<>'free'; update public.subscriptions set is_active=false,updated_at=now() where user_id=p_user and is_active; insert into public.subscriptions(user_id,device_id,plan_type,is_active,started_at,expires_at) values(p_user,'account_'||p_user::text,p_plan,true,now(),base+make_interval(months=>months)) returning * into result; return to_jsonb(result); end; $$;
+revoke all on function public.pixa_admin_find_account(text),public.pixa_admin_extend_subscription(uuid,text) from public,anon;
+grant execute on function public.pixa_admin_find_account(text),public.pixa_admin_extend_subscription(uuid,text) to authenticated;
+-- Sign-up can require email confirmation. Profile provisioning must not depend on a client session.
+create function public.pixa_create_profile() returns trigger language plpgsql security definer set search_path='' as $$ begin insert into public.profiles(id,full_name,country_code,email) values(new.id,left(coalesce(nullif(new.raw_user_meta_data->>'full_name',''),'متعلم'),120),left(coalesce(nullif(new.raw_user_meta_data->>'country_code',''),'EG'),10),new.email) on conflict(id) do nothing; return new; end; $$;
+revoke all on function public.pixa_create_profile() from public,anon,authenticated;
+create trigger pixa_auth_profile after insert on auth.users for each row execute function public.pixa_create_profile();
+commit;
