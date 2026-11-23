@@ -880,40 +880,97 @@ function SpeakPhase({ item, isMobile, onSuccess, onSkip }: any) {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [status, setStatus] = useState<'idle' | 'listening' | 'success' | 'try-again' | 'error'>('idle');
-  const [attempts, setAttempts] = useState(0);
   const [supported, setSupported] = useState(true);
   const recognitionRef = useRef<any>(null);
   const micRef = useRef<HTMLButtonElement>(null);
+  const sessionRef = useRef(0);
+  const resolvedRef = useRef(false);
+  const safetyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const successRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onSuccessRef = useRef(onSuccess);
+  onSuccessRef.current = onSuccess;
+  const targetWord = item.deBase;
+
+  const clearTimers = () => {
+    if (safetyRef.current) clearTimeout(safetyRef.current);
+    if (successRef.current) clearTimeout(successRef.current);
+    safetyRef.current = null; successRef.current = null;
+  };
+
+  const cancelAttempt = () => {
+    sessionRef.current++;
+    resolvedRef.current = true;
+    clearTimers();
+    try { recognitionRef.current?.abort(); } catch {}
+    recognitionRef.current = null;
+  };
 
   useEffect(() => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) { setSupported(false); return; }
-    const rec = new SR();
-    rec.lang = 'de-DE'; rec.continuous = false; rec.interimResults = false; rec.maxAlternatives = 3;
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      const res = e.results[0]; let best = '', bestS = 0;
-      for (let i = 0; i < (res as any).length; i++) {
-        const t = (res as any)[i].transcript.toLowerCase().trim();
-        const s = similarityScore(t, item.deBase.toLowerCase());
-        if (s > bestS) { bestS = s; best = t; }
-      }
-      setTranscript(best); setIsListening(false);
-      if (bestS >= .65) {
-        setStatus('success'); playCoinSound();
-        let cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-        if (micRef.current) { const r = micRef.current.getBoundingClientRect(); cx = r.left + r.width / 2; cy = r.top + r.height / 2; }
-        setTimeout(() => onSuccess(cx, cy), 1500);
-      } else { setStatus('try-again'); playBuzzSound(); setAttempts(a => a + 1); }
-    };
-    rec.onerror = (e: any) => { setIsListening(false); if (e.error === 'not-allowed') setStatus('error'); else if (e.error !== 'no-speech') { setStatus('try-again'); setAttempts(a => a + 1); } else setStatus('idle'); };
-    rec.onend = () => setIsListening(false);
-    recognitionRef.current = rec;
-  }, [item.deBase, onSuccess]);
+    const Recognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setSupported(!!Recognition);
+    setStatus('idle'); setTranscript(''); setIsListening(false);
+    return cancelAttempt;
+  }, [targetWord]);
+
+  const handleSkip = () => {
+    cancelAttempt();
+    setIsListening(false);
+    onSkip();
+  };
 
   const handleStart = () => {
-    if (!recognitionRef.current || isListening) return;
+    if (status === 'success') return;
+    if (isListening) {
+      try { recognitionRef.current?.stop(); } catch {}
+      return;
+    }
+    cancelAttempt();
+    const Recognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!Recognition) { setSupported(false); return; }
+    const session = ++sessionRef.current;
+    resolvedRef.current = false;
+    const recognition = new Recognition();
+    recognitionRef.current = recognition;
+    recognition.lang = 'de-DE'; recognition.continuous = false;
+    recognition.interimResults = false; recognition.maxAlternatives = 1;
     setTranscript(''); setStatus('listening'); setIsListening(true);
-    try { recognitionRef.current.start(); } catch { setIsListening(false); setStatus('error'); }
+    const active = () => session === sessionRef.current && !resolvedRef.current;
+    const finish = (result: 'success' | 'try-again' | 'error') => {
+      if (!active()) return;
+      resolvedRef.current = true; clearTimers();
+      setIsListening(false); setStatus(result);
+      try { recognition.abort(); } catch {}
+      if (result === 'success') {
+        playCoinSound();
+        const rect = micRef.current?.getBoundingClientRect();
+        const cx = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
+        const cy = rect ? rect.top + rect.height / 2 : window.innerHeight / 2;
+        successRef.current = setTimeout(() => {
+          if (session === sessionRef.current) onSuccessRef.current(cx, cy);
+        }, 1500);
+      }
+    };
+    const normalize = (text: string) => text.normalize('NFC').toLocaleLowerCase('de-DE')
+      .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      if (!active()) return;
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (!result.isFinal) continue;
+        const text = result[0]?.transcript?.trim() || '';
+        if (!text) continue;
+        setTranscript(text);
+        const words = ` ${normalize(text)} `;
+        if (words.includes(` ${normalize(targetWord)} `)) { finish('success'); return; }
+      }
+    };
+    recognition.onerror = (event: any) => {
+      if (!active()) return;
+      finish(event.error === 'not-allowed' || event.error === 'permission-denied' ? 'error' : 'try-again');
+    };
+    recognition.onend = () => finish('try-again');
+    safetyRef.current = setTimeout(() => finish('try-again'), 6500);
+    try { recognition.start(); } catch { finish('error'); }
   };
 
   if (!supported) return (
@@ -921,8 +978,8 @@ function SpeakPhase({ item, isMobile, onSuccess, onSkip }: any) {
       style={{ background: 'rgba(239,68,68,0.15)', borderColor: 'rgba(239,68,68,0.4)', backdropFilter: 'blur(20px)' }}>
       <div className="text-6xl mb-4">😅</div>
       <h3 className="text-2xl font-black text-white mb-3" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>المتصفح مش بيدعم النطق</h3>
-      <button onClick={onSkip} className="w-full py-4 rounded-2xl font-black text-white text-lg shadow-lg"
-        style={{ background: `linear-gradient(135deg,${item.gradient[0]},${item.gradient[1]})` }}>تخطي ⏭️</button>
+      <button onClick={handleSkip} aria-label="تخطّي التدريب بدون نقاط" className="w-full py-4 rounded-2xl font-black text-white text-lg shadow-lg"
+        style={{ background: `linear-gradient(135deg,${item.gradient[0]},${item.gradient[1]})` }}>تخطّي بدون نقاط</button>
     </div>
   );
 
@@ -940,19 +997,20 @@ function SpeakPhase({ item, isMobile, onSuccess, onSkip }: any) {
           <div className={`${isMobile ? '' : 'relative rounded-[1.8rem] p-6 overflow-hidden shadow-inner'}`}
             style={!isMobile ? { background: 'rgba(0,0,0,0.35)', border: '2px solid rgba(255,255,255,0.15)' } : {}}>
             <div className={`flex flex-col items-center gap-${isMobile ? '3' : '5'} w-full ${isMobile ? '' : 'relative z-10'}`}>
-              {isMobile && <HeroDisplay item={item} isMobile showWord />}
+              {isMobile && <div className="mb-6"><HeroDisplay item={item} isMobile showWord /></div>}
               <div className="text-center">
                 <h3 className={`font-black text-white flex items-center justify-center gap-2 ${isMobile ? 'text-lg' : 'text-2xl'}`}
                   style={{ textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>
-                  انطق المناسبة <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>🎤</motion.span>
+                  انطق المناسبة <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}><Mic size={18} aria-hidden="true" /></motion.span>
                 </h3>
+                <p className="text-white/60 text-xs mt-1">تدريب على النص المسموع، مش تقييم للنطق</p>
               </div>
               <button onClick={() => speakGerman(item.de)}
                 className="inline-flex items-center gap-2 rounded-full border-2 font-black px-4 py-1.5 text-xs shadow-lg transition-colors"
                 style={{ borderColor: '#7DD3FC', background: 'rgba(6,182,212,0.25)', color: '#E0F2FE', textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
                 <Volume2 size={14} /> اسمع النطق
               </button>
-              <motion.button ref={micRef} onClick={handleStart} disabled={isListening || status === 'success'}
+              <motion.button ref={micRef} onClick={handleStart} aria-label={isListening ? 'إيقاف الاستماع' : 'ابدأ التدريب بالميكروفون'} disabled={status === 'success'}
                 className="relative rounded-full flex items-center justify-center flex-shrink-0 shadow-2xl mt-1"
                 style={{
                   width: micSize, height: micSize,
@@ -965,17 +1023,17 @@ function SpeakPhase({ item, isMobile, onSuccess, onSkip }: any) {
                 ))}
                 {status === 'success' ? <Check size={isMobile ? 34 : 44} className="text-white drop-shadow-md" strokeWidth={3} /> : <Mic size={isMobile ? 34 : 44} className="text-white drop-shadow-md" />}
               </motion.button>
-              <div className="min-h-[3rem] flex items-center justify-center">
+              <div className="min-h-[3rem] flex flex-col gap-1 items-center justify-center">
                 {transcript && <p className="font-black text-white text-sm text-center bg-black/50 px-3 py-1 rounded-lg" dir="ltr" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>&ldquo;{transcript}&rdquo;</p>}
                 {status === 'listening' && !transcript && <p className="font-black text-red-300 text-sm animate-pulse" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>🎙️ بسمعك...</p>}
-                {status === 'success' && !transcript && <p className="font-black text-green-300 text-base" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>✅ نطق ممتاز!</p>}
-                {status === 'try-again' && !transcript && <p className="font-black text-yellow-300 text-sm" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>😊 قريب! حاول تاني</p>}
-                {status === 'error' && !transcript && <p className="font-black text-red-300 text-sm" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>❌ لازم تسمح للمايك</p>}
+                {status === 'success' && <p className="font-black text-green-300 text-base" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>سمعت الكلمة المطلوبة ✅</p>}
+                {status === 'try-again' && <p className="font-black text-yellow-300 text-sm" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>التعرّف مش أكيد، جرب تاني أو تخطّى</p>}
+                {status === 'error' && <p className="font-black text-red-300 text-sm" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>❌ لازم تسمح للمايك</p>}
               </div>
-              {(attempts >= 2 || status === 'error') && (
-                <button onClick={onSkip}
+              {status !== 'success' && (
+                <button onClick={handleSkip} aria-label="تخطّي التدريب بدون نقاط"
                   className="flex items-center gap-2 rounded-2xl font-black text-white border border-white/30 bg-white/10 px-5 py-2.5 text-xs shadow-lg hover:bg-white/20 transition-colors">
-                  <SkipForward size={14} /> تخطي
+                  <SkipForward size={14} /> تخطّي بدون نقاط
                 </button>
               )}
             </div>
