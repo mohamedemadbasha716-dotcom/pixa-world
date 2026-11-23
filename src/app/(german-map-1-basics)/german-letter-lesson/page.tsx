@@ -2520,14 +2520,23 @@ function canReview(checkpoint: ReviewCheckpoint, group: number, letter: number, 
 }
 const reviewNoop = (..._args: any[]) => {};
 
-function ReachedStageReview({ checkpoint, isMobile, onClose }: {
-  checkpoint: ReviewCheckpoint; isMobile: boolean; onClose: () => void;
+function ReachedStageReview({ checkpoint, isMobile, onClose, onToolbarBottom }: {
+  checkpoint: ReviewCheckpoint; isMobile: boolean; onClose: () => void; onToolbarBottom: (bottom: number) => void;
 }) {
   const [group, setGroup] = useState(checkpoint.group);
   const [letter, setLetter] = useState(checkpoint.letter);
   const [stage, setStage] = useState<ReviewStage>(
     REVIEW_STAGES.some(s => s.phase === checkpoint.phase) ? checkpoint.phase as ReviewStage : 'test');
   const [attempt, setAttempt] = useState(0);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = toolbarRef.current;
+    if (!element) return;
+    const update = () => onToolbarBottom(element.getBoundingClientRect().bottom + 8);
+    const observer = new ResizeObserver(update);
+    observer.observe(element); update();
+    return () => observer.disconnect();
+  }, [onToolbarBottom]);
   const data = LETTER_GROUPS[group].letters[letter];
   const stages = REVIEW_STAGES.filter(s => canReview(checkpoint, group, letter, s.phase));
   const selectLetter = (g: number, l: number) => { setGroup(g); setLetter(l); setStage('learn-letter'); setAttempt(0); };
@@ -2537,7 +2546,7 @@ function ReachedStageReview({ checkpoint, isMobile, onClose }: {
   return <section role="dialog" aria-modal="true" aria-label="مراجعة المراحل التي وصلت لها"
     className="fixed inset-0 z-[60] flex flex-col text-white" dir="rtl"
     style={{ background: 'rgba(7,9,13,0.08)', paddingTop: isMobile ? 115 : 120 }}>
-    <div className="px-3 md:px-6 pb-3 border-b border-white/15 shrink-0 bg-[#191332]/95">
+    <div ref={toolbarRef} className="px-3 md:px-6 pb-3 border-b border-white/15 shrink-0 bg-[#191332]/95">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h2 className="font-black text-base">مراجعة ما وصلت له</h2>
         <button onClick={onClose} className="px-4 py-2 rounded-xl bg-cyan-600 font-bold text-sm">ارجع لمكاني الحالي</button>
@@ -2557,7 +2566,7 @@ function ReachedStageReview({ checkpoint, isMobile, onClose }: {
         <button onClick={() => setAttempt(n => n + 1)} className="px-3 py-2 rounded-lg text-xs bg-white/10">أعد تدريب المراجعة</button>
       </div>
     </div>
-    <div className="flex-1 min-h-0 overflow-auto px-3 pt-4 pb-20 flex items-center justify-center">
+    <div className="flex-1 min-h-0 overflow-auto px-3 pt-16 md:pt-4 pb-20 flex items-start md:items-center justify-center">
       <div className="w-full max-w-5xl" key={`${group}-${letter}-${stage}-${attempt}`}>
         {stage === 'learn-letter' && <LearnLetterPhase letterData={data} onDone={reviewNoop} onKarlReact={reviewNoop} onCombo={reviewNoop} onCorrect={reviewNoop} isMobile={isMobile} />}
         {stage === 'learn-word' && <LearnWordPhase letterData={data} onDone={reviewNoop} onKarlReact={reviewNoop} onCombo={reviewNoop} onCorrect={reviewNoop} isMobile={isMobile} />}
@@ -2580,6 +2589,7 @@ function GermanLetterLessonPageInner() {
   const [correctInGroup, setCorrectInGroup] = useState(0);
   const LESSON_ID = 'hamburg';
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewToolbarBottom, setReviewToolbarBottom] = useState(300);
   const reviewOpenRef = useRef(false);
   const normalEpochRef = useRef(0);
   const [normalEpoch, setNormalEpoch] = useState(0);
@@ -2783,10 +2793,10 @@ function GermanLetterLessonPageInner() {
     <div className="text-white relative overflow-hidden" 
       style={{ fontFamily: "'Tajawal', sans-serif", height: '100vh', maxHeight: '100vh' }} dir="rtl">
       <ScreenBackground isMobile={isMobile} activeColor={activeColor} phase={phase} />
-      <div className={reviewOpen ? "[&>div]:!top-[300px]" : ""}><KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" /></div>
+      <div className={reviewOpen ? "[&>div]:!top-[var(--review-karl-top)]" : ""} style={{ '--review-karl-top': `${reviewToolbarBottom}px` } as React.CSSProperties}><KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" /></div>
       <FlyingItems items={flyingItems} />
       {!reviewOpen && <button onClick={openReview} className="fixed z-30 top-[80px] right-[65px] md:right-6 px-3 py-2 rounded-xl border border-white/25 bg-[#241b45] text-white text-xs font-bold">مراجعة الحروف والمراحل</button>}
-      {reviewOpen && <ReachedStageReview checkpoint={reviewCheckpoint} isMobile={isMobile} onClose={closeReview} />}
+      {reviewOpen && <ReachedStageReview checkpoint={reviewCheckpoint} isMobile={isMobile} onClose={closeReview} onToolbarBottom={setReviewToolbarBottom} />}
       <TopHUD stats={stats} level={stats.level} currentStep={letterIdx} totalSteps={totalStepsInGroup} onHome={handleHomeClick} isMobile={isMobile} />
 
       {!reviewOpen && (
