@@ -36,7 +36,9 @@ export function speak(text: string, options: SpeechOptions = {}) {
 }
 
 export function speakLetter(letter: string) {
-  speak(letter, { rate: 0.75 });
+  // The provider expands a bare F into unrelated speech. Request its German name.
+  const spokenLetter = letter.trim().toUpperCase() === 'F' ? 'Eff' : letter;
+  speak(spokenLetter, { rate: 0.75 });
 }
 
 export function speakWord(word: string) {
