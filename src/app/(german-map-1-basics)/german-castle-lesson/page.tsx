@@ -79,99 +79,97 @@ function SpeakingPractice({ targetSentence, color, gradient, onSuccess, onSkip }
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [status, setStatus] = useState<'idle' | 'listening' | 'success' | 'try-again' | 'error'>('idle');
-  const [attempts, setAttempts] = useState(0);
   const [supported, setSupported] = useState(true);
   const recognitionRef = useRef<any>(null);
+  const castleMicRef = useRef<HTMLButtonElement>(null);
+  const sessionRef = useRef(0);
+  const resolvedRef = useRef(false);
+  const safetyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const successRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onSuccessRef = useRef(onSuccess);
+  onSuccessRef.current = onSuccess;
+  const targetWord = targetSentence;
+
+  const clearTimers = () => {
+    if (safetyRef.current) clearTimeout(safetyRef.current);
+    if (successRef.current) clearTimeout(successRef.current);
+    safetyRef.current = null; successRef.current = null;
+  };
+
+  const cancelAttempt = () => {
+    sessionRef.current++;
+    resolvedRef.current = true;
+    clearTimers();
+    try { recognitionRef.current?.abort(); } catch {}
+    recognitionRef.current = null;
+  };
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setSupported(false);
-      return;
-    }
+    const Recognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setSupported(!!Recognition);
+    setStatus('idle'); setTranscript(''); setIsListening(false);
+    return cancelAttempt;
+  }, [targetWord]);
 
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'de-DE';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 3;
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const results = event.results[0];
-      let bestMatch = '';
-      let bestScore = 0;
-
-      for (let i = 0; i < (results as any).length; i++) {
-        const text = (results as any)[i].transcript.toLowerCase().trim();
-        const score = similarityScore(text, targetSentence.toLowerCase());
-        if (score > bestScore) {
-          bestScore = score;
-          bestMatch = text;
-        }
-      }
-
-      setTranscript(bestMatch);
-      setIsListening(false);
-
-      if (bestScore >= 0.6) {
-        setStatus('success');
-        playCoinSound();
-        setTimeout(onSuccess, 1500);
-      } else {
-        setStatus('try-again');
-        playBuzzSound();
-        setAttempts(a => a + 1);
-      }
-    };
-
-    recognition.onerror = (event: any) => {
-      setIsListening(false);
-      if (event.error === 'not-allowed') {
-        setStatus('error');
-      } else if (event.error !== 'no-speech') {
-        setStatus('try-again');
-        setAttempts(a => a + 1);
-      } else {
-        setStatus('idle');
-      }
-    };
-
-    recognition.onend = () => setIsListening(false);
-
-    recognitionRef.current = recognition;
-  }, [targetSentence, onSuccess]);
-
-  function similarityScore(a: string, b: string): number {
-    const normalize = (s: string) => s
-      .toLowerCase()
-      .replace(/[.,!?;:'"]/g, '')
-      .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
-      .trim();
-
-    const wordsA = normalize(a).split(/\s+/);
-    const wordsB = normalize(b).split(/\s+/);
-    const setB = new Set(wordsB);
-
-    let matches = 0;
-    for (const word of wordsA) {
-      if (setB.has(word)) matches++;
-    }
-
-    return matches / Math.max(wordsA.length, wordsB.length);
-  }
+  const handleSkip = () => {
+    cancelAttempt();
+    setIsListening(false);
+    onSkip();
+  };
 
   const handleStart = () => {
-    if (!recognitionRef.current || isListening) return;
-    setTranscript('');
-    setStatus('listening');
-    setIsListening(true);
-    try {
-      recognitionRef.current.start();
-    } catch (e) {
-      setIsListening(false);
-      setStatus('error');
+    if (status === 'success') return;
+    if (isListening) {
+      try { recognitionRef.current?.stop(); } catch {}
+      return;
     }
+    cancelAttempt();
+    const Recognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!Recognition) { setSupported(false); return; }
+    const session = ++sessionRef.current;
+    resolvedRef.current = false;
+    const recognition = new Recognition();
+    recognitionRef.current = recognition;
+    recognition.lang = 'de-DE'; recognition.continuous = false;
+    recognition.interimResults = false; recognition.maxAlternatives = 1;
+    setTranscript(''); setStatus('listening'); setIsListening(true);
+    const active = () => session === sessionRef.current && !resolvedRef.current;
+    const finish = (result: 'success' | 'try-again' | 'error') => {
+      if (!active()) return;
+      resolvedRef.current = true; clearTimers();
+      setIsListening(false); setStatus(result);
+      try { recognition.abort(); } catch {}
+      if (result === 'success') {
+        playCoinSound();
+        const rect = castleMicRef.current?.getBoundingClientRect();
+        const cx = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
+        const cy = rect ? rect.top + rect.height / 2 : window.innerHeight / 2;
+        successRef.current = setTimeout(() => {
+          if (session === sessionRef.current) onSuccessRef.current();
+        }, 1500);
+      }
+    };
+    const normalize = (text: string) => text.normalize('NFC').toLocaleLowerCase('de-DE')
+      .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      if (!active()) return;
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (!result.isFinal) continue;
+        const text = result[0]?.transcript?.trim() || '';
+        if (!text) continue;
+        setTranscript(text);
+        const words = ` ${normalize(text)} `;
+        if (words.includes(` ${normalize(targetWord)} `)) { finish('success'); return; }
+      }
+    };
+    recognition.onerror = (event: any) => {
+      if (!active()) return;
+      finish(event.error === 'not-allowed' || event.error === 'permission-denied' ? 'error' : 'try-again');
+    };
+    recognition.onend = () => finish('try-again');
+    safetyRef.current = setTimeout(() => finish('try-again'), 6500);
+    try { recognition.start(); } catch { finish('error'); }
   };
 
   if (!supported) {
@@ -182,7 +180,7 @@ function SpeakingPractice({ targetSentence, color, gradient, onSuccess, onSkip }
         <div className="text-5xl mb-3">😅</div>
         <h3 className="text-xl font-black text-white mb-2">المتصفح بتاعك مش بيدعم النطق</h3>
         <p className="text-white/60 text-sm mb-4">جرب تستخدم Chrome أو Edge</p>
-        <button onClick={onSkip}
+        <button aria-label="تخطّي التدريب بدون نقاط" disabled={status === 'success'} onClick={handleSkip}
           className="px-8 py-3 rounded-2xl font-black text-white"
           style={{ background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` }}>
           تخطي ⏭️
@@ -203,7 +201,7 @@ function SpeakingPractice({ targetSentence, color, gradient, onSuccess, onSkip }
           كرر الجملة بصوتك
         </h3>
         <p className="text-white/60 text-sm font-bold">
-          اضغط على المايك واتكلم بوضوح
+          تدريب على الكلام المسموع، مش تقييم للنطق
         </p>
       </div>
 
@@ -217,7 +215,7 @@ function SpeakingPractice({ targetSentence, color, gradient, onSuccess, onSkip }
         </p>
         <button onClick={() => speakSentence(targetSentence)}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 bg-white/5 text-white/70 hover:bg-white/10 transition-all text-sm font-bold">
-          <Volume2 size={14} /> اسمع النطق الصح
+          <Volume2 size={14} /> اسمع الجملة
         </button>
       </div>
 
@@ -225,8 +223,10 @@ function SpeakingPractice({ targetSentence, color, gradient, onSuccess, onSkip }
         <motion.button
           whileHover={!isListening ? { scale: 1.05 } : {}}
           whileTap={!isListening ? { scale: 0.95 } : {}}
+          ref={castleMicRef}
+          aria-label={isListening ? 'إيقاف الاستماع' : 'ابدأ التدريب بالميكروفون'}
           onClick={handleStart}
-          disabled={isListening || status === 'success'}
+          disabled={status === 'success'}
           className="relative w-32 h-32 rounded-full flex items-center justify-center transition-all"
           style={{
             background: status === 'success'
@@ -283,19 +283,19 @@ function SpeakingPractice({ targetSentence, color, gradient, onSuccess, onSkip }
           {status === 'success' && (
             <motion.p initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
               className="text-xl font-black text-green-400">
-              ✅ نطق ممتاز! 🌟
+              سمعت الجملة المطلوبة ✅
             </motion.p>
           )}
           {status === 'try-again' && (
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="text-base font-black text-yellow-400">
-              😊 قريب! حاول تاني بصوت أوضح
+              الكلام المسموع مش مطابق للجملة، جرّب تاني
             </motion.p>
           )}
           {status === 'error' && (
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="text-base font-black text-red-400">
-              ❌ لازم تسمح للموقع باستخدام المايك
+              تعذّر تشغيل الميكروفون، جرّب تاني أو تخطّى بدون نقاط
             </motion.p>
           )}
           {status === 'idle' && (
@@ -307,11 +307,11 @@ function SpeakingPractice({ targetSentence, color, gradient, onSuccess, onSkip }
         </AnimatePresence>
       </div>
 
-      {(attempts >= 2 || status === 'error') && (
+      {(
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center">
-          <button onClick={onSkip}
+          <button aria-label="تخطّي التدريب بدون نقاط" disabled={status === 'success'} onClick={handleSkip}
             className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-white/70 hover:text-white border border-white/15 hover:border-white/30 bg-white/5 hover:bg-white/10 transition-all">
-            <SkipForward size={16} /> تخطي وكمل
+            <SkipForward size={16} /> تخطّي بدون نقاط
           </button>
         </motion.div>
       )}
