@@ -2504,6 +2504,70 @@ function FailScreen({ onRetry }: { onRetry: () => void }) {
 // 🆕 phase types - بدون speak-letter
 type Phase = 'learn-letter' | 'learn-word' | 'speak-word' | 'test' | 'group-success' | 'group-fail' | 'all-done';
 
+type ReviewStage = 'learn-letter' | 'learn-word' | 'speak-word' | 'test';
+type ReviewCheckpoint = { group: number; letter: number; phase: Phase; completed: boolean };
+const REVIEW_STAGES: { phase: ReviewStage; label: string }[] = [
+  { phase: 'learn-letter', label: 'الحرف' }, { phase: 'learn-word', label: 'الكلمة' },
+  { phase: 'speak-word', label: 'تدريب النطق' }, { phase: 'test', label: 'البحث في الصورة' },
+];
+function reviewRank(group: number, letter: number, phase: Phase): number {
+  const groupStart = group * 19;
+  if (['test', 'group-success', 'group-fail', 'all-done'].includes(phase)) return groupStart + 18;
+  return groupStart + letter * 3 + Math.max(0, REVIEW_STAGES.findIndex(s => s.phase === phase));
+}
+function canReview(checkpoint: ReviewCheckpoint, group: number, letter: number, phase: ReviewStage): boolean {
+  return checkpoint.completed || reviewRank(group, letter, phase) <= reviewRank(checkpoint.group, checkpoint.letter, checkpoint.phase);
+}
+const reviewNoop = (..._args: any[]) => {};
+
+function ReachedStageReview({ checkpoint, isMobile, onClose }: {
+  checkpoint: ReviewCheckpoint; isMobile: boolean; onClose: () => void;
+}) {
+  const [group, setGroup] = useState(checkpoint.group);
+  const [letter, setLetter] = useState(checkpoint.letter);
+  const [stage, setStage] = useState<ReviewStage>(
+    REVIEW_STAGES.some(s => s.phase === checkpoint.phase) ? checkpoint.phase as ReviewStage : 'test');
+  const [attempt, setAttempt] = useState(0);
+  const data = LETTER_GROUPS[group].letters[letter];
+  const stages = REVIEW_STAGES.filter(s => canReview(checkpoint, group, letter, s.phase));
+  const selectLetter = (g: number, l: number) => { setGroup(g); setLetter(l); setStage('learn-letter'); setAttempt(0); };
+  const flatIndex = group * 6 + letter;
+  const move = (delta: number) => { const n = flatIndex + delta; if (n >= 0 && n < LETTERS.length && canReview(checkpoint, Math.floor(n / 6), n % 6, 'learn-letter')) selectLetter(Math.floor(n / 6), n % 6); };
+  const eligibleLetters = LETTERS.map((l, i) => ({ ...l, index: i })).filter(l => canReview(checkpoint, Math.floor(l.index / 6), l.index % 6, 'learn-letter'));
+  return <section role="dialog" aria-modal="true" aria-label="مراجعة المراحل التي وصلت لها"
+    className="fixed inset-0 z-[60] flex flex-col text-white" dir="rtl"
+    style={{ background: 'rgba(7,9,13,0.08)', paddingTop: isMobile ? 115 : 120 }}>
+    <div className="px-3 md:px-6 pb-3 border-b border-white/15 shrink-0 bg-[#191332]/95">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <h2 className="font-black text-base">مراجعة ما وصلت له</h2>
+        <button onClick={onClose} className="px-4 py-2 rounded-xl bg-cyan-600 font-bold text-sm">ارجع لمكاني الحالي</button>
+      </div>
+      <p className="text-xs text-white/75 mt-2">عرض وتدريب فقط، الوصول للمرحلة مش معناه إتقانها. مفيش نجوم أو تغيير لتقدمك هنا.</p>
+      <div className="flex flex-wrap items-center gap-2 mt-3">
+        <label className="text-xs">الحرف <select aria-label="اختار حرف للمراجعة" value={flatIndex}
+          onChange={e => selectLetter(Math.floor(Number(e.target.value) / 6), Number(e.target.value) % 6)}
+          className="rounded-lg bg-[#322553] border border-white/25 px-2 py-2 text-sm">
+          {eligibleLetters.map(l => <option key={l.index} value={l.index}>{l.letter} · {l.word}</option>)}
+        </select></label>
+        <button aria-label="الحرف السابق" disabled={flatIndex === 0} onClick={() => move(-1)} className="px-3 py-2 rounded-lg bg-white/10 disabled:opacity-30 text-xs">السابق</button>
+        <button aria-label="الحرف التالي" disabled={flatIndex === LETTERS.length - 1 || !canReview(checkpoint, Math.floor((flatIndex + 1) / 6), (flatIndex + 1) % 6, 'learn-letter')} onClick={() => move(1)} className="px-3 py-2 rounded-lg bg-white/10 disabled:opacity-30 text-xs">التالي</button>
+      </div>
+      <div className="flex flex-wrap gap-2 mt-2" role="group" aria-label="مراحل المراجعة">
+        {stages.map(s => <button key={s.phase} aria-pressed={stage === s.phase} onClick={() => { setStage(s.phase); setAttempt(0); }} className={`px-3 py-2 rounded-lg text-xs font-bold ${stage === s.phase ? 'bg-purple-600' : 'bg-white/10'}`}>{s.label}</button>)}
+        <button onClick={() => setAttempt(n => n + 1)} className="px-3 py-2 rounded-lg text-xs bg-white/10">أعد تدريب المراجعة</button>
+      </div>
+    </div>
+    <div className="flex-1 min-h-0 overflow-auto px-3 pt-4 pb-20 flex items-center justify-center">
+      <div className="w-full max-w-5xl" key={`${group}-${letter}-${stage}-${attempt}`}>
+        {stage === 'learn-letter' && <LearnLetterPhase letterData={data} onDone={reviewNoop} onKarlReact={reviewNoop} onCombo={reviewNoop} onCorrect={reviewNoop} isMobile={isMobile} />}
+        {stage === 'learn-word' && <LearnWordPhase letterData={data} onDone={reviewNoop} onKarlReact={reviewNoop} onCombo={reviewNoop} onCorrect={reviewNoop} isMobile={isMobile} />}
+        {stage === 'speak-word' && <SpeakingPractice letterData={data} onSuccess={reviewNoop} onSkip={reviewNoop} isMobile={isMobile} />}
+        {stage === 'test' && <HarborTest groupLetters={LETTER_GROUPS[group].letters} onPass={reviewNoop} onFail={reviewNoop} onKarlReact={reviewNoop} onCombo={reviewNoop} onCorrect={reviewNoop} isMobile={isMobile} />}
+      </div>
+    </div>
+  </section>;
+}
+
 function GermanLetterLessonPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -2515,6 +2579,17 @@ function GermanLetterLessonPageInner() {
   const [isLoading, setIsLoading] = useState(true);
   const [correctInGroup, setCorrectInGroup] = useState(0);
   const LESSON_ID = 'hamburg';
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const reviewOpenRef = useRef(false);
+  const normalEpochRef = useRef(0);
+  const [normalEpoch, setNormalEpoch] = useState(0);
+  const guardCurrent = <T extends any[]>(fn: (...args: T) => void) => (...args: T) => {
+    if (!reviewOpenRef.current && normalEpochRef.current === normalEpoch) fn(...args);
+  };
+  const [reviewCheckpoint, setReviewCheckpoint] = useState<ReviewCheckpoint>({ group: 0, letter: 0, phase: 'learn-letter', completed: false });
+  const openReview = () => { normalEpochRef.current += 1; reviewOpenRef.current = true; setReviewOpen(true); };
+  const closeReview = () => { setNormalEpoch(normalEpochRef.current); reviewOpenRef.current = false; setReviewOpen(false); };
+
 
   const { stats, addPoints, incStreak, resetStreak, addGems, useHint, addStar, addLevelProgress } = useGameStats();
   const isDebugMode = searchParams.get('debug') === '1';
@@ -2524,6 +2599,10 @@ function GermanLetterLessonPageInner() {
       const progress = await getLessonProgress(LESSON_ID);
       if (progress) {
         setTotalStars(progress.stars);
+        const savedGroup = Number.isInteger(progress.current_group) && progress.current_group! >= 0 && progress.current_group! < LETTER_GROUPS.length ? progress.current_group! : 0;
+        const savedLetter = Number.isInteger(progress.current_letter) && progress.current_letter! >= 0 && progress.current_letter! < 6 ? progress.current_letter! : 0;
+        const savedPhase = ['learn-letter','learn-word','speak-word','test','group-success','group-fail','all-done'].includes(progress.current_phase || '') ? progress.current_phase as Phase : 'learn-letter';
+        setReviewCheckpoint({ group: savedGroup, letter: savedLetter, phase: savedPhase, completed: progress.completed });
         if (!progress.completed) {
           if (progress.current_group !== undefined && progress.current_group !== null) setGroupIdx(progress.current_group);
           if (progress.current_letter !== undefined && progress.current_letter !== null) setLetterIdx(progress.current_letter);
@@ -2557,6 +2636,7 @@ function GermanLetterLessonPageInner() {
   };
 
   const handleCombo = () => {
+    if (reviewOpenRef.current) return;
     setCombo(c => {
       const next = c + 1;
       if (next === 3 || next === 5 || next === 7) playComboSound();
@@ -2565,12 +2645,15 @@ function GermanLetterLessonPageInner() {
   };
 
   const handleCorrect = (clientX: number, clientY: number) => {
+    if (reviewOpenRef.current) return;
+    const rewardEpoch = normalEpochRef.current;
+    const rewardActive = () => !reviewOpenRef.current && normalEpochRef.current === rewardEpoch;
     addPoints(10); incStreak();
     const newCorrect = correctInGroup + 1;
     setCorrectInGroup(newCorrect);
     setTotalStars(t => t + 1);
 
-    setTimeout(() => {
+    setTimeout(() => { if (!rewardActive()) return;
       const starTarget = document.getElementById('star-target');
       if (starTarget) {
         const rect = starTarget.getBoundingClientRect();
@@ -2578,11 +2661,11 @@ function GermanLetterLessonPageInner() {
         const endY = rect.top + rect.height / 2;
         const starId = Date.now() + Math.random();
         setFlyingItems(prev => [...prev, { id: starId, startX: clientX, startY: clientY, endX, endY, type: 'star' }]);
-        setTimeout(() => { setFlyingItems(prev => prev.filter(s => s.id !== starId)); addStar(); }, 1100);
+        setTimeout(() => { if (!rewardActive()) return; setFlyingItems(prev => prev.filter(s => s.id !== starId)); addStar(); }, 1100);
       }
     }, 100);
 
-    setTimeout(() => {
+    setTimeout(() => { if (!rewardActive()) return;
       const levelBar = document.getElementById('level-bar-target');
       if (levelBar) {
         const rect = levelBar.getBoundingClientRect();
@@ -2590,12 +2673,12 @@ function GermanLetterLessonPageInner() {
         const endY = rect.top + rect.height / 2;
         const energyId = Date.now() + Math.random();
         setFlyingItems(prev => [...prev, { id: energyId, startX: clientX, startY: clientY, endX, endY, type: 'energy' }]);
-        setTimeout(() => { setFlyingItems(prev => prev.filter(s => s.id !== energyId)); addLevelProgress(); }, 1100);
+        setTimeout(() => { if (!rewardActive()) return; setFlyingItems(prev => prev.filter(s => s.id !== energyId)); addLevelProgress(); }, 1100);
       }
     }, 400);
 
     if (newCorrect === 5) {
-      setTimeout(() => {
+      setTimeout(() => { if (!rewardActive()) return;
         const treasureEl = document.getElementById('treasure-box');
         const gemTarget = document.getElementById('gem-target');
         if (treasureEl && gemTarget) {
@@ -2606,10 +2689,10 @@ function GermanLetterLessonPageInner() {
           const endX = gRect.left + gRect.width / 2;
           const endY = gRect.top + gRect.height / 2;
           for (let i = 0; i < 5; i++) {
-            setTimeout(() => {
+            setTimeout(() => { if (!rewardActive()) return;
               const gemId = Date.now() + Math.random() + i;
               setFlyingItems(prev => [...prev, { id: gemId, startX: startX + (Math.random() - 0.5) * 40, startY, endX, endY, type: 'gem' }]);
-              setTimeout(() => { setFlyingItems(prev => prev.filter(s => s.id !== gemId)); addGems(1); }, 1100);
+              setTimeout(() => { if (!rewardActive()) return; setFlyingItems(prev => prev.filter(s => s.id !== gemId)); addGems(1); }, 1100);
             }, i * 150);
           }
         }
@@ -2628,6 +2711,8 @@ function GermanLetterLessonPageInner() {
   };
 
   const savePosition = (newGroup: number, newLetter: number, newPhase: Phase) => {
+    if (reviewOpenRef.current) return;
+    setReviewCheckpoint(c => reviewRank(newGroup, newLetter, newPhase) > reviewRank(c.group, c.letter, c.phase) ? { group: newGroup, letter: newLetter, phase: newPhase, completed: c.completed } : c);
     const rating = calculateRating(totalStars);
     saveLessonProgress(LESSON_ID, rating, false, {
       current_group: newGroup, current_letter: newLetter, current_phase: newPhase,
@@ -2636,18 +2721,21 @@ function GermanLetterLessonPageInner() {
 
   // بعد كتابة الحرف → ينتقل مباشرة لتعلم الكلمة
   const handleLetterDone = () => { 
+    if (reviewOpenRef.current) return;
     setPhase('learn-word'); 
     savePosition(groupIdx, letterIdx, 'learn-word'); 
   };
 
   // بعد كتابة الكلمة → ينتقل لنطق الكلمة
   const handleWordDone = () => {
+    if (reviewOpenRef.current) return;
     setPhase('speak-word');
     savePosition(groupIdx, letterIdx, 'speak-word');
   };
 
   // بعد نطق الكلمة → ينتقل للحرف التالي أو للاختبار
   const handleSpeakWordDone = () => {
+    if (reviewOpenRef.current) return;
     const nextIdx = letterIdx + 1;
     if (nextIdx < group.letters.length) {
       setLetterIdx(nextIdx); setPhase('learn-letter');
@@ -2657,9 +2745,10 @@ function GermanLetterLessonPageInner() {
     }
   };
 
-  const handleTestPass = () => setPhase('group-success');
-  const handleTestFail = () => { resetCombo(); resetStreak(); setPhase('group-fail'); };
+  const handleTestPass = () => { if (!reviewOpenRef.current) setPhase('group-success'); };
+  const handleTestFail = () => { if (reviewOpenRef.current) return; resetCombo(); resetStreak(); setPhase('group-fail'); };
   const handleGroupNext = () => {
+    if (reviewOpenRef.current) return;
     if (groupIdx + 1 < LETTER_GROUPS.length) {
       const newGroupIdx = groupIdx + 1;
       setGroupIdx(newGroupIdx); setLetterIdx(0); setPhase('learn-letter');
@@ -2667,7 +2756,7 @@ function GermanLetterLessonPageInner() {
       savePosition(newGroupIdx, 0, 'learn-letter');
     } else { setPhase('all-done'); }
   };
-  const handleRetry = () => { setLetterIdx(0); setPhase('learn-letter'); setCorrectInGroup(0); savePosition(groupIdx, 0, 'learn-letter'); };
+  const handleRetry = () => { if (reviewOpenRef.current) return; setLetterIdx(0); setPhase('learn-letter'); setCorrectInGroup(0); savePosition(groupIdx, 0, 'learn-letter'); };
   const handleHomeClick = () => router.push('/character-and-map?from=lesson');
 
   if (isDebugMode && !isLoading) return <DebugBrushTool isMobile={isMobile} />;
@@ -2694,10 +2783,13 @@ function GermanLetterLessonPageInner() {
     <div className="text-white relative overflow-hidden" 
       style={{ fontFamily: "'Tajawal', sans-serif", height: '100vh', maxHeight: '100vh' }} dir="rtl">
       <ScreenBackground isMobile={isMobile} activeColor={activeColor} phase={phase} />
-      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" />
+      <div className={reviewOpen ? "[&>div]:!top-[300px]" : ""}><KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" /></div>
       <FlyingItems items={flyingItems} />
+      {!reviewOpen && <button onClick={openReview} className="fixed z-30 top-[80px] right-[65px] md:right-6 px-3 py-2 rounded-xl border border-white/25 bg-[#241b45] text-white text-xs font-bold">مراجعة الحروف والمراحل</button>}
+      {reviewOpen && <ReachedStageReview checkpoint={reviewCheckpoint} isMobile={isMobile} onClose={closeReview} />}
       <TopHUD stats={stats} level={stats.level} currentStep={letterIdx} totalSteps={totalStepsInGroup} onHome={handleHomeClick} isMobile={isMobile} />
 
+      {!reviewOpen && (
       <div className="flex flex-col items-center justify-center relative px-3 md:px-6"
         style={{ zIndex: 10, height: '100vh',
           paddingTop: isMobile ? mobilePaddingTop : '80px',
@@ -2706,29 +2798,29 @@ function GermanLetterLessonPageInner() {
           <AnimatePresence mode="wait">
             {phase === 'learn-letter' && (
               <LearnLetterPhase key={`ll-${groupIdx}-${letterIdx}`} letterData={letterData}
-                onDone={handleLetterDone} onKarlReact={handleKarlReact} onCombo={handleCombo}
-                onCorrect={handleCorrect} isMobile={isMobile} />
+                onDone={guardCurrent(handleLetterDone)} onKarlReact={guardCurrent(handleKarlReact)} onCombo={guardCurrent(handleCombo)}
+                onCorrect={guardCurrent(handleCorrect)} isMobile={isMobile} />
             )}
             {phase === 'learn-word' && (
               <LearnWordPhase key={`lw-${groupIdx}-${letterIdx}`} letterData={letterData}
-                onDone={handleWordDone} onKarlReact={handleKarlReact} onCombo={handleCombo}
-                onCorrect={handleCorrect} isMobile={isMobile} />
+                onDone={guardCurrent(handleWordDone)} onKarlReact={guardCurrent(handleKarlReact)} onCombo={guardCurrent(handleCombo)}
+                onCorrect={guardCurrent(handleCorrect)} isMobile={isMobile} />
             )}
             {phase === 'speak-word' && (
               <SpeakingPractice key={`speak-word-${groupIdx}-${letterIdx}`} letterData={letterData} isMobile={isMobile}
-                onSuccess={(cx, cy) => {
+                onSuccess={guardCurrent((cx: number, cy: number) => {
                   handleCorrect(cx, cy); handleKarlReact('celebrate');
-                  setTimeout(handleSpeakWordDone, 800);
-                }}
-                onSkip={handleSpeakWordDone} />
+                  setTimeout(guardCurrent(handleSpeakWordDone), 800);
+                })}
+                onSkip={guardCurrent(handleSpeakWordDone)} />
             )}
             {phase === 'test' && (
-              <HarborTest groupLetters={group.letters} onPass={handleTestPass} onFail={handleTestFail}
-                onKarlReact={handleKarlReact} onCombo={handleCombo}
-                onCorrect={handleCorrect} isMobile={isMobile} />
+              <HarborTest groupLetters={group.letters} onPass={guardCurrent(handleTestPass)} onFail={guardCurrent(handleTestFail)}
+                onKarlReact={guardCurrent(handleKarlReact)} onCombo={guardCurrent(handleCombo)}
+                onCorrect={guardCurrent(handleCorrect)} isMobile={isMobile} />
             )}
-            {phase === 'group-success' && <SuccessScreen key="success" groupTitle={group.title} onNext={handleGroupNext} />}
-            {phase === 'group-fail' && <FailScreen key="fail" onRetry={handleRetry} />}
+            {phase === 'group-success' && <SuccessScreen key="success" groupTitle={group.title} onNext={guardCurrent(handleGroupNext)} />}
+            {phase === 'group-fail' && <FailScreen key="fail" onRetry={guardCurrent(handleRetry)} />}
             {phase === 'all-done' && (
               <motion.div key="done" initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center gap-4 text-center py-6 max-w-md mx-auto px-4">
@@ -2747,6 +2839,7 @@ function GermanLetterLessonPageInner() {
                   <span className="font-bold text-white/80">نجمة!</span>
                 </div>
                 <motion.button onClick={async () => {
+                    if (reviewOpenRef.current) return;
                     await saveLessonProgress(LESSON_ID, 3, true);
                     router.push('/character-and-map?from=lesson');
                   }}
@@ -2760,6 +2853,7 @@ function GermanLetterLessonPageInner() {
         </div>
       </div>
 
+      )}
       {phase !== 'group-success' && phase !== 'group-fail' && phase !== 'all-done' && (
         <BottomHUD stats={stats} treasureState={treasureState} onHint={useHint} onMap={handleHomeClick} isMobile={isMobile} />
       )}
@@ -2780,4 +2874,4 @@ export default function GermanLetterLessonPage() {
       <GermanLetterLessonPageInner />
     </Suspense>
   );
-  }
+                }
