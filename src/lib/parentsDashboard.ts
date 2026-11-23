@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { getDeviceId } from './playerData';
+import { activeSubscription } from './accountAccess';
 
 export interface LanguageStats {
   langCode: 'de' | 'es';
@@ -61,7 +61,7 @@ const SPANISH_LESSON_IDS = [
 ];
 
 export async function getParentDashboardData(): Promise<ParentDashboardData> {
-  const deviceId = getDeviceId();
+
   
   // 1️⃣ التحقق من تسجيل دخول ولي الأمر
   const { data: { user } } = await supabase.auth.getUser();
@@ -78,10 +78,10 @@ export async function getParentDashboardData(): Promise<ParentDashboardData> {
     progressQuery = progressQuery.eq('user_id', user.id);
     subscriptionQuery = subscriptionQuery.eq('user_id', user.id);
   } else {
-    // إذا لم يكن مسجلاً -> نبحث بـ device_id للجهاز الحالي
-    playerQuery = playerQuery.eq('device_id', deviceId);
-    progressQuery = progressQuery.eq('device_id', deviceId);
-    subscriptionQuery = subscriptionQuery.eq('device_id', deviceId);
+    // A guest has no server-side account data. RLS independently enforces this.
+    playerQuery = playerQuery.eq('user_id', '00000000-0000-0000-0000-000000000000');
+    progressQuery = progressQuery.eq('user_id', '00000000-0000-0000-0000-000000000000');
+    subscriptionQuery = subscriptionQuery.eq('user_id', '00000000-0000-0000-0000-000000000000');
   }
 
   const { data: player } = await playerQuery.limit(1).single();
@@ -191,9 +191,9 @@ export async function getParentDashboardData(): Promise<ParentDashboardData> {
     weeklyActivity,
     subscription: {
       planType: subscription?.plan_type || 'free',
-      isActive: !!subscription?.is_active,
+      isActive: activeSubscription(subscription),
       daysRemaining,
       expiresAt: subscription?.expires_at || null,
     },
   };
-}
+    }
