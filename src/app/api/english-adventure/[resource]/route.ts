@@ -1,3 +1,4 @@
+import {practiceNavigation,navigationStyles} from '@/lib/englishAdventure/navigation.server';
 import {bundledAudio,audioPhrases} from '@/lib/englishAdventure/audio.server';
 import {advancedMaps,advancedApp,advancedStyles,illustratedMapStyles} from '@/lib/englishAdventure/advanced.server';
 import {mapOneLessons,mapOneApp,mapOneStyles,mapOneModules} from '@/lib/englishAdventure/mapOne.server';
@@ -28,6 +29,8 @@ export async function GET(request:Request,{params}:{params:Promise<{resource:str
  if(practice&&resource==='app')text=(advanced?advancedApp(text,mapId as keyof typeof advancedMaps):second?mapTwoApp(text):mapOneApp(text)).replace("'./audio'","'./audio?practice=1'").replace("'./curriculum'","'./curriculum?practice=1'");
  if(advanced&&resource==='style')text+=advancedStyles+illustratedMapStyles(mapId);else if(second&&resource==='style')text+=mapTwoStyles;else if(practice&&resource==='style')text+=mapTwoStyles+mapOneStyles+illustratedMapStyles('1');
  if(practice&&resource==='style')text+='\n.practice-map-nav{display:block!important;direction:rtl;padding:18px 24px;background:#15353d}.practice-map-nav p{display:block;width:100%;margin:0 0 12px;color:#e9d4a5}.practice-map-nav>div{display:flex;width:100%;flex-wrap:wrap;gap:10px}.practice-map-nav a{display:block;text-decoration:none;color:#fff0c9;border:1px solid #92b9b6;padding:12px 15px;min-height:44px;border-radius:12px;font:bold 14px Arial;background:#224854}.practice-map-nav a[aria-current=page]{background:#edc779;color:#173b43;border-color:#ffe3a1}.sentence-track .word:disabled{visibility:visible;opacity:1}.game-world.solved .play-area button:disabled{opacity:1}';
+ if(practice&&resource==='app')text=practiceNavigation(text);
+ if(practice&&resource==='style')text+=navigationStyles;
  if(resource==='style')text=text.replaceAll('assets/','/api/english-adventure/assets/');
  if(resource==='play')text=text.replace('href="styles.css"','href="style"').replace('src="app.js"','src="app"').replace('لا تحتاج إلى حساب أو تسجيل صوت.','الدخول بحسابك مطلوب. مفيش تسجيل صوت.');
  if(practice&&resource==='play')text=text.replace('href="style"','href="style?practice=1&map='+mapId+'"');
