@@ -1,7 +1,7 @@
 import 'server-only';
-import packBase from '../../../2-english-adventure-resources.json';
-import packTwo from '../../../2-english-adventure-resources-2.json';
-import packThree from '../../../2-english-adventure-resources-3.json';
+import packBase from '../../../5-2-english-adventure-resources.json';
+import packTwo from '../../../6-2-english-adventure-resources-2.json';
+import packThree from '../../../7-2-english-adventure-resources-3.json';
 const pack={audio:packBase.audio,assets:{...packBase.assets,...packTwo.assets,...packThree.assets}};
 import modules from '../../../2-english-adventure-mechanics.json';
 import {mapTwo} from './map-two.draft.server';
