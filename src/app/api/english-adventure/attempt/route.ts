@@ -4,7 +4,7 @@ import {beginAttempt,acceptAnswer,type Attempt} from '@/lib/englishAdventure/ses
 import {allLessons} from '@/lib/englishAdventure/curriculum.server';
 export async function POST(request:Request){
  try{
-  safeMutation(request);const {actor}=await identity(request);const db=database();
+  safeMutation(request);const {actor}=await identity(request);if(new URL(request.url).searchParams.get('practice')==='1')throw new Error('forbidden');const db=database();
   const body=await request.json();if(JSON.stringify(body).length>2048)throw new Error('forbidden');
   const lesson=allLessons.find(l=>l.id===body.lessonId);if(!lesson)throw new Error('unknown_lesson');
   const {data:progress,error:pe}=await db.from('english_adventure_progress').select('lesson_id,completed').eq('user_id',actor.id);if(pe)throw new Error('storage_unavailable');
