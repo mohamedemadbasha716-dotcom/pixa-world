@@ -1,0 +1,745 @@
+{
+  "files": {
+    "audio/new/a.mp3": {
+      "actual_spoken_phrase": "A",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/b.mp3": {
+      "actual_spoken_phrase": "B",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/c.mp3": {
+      "actual_spoken_phrase": "C",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/d.mp3": {
+      "actual_spoken_phrase": "D",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/e.mp3": {
+      "actual_spoken_phrase": "E",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/g.mp3": {
+      "actual_spoken_phrase": "G",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/h.mp3": {
+      "actual_spoken_phrase": "H",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/i.mp3": {
+      "actual_spoken_phrase": "I",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/j.mp3": {
+      "actual_spoken_phrase": "J",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/k.mp3": {
+      "actual_spoken_phrase": "K",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/l.mp3": {
+      "actual_spoken_phrase": "L",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/m.mp3": {
+      "actual_spoken_phrase": "M",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/p.mp3": {
+      "actual_spoken_phrase": "P",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/r.mp3": {
+      "actual_spoken_phrase": "R",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/s.mp3": {
+      "actual_spoken_phrase": "S",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/t.mp3": {
+      "actual_spoken_phrase": "T",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/u.mp3": {
+      "actual_spoken_phrase": "U",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/v.mp3": {
+      "actual_spoken_phrase": "V",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/w.mp3": {
+      "actual_spoken_phrase": "W",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/x.mp3": {
+      "actual_spoken_phrase": "X",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/y.mp3": {
+      "actual_spoken_phrase": "Y",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/z.mp3": {
+      "actual_spoken_phrase": "Z",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/apple.mp3": {
+      "actual_spoken_phrase": "apple",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/big.mp3": {
+      "actual_spoken_phrase": "big",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/bike.mp3": {
+      "actual_spoken_phrase": "bike",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/birthday.mp3": {
+      "actual_spoken_phrase": "birthday",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/boat.mp3": {
+      "actual_spoken_phrase": "boat",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/book.mp3": {
+      "actual_spoken_phrase": "book",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/bread.mp3": {
+      "actual_spoken_phrase": "bread",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/bus.mp3": {
+      "actual_spoken_phrase": "bus",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/cake.mp3": {
+      "actual_spoken_phrase": "cake",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/can-i-have-water-please.mp3": {
+      "actual_spoken_phrase": "Can I have water, please?",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/car.mp3": {
+      "actual_spoken_phrase": "car",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/cat.mp3": {
+      "actual_spoken_phrase": "cat",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/cheese.mp3": {
+      "actual_spoken_phrase": "cheese",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/cloudy.mp3": {
+      "actual_spoken_phrase": "cloudy",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/coat.mp3": {
+      "actual_spoken_phrase": "coat",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/cold.mp3": {
+      "actual_spoken_phrase": "cold",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/dance.mp3": {
+      "actual_spoken_phrase": "dance",
+      "voice": "Erinome",
+      "batch": 1
+    },
+    "audio/new/dog.mp3": {
+      "actual_spoken_phrase": "dog",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/egg.mp3": {
+      "actual_spoken_phrase": "egg",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/f.mp3": {
+      "actual_spoken_phrase": "F",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/fish.mp3": {
+      "actual_spoken_phrase": "fish",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/goat.mp3": {
+      "actual_spoken_phrase": "goat",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/hat.mp3": {
+      "actual_spoken_phrase": "hat",
+      "voice": "Piper cori-high",
+      "batch": 3
+    },
+    "audio/new/insect.mp3": {
+      "actual_spoken_phrase": "insect",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/kite.mp3": {
+      "actual_spoken_phrase": "kite",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/nest.mp3": {
+      "actual_spoken_phrase": "nest",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/o.mp3": {
+      "actual_spoken_phrase": "O",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/q.mp3": {
+      "actual_spoken_phrase": "Q",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/queen.mp3": {
+      "actual_spoken_phrase": "queen",
+      "voice": "Piper cori-high",
+      "batch": 4
+    },
+    "audio/new/rabbit.mp3": {
+      "actual_spoken_phrase": "rabbit",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/sun.mp3": {
+      "actual_spoken_phrase": "sun",
+      "voice": "Piper cori-high",
+      "batch": 3
+    },
+    "audio/new/umbrella.mp3": {
+      "actual_spoken_phrase": "umbrella",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/van.mp3": {
+      "actual_spoken_phrase": "van",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/zebra.mp3": {
+      "actual_spoken_phrase": "zebra",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/house.mp3": {
+      "actual_spoken_phrase": "house",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/living-room.mp3": {
+      "actual_spoken_phrase": "living room",
+      "voice": "Piper cori-high",
+      "batch": 3
+    },
+    "audio/new/sofa.mp3": {
+      "actual_spoken_phrase": "sofa",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/listen-please.mp3": {
+      "actual_spoken_phrase": "Listen, please.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/bird.mp3": {
+      "actual_spoken_phrase": "bird",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/it-is-a-cat.mp3": {
+      "actual_spoken_phrase": "It is a cat.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/elephant.mp3": {
+      "actual_spoken_phrase": "elephant",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/monkey.mp3": {
+      "actual_spoken_phrase": "monkey",
+      "voice": "Piper cori-high",
+      "batch": 4
+    },
+    "audio/new/giraffe.mp3": {
+      "actual_spoken_phrase": "giraffe",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/small.mp3": {
+      "actual_spoken_phrase": "small",
+      "voice": "Piper cori-high",
+      "batch": 4
+    },
+    "audio/new/run.mp3": {
+      "actual_spoken_phrase": "run",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/swim.mp3": {
+      "actual_spoken_phrase": "swim",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/fly.mp3": {
+      "actual_spoken_phrase": "fly",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/i-can-jump.mp3": {
+      "actual_spoken_phrase": "I can jump.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/i-cannot-fly.mp3": {
+      "actual_spoken_phrase": "I cannot fly.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/i-can-swim.mp3": {
+      "actual_spoken_phrase": "I can swim.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/rice.mp3": {
+      "actual_spoken_phrase": "rice",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/i-like-apples.mp3": {
+      "actual_spoken_phrase": "I like apples.",
+      "voice": "Piper cori-high",
+      "batch": 4
+    },
+    "audio/new/i-do-not-like-rice.mp3": {
+      "actual_spoken_phrase": "I do not like rice.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/water.mp3": {
+      "actual_spoken_phrase": "water",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/milk.mp3": {
+      "actual_spoken_phrase": "milk",
+      "voice": "Piper cori-high",
+      "batch": 4
+    },
+    "audio/new/here-you-are.mp3": {
+      "actual_spoken_phrase": "Here you are.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/thank-you.mp3": {
+      "actual_spoken_phrase": "Thank you.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/park.mp3": {
+      "actual_spoken_phrase": "park",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/shop.mp3": {
+      "actual_spoken_phrase": "shop",
+      "voice": "Piper cori-high",
+      "batch": 4
+    },
+    "audio/new/library.mp3": {
+      "actual_spoken_phrase": "library",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/hospital.mp3": {
+      "actual_spoken_phrase": "hospital",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/where-is-the-park.mp3": {
+      "actual_spoken_phrase": "Where is the park?",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/train.mp3": {
+      "actual_spoken_phrase": "train",
+      "voice": "Piper cori-high",
+      "batch": 4
+    },
+    "audio/new/i-go-by-bus.mp3": {
+      "actual_spoken_phrase": "I go by bus.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/shirt.mp3": {
+      "actual_spoken_phrase": "shirt",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/trousers.mp3": {
+      "actual_spoken_phrase": "trousers",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/shoes.mp3": {
+      "actual_spoken_phrase": "shoes",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/i-am-wearing-a-hat.mp3": {
+      "actual_spoken_phrase": "I am wearing a hat.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/sunny.mp3": {
+      "actual_spoken_phrase": "sunny",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/rainy.mp3": {
+      "actual_spoken_phrase": "rainy",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/windy.mp3": {
+      "actual_spoken_phrase": "windy",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/hot.mp3": {
+      "actual_spoken_phrase": "hot",
+      "voice": "Piper cori-high",
+      "batch": 3
+    },
+    "audio/new/it-is-sunny.mp3": {
+      "actual_spoken_phrase": "It is sunny.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/eleven.mp3": {
+      "actual_spoken_phrase": "eleven",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/twelve.mp3": {
+      "actual_spoken_phrase": "twelve",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/what-time-is-it.mp3": {
+      "actual_spoken_phrase": "What time is it?",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/it-is-three-o-clock.mp3": {
+      "actual_spoken_phrase": "It is three o'clock.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/it-is-eight-o-clock.mp3": {
+      "actual_spoken_phrase": "It is eight o'clock.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/monday.mp3": {
+      "actual_spoken_phrase": "Monday",
+      "voice": "Piper cori-high",
+      "batch": 4
+    },
+    "audio/new/tuesday.mp3": {
+      "actual_spoken_phrase": "Tuesday",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/wednesday.mp3": {
+      "actual_spoken_phrase": "Wednesday",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/thursday.mp3": {
+      "actual_spoken_phrase": "Thursday",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/friday.mp3": {
+      "actual_spoken_phrase": "Friday",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/saturday.mp3": {
+      "actual_spoken_phrase": "Saturday",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/sunday.mp3": {
+      "actual_spoken_phrase": "Sunday",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/today-is-monday.mp3": {
+      "actual_spoken_phrase": "Today is Monday.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/get-up.mp3": {
+      "actual_spoken_phrase": "get up",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/wash.mp3": {
+      "actual_spoken_phrase": "wash",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/eat-breakfast.mp3": {
+      "actual_spoken_phrase": "eat breakfast",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/go-to-school.mp3": {
+      "actual_spoken_phrase": "go to school",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/play.mp3": {
+      "actual_spoken_phrase": "play",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/go-to-bed.mp3": {
+      "actual_spoken_phrase": "go to bed",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/i-get-up-at-seven.mp3": {
+      "actual_spoken_phrase": "I get up at seven.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/happy.mp3": {
+      "actual_spoken_phrase": "happy",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/tired.mp3": {
+      "actual_spoken_phrase": "tired",
+      "voice": "Piper cori-high",
+      "batch": 4
+    },
+    "audio/new/hungry.mp3": {
+      "actual_spoken_phrase": "hungry",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/thirsty.mp3": {
+      "actual_spoken_phrase": "thirsty",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/i-am-happy.mp3": {
+      "actual_spoken_phrase": "I am happy.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/how-do-you-feel.mp3": {
+      "actual_spoken_phrase": "How do you feel?",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/draw.mp3": {
+      "actual_spoken_phrase": "draw",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/sing.mp3": {
+      "actual_spoken_phrase": "sing",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/play-football.mp3": {
+      "actual_spoken_phrase": "play football",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/i-like-drawing.mp3": {
+      "actual_spoken_phrase": "I like drawing.",
+      "voice": "Piper cori-high",
+      "batch": 3
+    },
+    "audio/new/let-us-play.mp3": {
+      "actual_spoken_phrase": "Let us play.",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/present.mp3": {
+      "actual_spoken_phrase": "present",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/happy-birthday.mp3": {
+      "actual_spoken_phrase": "Happy birthday!",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/thirteen-fourteen-fifteen.mp3": {
+      "actual_spoken_phrase": "thirteen \u00b7 fourteen \u00b7 fifteen",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/sixteen-seventeen-eighteen.mp3": {
+      "actual_spoken_phrase": "sixteen \u00b7 seventeen \u00b7 eighteen",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/nineteen-twenty.mp3": {
+      "actual_spoken_phrase": "nineteen \u00b7 twenty",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/fifteen.mp3": {
+      "actual_spoken_phrase": "fifteen",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/twenty.mp3": {
+      "actual_spoken_phrase": "twenty",
+      "voice": "Kokoro bf_emma",
+      "batch": 2
+    },
+    "audio/new/in.mp3": {
+      "actual_spoken_phrase": "in",
+      "voice": "Piper cori-high",
+      "batch": 3
+    },
+    "audio/new/walk.mp3": {
+      "actual_spoken_phrase": "walk",
+      "voice": "Piper cori-high",
+      "batch": 3
+    },
+    "audio/new/n.mp3": {
+      "actual_spoken_phrase": "The letter N.",
+      "learning_target": "N",
+      "voice": "Piper cori-high",
+      "format": "full untrimmed carrier"
+    },
+    "audio/new/moon.mp3": {
+      "actual_spoken_phrase": "The word moon.",
+      "learning_target": "moon",
+      "voice": "Piper cori-high",
+      "format": "full untrimmed carrier"
+    },
+    "audio/new/jump.mp3": {
+      "actual_spoken_phrase": "The word jump.",
+      "learning_target": "jump",
+      "voice": "Piper cori-high",
+      "format": "full untrimmed carrier"
+    },
+    "audio/new/banana.mp3": {
+      "actual_spoken_phrase": "The word banana.",
+      "learning_target": "banana",
+      "voice": "Piper cori-high",
+      "format": "full untrimmed carrier"
+    },
+    "audio/new/juice.mp3": {
+      "actual_spoken_phrase": "The word juice.",
+      "learning_target": "juice",
+      "voice": "Piper cori-high",
+      "format": "full untrimmed carrier"
+    },
+    "audio/new/lion.mp3": {
+      "actual_spoken_phrase": "The word lion.",
+      "learning_target": "lion",
+      "voice": "Piper cori-high",
+      "format": "full untrimmed carrier"
+    },
+    "audio/new/read.mp3": {
+      "actual_spoken_phrase": "The word read.",
+      "learning_target": "read",
+      "voice": "Piper cori-high",
+      "format": "full untrimmed carrier"
+    },
+    "audio/new/sad.mp3": {
+      "actual_spoken_phrase": "The word sad.",
+      "learning_target": "sad",
+      "voice": "Piper cori-high",
+      "format": "full untrimmed carrier"
+    },
+    "audio/new/jam.mp3": {
+      "actual_spoken_phrase": "I like jam.",
+      "learning_target": "jam",
+      "voice": "Piper cori-high",
+      "format": "full untrimmed carrier"
+    }
+  },
+  "target_carriers": {
+    "N": "The letter N.",
+    "moon": "The word moon.",
+    "jump": "The word jump.",
+    "banana": "The word banana.",
+    "juice": "The word juice.",
+    "lion": "The word lion.",
+    "read": "The word read.",
+    "sad": "The word sad.",
+    "jam": "I like jam."
+  },
+  "held": []
+}
