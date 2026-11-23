@@ -1,5 +1,6 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
+import {supabase} from '@/lib/supabase';
 import { useState, useEffect, useRef } from 'react';
 import {
   Sparkles, ArrowRight, Sparkle, Globe, Target,
@@ -293,6 +294,9 @@ function FloatingParticles() {
 }
 
 export default function PixiHomePage() {
+  const [ownerPreview,setOwnerPreview]=useState(false);
+  const books=BOOKS_DATA.map(book=>ownerPreview&&book.langCode==='en'?{...book,route:'/english-adventure?practice=1&map=1',desc:'المغامرة الجديدة · معاينة المالك بلا حفظ'}:book);
+  useEffect(()=>{let active=true,version=0;const check=async()=>{const run=++version;setOwnerPreview(false);const {data}=await supabase.auth.getSession();if(!data.session)return;try{const response=await fetch('/api/english-adventure/owner',{headers:{Authorization:'Bearer '+data.session.access_token},cache:'no-store'});if(active&&run===version&&response.ok)setOwnerPreview(true);}catch{}};void check();const {data}=supabase.auth.onAuthStateChange(()=>{void check()});return()=>{active=false;version++;data.subscription.unsubscribe()};},[]);
   const [activeBook, setActiveBook] = useState<number | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -609,7 +613,7 @@ export default function PixiHomePage() {
           transition={{ delay: 1.6 }}
           className="flex justify-center gap-4 pt-4"
         >
-          {BOOKS_DATA.map((book, i) => (
+          {books.map((book, i) => (
             <motion.div
               key={book.id}
               className="flex flex-col items-center gap-1 cursor-pointer group"
@@ -646,11 +650,11 @@ export default function PixiHomePage() {
           <h2 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-purple-100">
             5 لغات عالمية في انتظار طفلكم
           </h2>
-          <p className="text-gray-300 text-sm">اضغط على أي كتاب وابدأ رحلة طفلك التعليمية</p>
+          <p className="text-gray-300 text-sm">اضغط على أي كتاب وابدأ رحلة طفلك التعليمية</p>{ownerPreview&&<div className="rounded-xl border border-amber-200/40 bg-amber-100/10 p-4 text-sm leading-7"><p>حساب المالك: كتاب الإنجليزي يفتح المغامرة الجديدة الخاصة، من غير حفظ تقدم أو نقاط. بقية المتعلمين يظل مسارهم الحالي كما هو.</p><a href="/english-character-and-map" className="underline">فتح الإنجليزي القديم</a></div>}
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-8 md:gap-6 pt-10">
-          {BOOKS_DATA.map((book, index) => (
+          {books.map((book, index) => (
             <motion.div
               key={book.id}
               initial={{ opacity: 0, y: 50 }}
@@ -1416,7 +1420,7 @@ export default function PixiHomePage() {
 
             <div className="space-y-4">
               <h4 className="font-black text-sm text-white">اللغات المتاحة</h4>
-              {BOOKS_DATA.map((book) => (
+              {books.map((book) => (
                 <a
                   key={book.id}
                   href={book.route}
@@ -1483,4 +1487,4 @@ export default function PixiHomePage() {
       
     </div>
   );
-}
+                      }
