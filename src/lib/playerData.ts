@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { canonicalLessonId, equivalentLessonIds, normalizeProgressRows } from './lessonAliases';
 
 // 🔑 توليد device_id فريد للجهاز
 export function getDeviceId(): string {
@@ -220,6 +221,8 @@ export async function saveLessonProgress(
   }
 ): Promise<LessonProgress | null> {
   const deviceId = getDeviceId();
+  // 🔑 نحفظ دائمًا بالمعرف القانوني حتى لو الدرس مرّر معرفًا قديمًا
+  lessonId = canonicalLessonId(lessonId);
 
   const { data: existing } = await supabase
     .from('lesson_progress')
@@ -294,18 +297,18 @@ export async function saveLessonProgress(
 export async function getLessonProgress(lessonId: string): Promise<LessonProgress | null> {
   const deviceId = getDeviceId();
 
+  // نقرأ كل المعرفات المكافئة (القانوني + القديمة) وندمجها
   const { data, error } = await supabase
     .from('lesson_progress')
     .select('*')
     .eq('device_id', deviceId)
-    .eq('lesson_id', lessonId)
-    .single();
+    .in('lesson_id', equivalentLessonIds(lessonId));
 
-  if (error) {
+  if (error || !data || data.length === 0) {
     return null;
   }
 
-  return data;
+  return normalizeProgressRows(data)[0];
 }
 
 // ═══════════════════════════════════════
@@ -324,7 +327,7 @@ export async function getAllProgress(): Promise<LessonProgress[]> {
     return [];
   }
 
-  return data || [];
+  return normalizeProgressRows(data || []);
 }
 
 // ═══════════════════════════════════════
