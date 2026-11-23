@@ -21,6 +21,7 @@ import { speakLetter, speakWord } from '@/lib/audio/speech';
 import { playCoinSound, playBuzzSound, playComboSound } from '@/lib/audio/sounds';
 import { getLessonProgress, saveLessonProgress } from '@/lib/playerData';
 
+import GermanLetterArt from '@/app/components/lesson/GermanLetterArt';
 import KarlEagle from '@/app/components/lesson/KarlEagle';
 import ConfettiBurst from '@/app/components/lesson/ConfettiBurst';
 import GhostInput from '@/app/components/lesson/GhostInput';
@@ -77,27 +78,10 @@ function darkenColor(hex: string, amount: number): string {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
-function getLessonIconPath(word: string, ext: string = 'svg'): string {
-  return `/lesson-icon/${word.toLowerCase()}.${ext}`;
-}
-
-function EmojiOrIcon({ word, emoji, size, color }: {
+function EmojiOrIcon({ word, size, color }: {
   word: string; emoji: string; size: number; color: string;
 }) {
-  const [useIcon, setUseIcon] = useState(true);
-  const [iconExt, setIconExt] = useState<'svg' | 'webp'>('svg');
-  if (!useIcon) {
-    return (
-      <span style={{ fontSize: `${size * 0.75}px`, filter: `drop-shadow(0 4px 8px ${color}cc)`, lineHeight: 1 }}>
-        {emoji}
-      </span>
-    );
-  }
-  return (
-    <img src={getLessonIconPath(word, iconExt)} alt={word}
-      style={{ width: size, height: size, objectFit: 'contain', filter: `drop-shadow(0 4px 8px ${color}aa)` }}
-      onError={() => { if (iconExt === 'svg') setIconExt('webp'); else setUseIcon(false); }} />
-  );
+  return <GermanLetterArt word={word} size={size} color={color} />;
 }
 
 type GameStats = {
@@ -1512,7 +1496,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
               borderColor: `${letterData.color}55`
             }}>
             <div className="flex items-center justify-center gap-2 mb-0.5">
-              <span className={isMobile ? 'text-xl' : 'text-2xl'}>{letterData.emoji}</span>
+              <GermanLetterArt word={letterData.word} size={isMobile ? 20 : 24} color={letterData.color} />
               <p className={`font-black text-white ${isMobile ? 'text-lg' : 'text-2xl'}`}
                 style={{ textShadow: `0 0 15px ${letterData.color}88`, direction: 'ltr' }}>
                 {target}
@@ -2075,7 +2059,7 @@ function DebugBrushTool({ isMobile }: { isMobile: boolean }) {
             <div className="font-black text-base">{currentLetterData.word} <span className="text-sm text-gray-400">({currentLetterData.wordAr})</span></div>
             <div className="text-xs text-gray-400">ظلل على العنصر في الصورة بالفرشاة • اضغط "حفظ الحرف" لحفظ التظليل</div>
           </div>
-          <div className="text-3xl">{currentLetterData.emoji}</div>
+          <GermanLetterArt word={currentLetterData.word} size={30} color={currentLetterData.color} />
         </div>
       )}
       <div className="p-3 flex justify-center bg-gray-900">
@@ -2796,4 +2780,4 @@ export default function GermanLetterLessonPage() {
       <GermanLetterLessonPageInner />
     </Suspense>
   );
-}
+  }

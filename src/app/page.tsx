@@ -1436,6 +1436,7 @@ export default function PixiHomePage() {
             <div className="flex gap-6 text-[11px] text-gray-400 font-bold">
               <a href="/privacy" className="hover:text-white transition-colors">سياسة الخصوصية</a>
               <a href="/terms" className="hover:text-white transition-colors">شروط الاستخدام</a>
+              <a href="/artwork-credits.html" className="hover:text-white transition-colors">مصادر الرسومات</a>
             </div>
           </div>
         </div>
