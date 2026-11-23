@@ -2504,68 +2504,16 @@ function FailScreen({ onRetry }: { onRetry: () => void }) {
 // 🆕 phase types - بدون speak-letter
 type Phase = 'learn-letter' | 'learn-word' | 'speak-word' | 'test' | 'group-success' | 'group-fail' | 'all-done';
 
-type ReviewStage = 'learn-letter' | 'learn-word' | 'speak-word' | 'test';
-type ReviewCheckpoint = { group: number; letter: number; phase: Phase; completed: boolean };
-const REVIEW_STAGES: { phase: ReviewStage; label: string }[] = [
-  { phase: 'learn-letter', label: 'الحرف' }, { phase: 'learn-word', label: 'الكلمة' },
-  { phase: 'speak-word', label: 'تدريب النطق' }, { phase: 'test', label: 'البحث في الصورة' },
-];
-function reviewRank(group: number, letter: number, phase: Phase): number {
-  const groupStart = group * 19;
-  if (['test', 'group-success', 'group-fail', 'all-done'].includes(phase)) return groupStart + 18;
-  return groupStart + letter * 3 + Math.max(0, REVIEW_STAGES.findIndex(s => s.phase === phase));
+type TrainingStage = 'learn-letter' | 'learn-word' | 'speak-word' | 'test';
+type TrainingCheckpoint = { group: number; letter: number; phase: Phase; completed: boolean };
+const TRAINING_STAGES: TrainingStage[] = ['learn-letter', 'learn-word', 'speak-word'];
+function trainingRank(group: number, letter: number, phase: Phase): number {
+  return group * 19 + (['test', 'group-success', 'group-fail', 'all-done'].includes(phase)
+    ? 18 : letter * 3 + Math.max(0, TRAINING_STAGES.indexOf(phase as TrainingStage)));
 }
-function canReview(checkpoint: ReviewCheckpoint, group: number, letter: number, phase: ReviewStage): boolean {
-  return checkpoint.completed || reviewRank(group, letter, phase) <= reviewRank(checkpoint.group, checkpoint.letter, checkpoint.phase);
-}
-const reviewNoop = (..._args: any[]) => {};
-
-function ReachedStageReview({ checkpoint, isMobile, onClose }: {
-  checkpoint: ReviewCheckpoint; isMobile: boolean; onClose: () => void;
-}) {
-  const [group, setGroup] = useState(checkpoint.group);
-  const [letter, setLetter] = useState(checkpoint.letter);
-  const [stage, setStage] = useState<ReviewStage>(
-    REVIEW_STAGES.some(s => s.phase === checkpoint.phase) ? checkpoint.phase as ReviewStage : 'test');
-  const [attempt, setAttempt] = useState(0);
-  const data = LETTER_GROUPS[group].letters[letter];
-  const stages = REVIEW_STAGES.filter(s => canReview(checkpoint, group, letter, s.phase));
-  const selectLetter = (g: number, l: number) => { setGroup(g); setLetter(l); setStage('learn-letter'); setAttempt(0); };
-  const flatIndex = group * 6 + letter;
-  const move = (delta: number) => { const n = flatIndex + delta; if (n >= 0 && n < LETTERS.length && canReview(checkpoint, Math.floor(n / 6), n % 6, 'learn-letter')) selectLetter(Math.floor(n / 6), n % 6); };
-  const eligibleLetters = LETTERS.map((l, i) => ({ ...l, index: i })).filter(l => canReview(checkpoint, Math.floor(l.index / 6), l.index % 6, 'learn-letter'));
-  return <section role="dialog" aria-modal="true" aria-label="مراجعة المراحل التي وصلت لها"
-    className="fixed inset-0 z-[60] flex flex-col text-white" dir="rtl"
-    style={{ background: 'rgba(7,9,13,0.08)', paddingTop: isMobile ? 115 : 120 }}>
-    <div className="px-3 md:px-6 pb-3 border-b border-white/15 shrink-0 bg-[#191332]/95">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h2 className="font-black text-base">مراجعة ما وصلت له</h2>
-        <button onClick={onClose} className="px-4 py-2 rounded-xl bg-cyan-600 font-bold text-sm">ارجع لمكاني الحالي</button>
-      </div>
-      <p className="text-xs text-white/75 mt-2">عرض وتدريب فقط، الوصول للمرحلة مش معناه إتقانها. مفيش نجوم أو تغيير لتقدمك هنا.</p>
-      <div className="flex flex-wrap items-center gap-2 mt-3">
-        <label className="text-xs">الحرف <select aria-label="اختار حرف للمراجعة" value={flatIndex}
-          onChange={e => selectLetter(Math.floor(Number(e.target.value) / 6), Number(e.target.value) % 6)}
-          className="rounded-lg bg-[#322553] border border-white/25 px-2 py-2 text-sm">
-          {eligibleLetters.map(l => <option key={l.index} value={l.index}>{l.letter} · {l.word}</option>)}
-        </select></label>
-        <button aria-label="الحرف السابق" disabled={flatIndex === 0} onClick={() => move(-1)} className="px-3 py-2 rounded-lg bg-white/10 disabled:opacity-30 text-xs">السابق</button>
-        <button aria-label="الحرف التالي" disabled={flatIndex === LETTERS.length - 1 || !canReview(checkpoint, Math.floor((flatIndex + 1) / 6), (flatIndex + 1) % 6, 'learn-letter')} onClick={() => move(1)} className="px-3 py-2 rounded-lg bg-white/10 disabled:opacity-30 text-xs">التالي</button>
-      </div>
-      <div className="flex flex-wrap gap-2 mt-2" role="group" aria-label="مراحل المراجعة">
-        {stages.map(s => <button key={s.phase} aria-pressed={stage === s.phase} onClick={() => { setStage(s.phase); setAttempt(0); }} className={`px-3 py-2 rounded-lg text-xs font-bold ${stage === s.phase ? 'bg-purple-600' : 'bg-white/10'}`}>{s.label}</button>)}
-        <button onClick={() => setAttempt(n => n + 1)} className="px-3 py-2 rounded-lg text-xs bg-white/10">أعد تدريب المراجعة</button>
-      </div>
-    </div>
-    <div className="flex-1 min-h-0 overflow-auto px-3 pt-4 pb-20 flex items-center justify-center">
-      <div className="w-full max-w-5xl" key={`${group}-${letter}-${stage}-${attempt}`}>
-        {stage === 'learn-letter' && <LearnLetterPhase letterData={data} onDone={reviewNoop} onKarlReact={reviewNoop} onCombo={reviewNoop} onCorrect={reviewNoop} isMobile={isMobile} />}
-        {stage === 'learn-word' && <LearnWordPhase letterData={data} onDone={reviewNoop} onKarlReact={reviewNoop} onCombo={reviewNoop} onCorrect={reviewNoop} isMobile={isMobile} />}
-        {stage === 'speak-word' && <SpeakingPractice letterData={data} onSuccess={reviewNoop} onSkip={reviewNoop} isMobile={isMobile} />}
-        {stage === 'test' && <HarborTest groupLetters={LETTER_GROUPS[group].letters} onPass={reviewNoop} onFail={reviewNoop} onKarlReact={reviewNoop} onCombo={reviewNoop} onCorrect={reviewNoop} isMobile={isMobile} />}
-      </div>
-    </div>
-  </section>;
+function trainingPosition(rank: number): { group: number; letter: number; phase: TrainingStage } {
+  const group = Math.floor(rank / 19), step = rank % 19;
+  return { group, letter: step === 18 ? 5 : Math.floor(step / 3), phase: step === 18 ? 'test' : TRAINING_STAGES[step % 3] };
 }
 
 function GermanLetterLessonPageInner() {
@@ -2579,16 +2527,22 @@ function GermanLetterLessonPageInner() {
   const [isLoading, setIsLoading] = useState(true);
   const [correctInGroup, setCorrectInGroup] = useState(0);
   const LESSON_ID = 'hamburg';
-  const [reviewOpen, setReviewOpen] = useState(false);
-  const reviewOpenRef = useRef(false);
+  const replayRef = useRef(false);
   const normalEpochRef = useRef(0);
   const [normalEpoch, setNormalEpoch] = useState(0);
   const guardCurrent = <T extends any[]>(fn: (...args: T) => void) => (...args: T) => {
-    if (!reviewOpenRef.current && normalEpochRef.current === normalEpoch) fn(...args);
+    if (normalEpochRef.current === normalEpoch) fn(...args);
   };
-  const [reviewCheckpoint, setReviewCheckpoint] = useState<ReviewCheckpoint>({ group: 0, letter: 0, phase: 'learn-letter', completed: false });
-  const openReview = () => { normalEpochRef.current += 1; reviewOpenRef.current = true; setReviewOpen(true); };
-  const closeReview = () => { setNormalEpoch(normalEpochRef.current); reviewOpenRef.current = false; setReviewOpen(false); };
+  const [checkpoint, setCheckpoint] = useState<TrainingCheckpoint>({ group: 0, letter: 0, phase: 'learn-letter', completed: false });
+  const checkpointRef = useRef(checkpoint);
+  const updateCheckpoint = (next: TrainingCheckpoint) => { checkpointRef.current = next; setCheckpoint(next); };
+  const moveTo = (newGroup: number, newLetter: number, newPhase: Phase, invalidatePending = true) => {
+    const cp = checkpointRef.current;
+    replayRef.current = cp.completed || trainingRank(newGroup, newLetter, newPhase) < trainingRank(cp.group, cp.letter, cp.phase);
+    if (invalidatePending) { normalEpochRef.current += 1; setNormalEpoch(normalEpochRef.current); }
+    setGroupIdx(newGroup); setLetterIdx(newLetter); setPhase(newPhase);
+    if (invalidatePending) { setKarlMood('idle'); setKarlMessage(null); setFlyingItems([]); }
+  };
 
 
   const { stats, addPoints, incStreak, resetStreak, addGems, useHint, addStar, addLevelProgress } = useGameStats();
@@ -2602,7 +2556,8 @@ function GermanLetterLessonPageInner() {
         const savedGroup = Number.isInteger(progress.current_group) && progress.current_group! >= 0 && progress.current_group! < LETTER_GROUPS.length ? progress.current_group! : 0;
         const savedLetter = Number.isInteger(progress.current_letter) && progress.current_letter! >= 0 && progress.current_letter! < 6 ? progress.current_letter! : 0;
         const savedPhase = ['learn-letter','learn-word','speak-word','test','group-success','group-fail','all-done'].includes(progress.current_phase || '') ? progress.current_phase as Phase : 'learn-letter';
-        setReviewCheckpoint({ group: savedGroup, letter: savedLetter, phase: savedPhase, completed: progress.completed });
+        updateCheckpoint({ group: savedGroup, letter: savedLetter, phase: savedPhase, completed: progress.completed });
+        replayRef.current = progress.completed;
         if (!progress.completed) {
           if (progress.current_group !== undefined && progress.current_group !== null) setGroupIdx(progress.current_group);
           if (progress.current_letter !== undefined && progress.current_letter !== null) setLetterIdx(progress.current_letter);
@@ -2636,7 +2591,7 @@ function GermanLetterLessonPageInner() {
   };
 
   const handleCombo = () => {
-    if (reviewOpenRef.current) return;
+    if (replayRef.current) return;
     setCombo(c => {
       const next = c + 1;
       if (next === 3 || next === 5 || next === 7) playComboSound();
@@ -2645,9 +2600,9 @@ function GermanLetterLessonPageInner() {
   };
 
   const handleCorrect = (clientX: number, clientY: number) => {
-    if (reviewOpenRef.current) return;
+    if (replayRef.current) return;
     const rewardEpoch = normalEpochRef.current;
-    const rewardActive = () => !reviewOpenRef.current && normalEpochRef.current === rewardEpoch;
+    const rewardActive = () => !replayRef.current && normalEpochRef.current === rewardEpoch;
     addPoints(10); incStreak();
     const newCorrect = correctInGroup + 1;
     setCorrectInGroup(newCorrect);
@@ -2711,52 +2666,29 @@ function GermanLetterLessonPageInner() {
   };
 
   const savePosition = (newGroup: number, newLetter: number, newPhase: Phase) => {
-    if (reviewOpenRef.current) return;
-    setReviewCheckpoint(c => reviewRank(newGroup, newLetter, newPhase) > reviewRank(c.group, c.letter, c.phase) ? { group: newGroup, letter: newLetter, phase: newPhase, completed: c.completed } : c);
-    const rating = calculateRating(totalStars);
-    saveLessonProgress(LESSON_ID, rating, false, {
+    const cp = checkpointRef.current;
+    if (cp.completed || trainingRank(newGroup, newLetter, newPhase) <= trainingRank(cp.group, cp.letter, cp.phase)) return;
+    updateCheckpoint({ group: newGroup, letter: newLetter, phase: newPhase, completed: cp.completed });
+    saveLessonProgress(LESSON_ID, calculateRating(totalStars), false, {
       current_group: newGroup, current_letter: newLetter, current_phase: newPhase,
     });
   };
-
-  // بعد كتابة الحرف → ينتقل مباشرة لتعلم الكلمة
-  const handleLetterDone = () => { 
-    if (reviewOpenRef.current) return;
-    setPhase('learn-word'); 
-    savePosition(groupIdx, letterIdx, 'learn-word'); 
+  const advanceTo = (newGroup: number, newLetter: number, newPhase: Phase) => {
+    savePosition(newGroup, newLetter, newPhase);
+    moveTo(newGroup, newLetter, newPhase, false);
   };
-
-  // بعد كتابة الكلمة → ينتقل لنطق الكلمة
-  const handleWordDone = () => {
-    if (reviewOpenRef.current) return;
-    setPhase('speak-word');
-    savePosition(groupIdx, letterIdx, 'speak-word');
-  };
-
-  // بعد نطق الكلمة → ينتقل للحرف التالي أو للاختبار
-  const handleSpeakWordDone = () => {
-    if (reviewOpenRef.current) return;
-    const nextIdx = letterIdx + 1;
-    if (nextIdx < group.letters.length) {
-      setLetterIdx(nextIdx); setPhase('learn-letter');
-      savePosition(groupIdx, nextIdx, 'learn-letter');
-    } else {
-      setPhase('test'); savePosition(groupIdx, letterIdx, 'test');
-    }
-  };
-
-  const handleTestPass = () => { if (!reviewOpenRef.current) setPhase('group-success'); };
-  const handleTestFail = () => { if (reviewOpenRef.current) return; resetCombo(); resetStreak(); setPhase('group-fail'); };
+  const handleLetterDone = () => advanceTo(groupIdx, letterIdx, 'learn-word');
+  const handleWordDone = () => advanceTo(groupIdx, letterIdx, 'speak-word');
+  const handleSpeakWordDone = () => letterIdx + 1 < group.letters.length
+    ? advanceTo(groupIdx, letterIdx + 1, 'learn-letter') : advanceTo(groupIdx, letterIdx, 'test');
+  const handleTestPass = () => setPhase('group-success');
+  const handleTestFail = () => { if (!replayRef.current) { resetCombo(); resetStreak(); } setPhase('group-fail'); };
   const handleGroupNext = () => {
-    if (reviewOpenRef.current) return;
     if (groupIdx + 1 < LETTER_GROUPS.length) {
-      const newGroupIdx = groupIdx + 1;
-      setGroupIdx(newGroupIdx); setLetterIdx(0); setPhase('learn-letter');
-      setCorrectInGroup(0);
-      savePosition(newGroupIdx, 0, 'learn-letter');
-    } else { setPhase('all-done'); }
+      setCorrectInGroup(0); advanceTo(groupIdx + 1, 0, 'learn-letter');
+    } else setPhase('all-done');
   };
-  const handleRetry = () => { if (reviewOpenRef.current) return; setLetterIdx(0); setPhase('learn-letter'); setCorrectInGroup(0); savePosition(groupIdx, 0, 'learn-letter'); };
+  const handleRetry = () => { setCorrectInGroup(0); moveTo(groupIdx, 0, 'learn-letter'); };
   const handleHomeClick = () => router.push('/character-and-map?from=lesson');
 
   if (isDebugMode && !isLoading) return <DebugBrushTool isMobile={isMobile} />;
@@ -2783,31 +2715,36 @@ function GermanLetterLessonPageInner() {
     <div className="text-white relative overflow-hidden" 
       style={{ fontFamily: "'Tajawal', sans-serif", height: '100vh', maxHeight: '100vh' }} dir="rtl">
       <ScreenBackground isMobile={isMobile} activeColor={activeColor} phase={phase} />
-      <div className={reviewOpen ? "[&>div]:!top-[300px]" : ""}><KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" /></div>
+      <KarlEagle mood={karlMood} message={karlMessage} idleGlowColor="#4CC9F0" />
       <FlyingItems items={flyingItems} />
-      {!reviewOpen && <button onClick={openReview} className="fixed z-30 top-[80px] right-[65px] md:right-6 px-3 py-2 rounded-xl border border-white/25 bg-[#241b45] text-white text-xs font-bold">مراجعة الحروف والمراحل</button>}
-      {reviewOpen && <ReachedStageReview checkpoint={reviewCheckpoint} isMobile={isMobile} onClose={closeReview} />}
+      {['learn-letter', 'learn-word', 'speak-word', 'test'].includes(phase) && <nav aria-label="التنقل بين مراحل التدريب" className="fixed z-30 top-[75px] left-1/2 -translate-x-1/2 flex gap-2" dir="rtl">
+        <button aria-label="المرحلة السابقة" title="المرحلة السابقة" disabled={trainingRank(groupIdx, letterIdx, phase) === 0}
+          onClick={() => { const p = trainingPosition(trainingRank(groupIdx, letterIdx, phase) - 1); moveTo(p.group, p.letter, p.phase); }}
+          className="w-9 h-9 rounded-full border border-white/25 bg-[#241b45] text-white text-lg disabled:opacity-30">→</button>
+        <button aria-label="المرحلة التالية" title="المرحلة التالية" disabled={trainingRank(groupIdx, letterIdx, phase) >= (checkpoint.completed ? LETTER_GROUPS.length * 19 - 1 : trainingRank(checkpoint.group, checkpoint.letter, checkpoint.phase))}
+          onClick={() => { const p = trainingPosition(trainingRank(groupIdx, letterIdx, phase) + 1); moveTo(p.group, p.letter, p.phase); }}
+          className="w-9 h-9 rounded-full border border-white/25 bg-[#241b45] text-white text-lg disabled:opacity-30">←</button>
+      </nav>}
       <TopHUD stats={stats} level={stats.level} currentStep={letterIdx} totalSteps={totalStepsInGroup} onHome={handleHomeClick} isMobile={isMobile} />
 
-      {!reviewOpen && (
-      <div className="flex flex-col items-center justify-center relative px-3 md:px-6"
+      <div className="flex flex-col items-center relative px-3 md:px-6 overflow-y-auto"
         style={{ zIndex: 10, height: '100vh',
-          paddingTop: isMobile ? mobilePaddingTop : '80px',
+          paddingTop: isMobile ? (phase === 'test' ? '116px' : mobilePaddingTop) : '120px',
           paddingBottom: isMobile ? mobilePaddingBottom : '95px' }}>
-        <div className="w-full flex items-center justify-center" style={{ height: '100%' }}>
+        <div className="w-full flex flex-col items-center my-auto shrink-0">
           <AnimatePresence mode="wait">
             {phase === 'learn-letter' && (
-              <LearnLetterPhase key={`ll-${groupIdx}-${letterIdx}`} letterData={letterData}
+              <LearnLetterPhase key={`ll-${groupIdx}-${letterIdx}-${normalEpoch}`} letterData={letterData}
                 onDone={guardCurrent(handleLetterDone)} onKarlReact={guardCurrent(handleKarlReact)} onCombo={guardCurrent(handleCombo)}
                 onCorrect={guardCurrent(handleCorrect)} isMobile={isMobile} />
             )}
             {phase === 'learn-word' && (
-              <LearnWordPhase key={`lw-${groupIdx}-${letterIdx}`} letterData={letterData}
+              <LearnWordPhase key={`lw-${groupIdx}-${letterIdx}-${normalEpoch}`} letterData={letterData}
                 onDone={guardCurrent(handleWordDone)} onKarlReact={guardCurrent(handleKarlReact)} onCombo={guardCurrent(handleCombo)}
                 onCorrect={guardCurrent(handleCorrect)} isMobile={isMobile} />
             )}
             {phase === 'speak-word' && (
-              <SpeakingPractice key={`speak-word-${groupIdx}-${letterIdx}`} letterData={letterData} isMobile={isMobile}
+              <SpeakingPractice key={`speak-word-${groupIdx}-${letterIdx}-${normalEpoch}`} letterData={letterData} isMobile={isMobile}
                 onSuccess={guardCurrent((cx: number, cy: number) => {
                   handleCorrect(cx, cy); handleKarlReact('celebrate');
                   setTimeout(guardCurrent(handleSpeakWordDone), 800);
@@ -2839,7 +2776,8 @@ function GermanLetterLessonPageInner() {
                   <span className="font-bold text-white/80">نجمة!</span>
                 </div>
                 <motion.button onClick={async () => {
-                    if (reviewOpenRef.current) return;
+                    if (checkpointRef.current.completed) { router.push('/character-and-map?from=lesson'); return; }
+                    if (replayRef.current) return;
                     await saveLessonProgress(LESSON_ID, 3, true);
                     router.push('/character-and-map?from=lesson');
                   }}
@@ -2853,7 +2791,6 @@ function GermanLetterLessonPageInner() {
         </div>
       </div>
 
-      )}
       {phase !== 'group-success' && phase !== 'group-fail' && phase !== 'all-done' && (
         <BottomHUD stats={stats} treasureState={treasureState} onHint={useHint} onMap={handleHomeClick} isMobile={isMobile} />
       )}
