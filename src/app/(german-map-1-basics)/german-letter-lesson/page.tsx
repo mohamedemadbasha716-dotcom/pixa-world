@@ -886,7 +886,7 @@ function WordBuilderMobile({ letterData, onComplete, onWrong }: {
 }
 
 // ═══════════════════════════════════════
-// 🎤 SpeakingPractice - v4 (تساهل أكبر + بدون عداد)
+// Speaking practice: exact final transcript, with a no-reward Skip.
 // ═══════════════════════════════════════
 function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   letterData: Letter; isMobile: boolean;
@@ -915,6 +915,9 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   const manualStopRef = useRef(false);
   const heardAnythingRef = useRef(false);
 
+  const sessionRef = useRef(0);
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const target = letterData.word;
   const targetAr = letterData.wordAr;
 
@@ -932,16 +935,20 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     recognition.lang = 'de-DE';
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 25;
+    recognition.maxAlternatives = 1;
     recognitionRef.current = recognition;
 
     return () => {
+      sessionRef.current++; resolvedRef.current = true;
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
       cleanup();
       if (recognitionRef.current) { try { recognitionRef.current.abort(); } catch {} }
     };
   }, []);
 
   useEffect(() => {
+    sessionRef.current++;
+    if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
     setTranscript(''); setInterimText(''); setStatus('idle');
     setAttempts(0); setIsListening(false);
     bestScoreRef.current = 0; bestTranscriptRef.current = '';
@@ -969,6 +976,9 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   const requestStop = () => {
     clearAllTimers();
     if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch {} }
+    safetyTimeoutRef.current = setTimeout(() => {
+      if (!resolvedRef.current) finishTryAgain(bestTranscriptRef.current || undefined);
+    }, 1000);
   };
 
   const forceStop = () => {
@@ -977,93 +987,14 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   };
 
   // ═══════════════════════════════════════
-  // ✅ نظام التقييم الجديد - متساهل جداً
+  // Final transcript matching, not pronunciation grading.
   // ═══════════════════════════════════════
   const scoreTranscript = (rawText: string): { score: number; match: string } => {
-    const text = rawText.toLowerCase().trim().replace(/[.,!?;:'"\-_()]/g, '');
-    if (!text) return { score: 0, match: '' };
-
-    const tgt = target.toLowerCase().trim();
-
-    // ═══ 1. تطابق مباشر ═══
-    if (text === tgt) return { score: 1.0, match: text };
-
-    // ═══ 2. تطابق بدون Umlauts ═══
-    const flattenUmlauts = (s: string) => s
-      .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss')
-      .replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u');
-
-    const flatText = flattenUmlauts(text);
-    const flatTarget = flattenUmlauts(tgt);
-    if (flatText === flatTarget) return { score: 1.0, match: text };
-
-    // ═══ 3. الكلمة موجودة جوه النص ═══
-    if (text.includes(tgt) || flatText.includes(flatTarget)) return { score: 0.98, match: text };
-    if (tgt.includes(text) || flatTarget.includes(flatText)) return { score: 0.95, match: text };
-
-    // ═══ 4. فحص كل كلمة لوحدها ═══
-    const words = text.split(/\s+/).filter(Boolean);
-    let bestWordScore = 0;
-    let bestWordMatch = text;
-
-    for (const word of words) {
-      if (word === tgt || flattenUmlauts(word) === flatTarget) return { score: 1.0, match: word };
-      if (word.includes(tgt) || tgt.includes(word)) return { score: 0.95, match: word };
-      if (flattenUmlauts(word).includes(flatTarget) || flatTarget.includes(flattenUmlauts(word))) {
-        return { score: 0.93, match: word };
-      }
-
-      // أول حرف متطابق
-      if (word[0] === tgt[0] || flattenUmlauts(word)[0] === flatTarget[0]) {
-        const dist = levenshteinDistance(flattenUmlauts(word), flatTarget);
-        const maxLen = Math.max(word.length, tgt.length);
-        const rawScore = 1 - (dist / maxLen);
-        // ✅ بونص كبير لو أول حرف صح
-        const boostedScore = Math.min(1, rawScore * 1.8 + 0.15);
-        if (boostedScore > bestWordScore) { bestWordScore = boostedScore; bestWordMatch = word; }
-      } else {
-        const dist = levenshteinDistance(flattenUmlauts(word), flatTarget);
-        const maxLen = Math.max(word.length, tgt.length);
-        const rawScore = 1 - (dist / maxLen);
-        const boostedScore = Math.min(1, rawScore * 1.5);
-        if (boostedScore > bestWordScore) { bestWordScore = boostedScore; bestWordMatch = word; }
-      }
-    }
-
-    // ═══ 5. النص كله كقطعة واحدة ═══
-    const fullDist = levenshteinDistance(flatText, flatTarget);
-    const fullMaxLen = Math.max(flatText.length, flatTarget.length);
-    const fullRawScore = 1 - (fullDist / fullMaxLen);
-
-    // ✅ بونص لو أول حرف صح
-    let fullBoosted = fullRawScore;
-    if (flatText[0] === flatTarget[0]) {
-      fullBoosted = Math.min(1, fullRawScore * 1.8 + 0.15);
-    } else {
-      fullBoosted = Math.min(1, fullRawScore * 1.5);
-    }
-
-    // ═══ 6. فحص أحرف مشتركة (Jaccard-like) ═══
-    const textChars = new Set(flatText.split(''));
-    const targetChars = new Set(flatTarget.split(''));
-    let commonChars = 0;
-    for (const c of textChars) { if (targetChars.has(c)) commonChars++; }
-    const jaccardScore = commonChars / Math.max(textChars.size, targetChars.size);
-    const jaccardBoosted = Math.min(1, jaccardScore * 1.5);
-
-    // ═══ 7. فحص الحروف بالترتيب (subsequence) ═══
-    let subseqMatches = 0;
-    let tgtIdx = 0;
-    for (let i = 0; i < flatText.length && tgtIdx < flatTarget.length; i++) {
-      if (flatText[i] === flatTarget[tgtIdx]) { subseqMatches++; tgtIdx++; }
-    }
-    const subseqScore = subseqMatches / flatTarget.length;
-    const subseqBoosted = Math.min(1, subseqScore * 1.4);
-
-    const finalScore = Math.max(bestWordScore, fullBoosted, jaccardBoosted, subseqBoosted);
-    const match = bestWordScore >= fullBoosted ? bestWordMatch : text;
-
-    return { score: finalScore, match };
+    const normalize = (text: string) => text.normalize('NFC').toLocaleLowerCase('de-DE')
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ').trim();
+    const text = normalize(rawText), expected = normalize(target);
+    const matches = text.split(/\s+/).includes(expected);
+    return { score: matches ? 1 : 0, match: rawText.trim() };
   };
 
   const finishSuccess = (matchText?: string) => {
@@ -1079,7 +1010,10 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       const rect = micButtonRef.current.getBoundingClientRect();
       cx = rect.left + rect.width / 2; cy = rect.top + rect.height / 2;
     }
-    setTimeout(() => onSuccess(cx, cy), 1200);
+    const session = sessionRef.current;
+    successTimeoutRef.current = setTimeout(() => {
+      if (session === sessionRef.current) onSuccess(cx, cy);
+    }, 1200);
   };
 
   const finishTryAgain = (matchText?: string) => {
@@ -1091,16 +1025,17 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
   };
 
   // ═══════════════════════════════════════
-  // ✅ عتبات متساهلة جداً
+  // Exact complete-word match on both devices.
   // ═══════════════════════════════════════
-  const ACCEPT_THRESHOLD = isMobileDevice ? 0.15 : 0.3;
-  const INSTANT_ACCEPT = isMobileDevice ? 0.35 : 0.6;
+  const ACCEPT_THRESHOLD = 1;
+  const INSTANT_ACCEPT = 1;
   const AUTO_STOP_MS = 5000;
   const SAFETY_MS = 6000;
 
   const handleStart = async () => {
     if (!recognitionRef.current || isListening) return;
 
+    const session = ++sessionRef.current;
     setTranscript(''); setInterimText(''); setStatus('listening'); setIsListening(true);
     bestScoreRef.current = 0; bestTranscriptRef.current = '';
     heardSpeechRef.current = false; resolvedRef.current = false;
@@ -1112,6 +1047,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 }
         });
+        if (session !== sessionRef.current) { stream.getTracks().forEach(t => t.stop()); return; }
         streamRef.current = stream;
         const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
         const audioContext = new AudioCtx(); audioContextRef.current = audioContext;
@@ -1130,6 +1066,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         };
         detectVolume();
       } catch (e) {
+        if (session !== sessionRef.current) return;
         console.error('❌ Mic denied:', e);
         setIsListening(false); setStatus('error'); return;
       }
@@ -1160,129 +1097,50 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         forceStop(); setIsListening(false);
         if (bestTranscriptRef.current && bestScoreRef.current >= ACCEPT_THRESHOLD) {
           finishSuccess(bestTranscriptRef.current);
-        } else if (heardAnythingRef.current) {
-          // ✅ على الموبايل: لو سمع أي حاجة خالص = نجاح
-          if (isMobileDevice) {
-            finishSuccess(bestTranscriptRef.current || 'heard');
-          } else {
-            finishTryAgain(bestTranscriptRef.current || undefined);
-          }
-        } else {
-          finishTryAgain(bestTranscriptRef.current || undefined);
-        }
+        } else finishTryAgain(bestTranscriptRef.current || undefined);
       }
     }, SAFETY_MS);
 
     // ═══ Recognition Events ═══
     recognitionRef.current.onresult = (event: any) => {
-      if (resolvedRef.current) return;
-
+      if (session !== sessionRef.current || resolvedRef.current) return;
       for (let r = 0; r < event.results.length; r++) {
         const result = event.results[r];
-        for (let a = 0; a < result.length; a++) {
-          const rawText = result[a]?.transcript || '';
-          if (!rawText.trim()) continue;
-
-          heardAnythingRef.current = true;
-          heardSpeechRef.current = true;
-
-          const { score, match } = scoreTranscript(rawText);
-          console.log(`🎯 [${r}][${a}] "${rawText}" → ${score.toFixed(2)} (target: ${target})`);
-
-          if (score > bestScoreRef.current) {
-            bestScoreRef.current = score;
-            bestTranscriptRef.current = match || rawText;
-          }
-
-          // ✅ قبول فوري
-          if (score >= INSTANT_ACCEPT) {
-            finishSuccess(match || rawText);
-            return;
-          }
+        // Only the recognizer's primary final transcript may resolve an attempt.
+        const rawText = result[0]?.transcript?.trim() || '';
+        if (!rawText) continue;
+        heardAnythingRef.current = true;
+        heardSpeechRef.current = true;
+        if (!result.isFinal) { setInterimText(rawText); continue; }
+        const { score, match } = scoreTranscript(rawText);
+        if (score >= bestScoreRef.current) {
+          bestScoreRef.current = score; bestTranscriptRef.current = match;
         }
-      }
-
-      // عرض آخر نص
-      const lastResult = event.results[event.results.length - 1];
-      const displayText = lastResult?.[0]?.transcript || '';
-      if (lastResult?.isFinal) {
-        setTranscript(displayText); setInterimText('');
-      } else {
-        setInterimText(displayText);
-      }
-
-      // ✅ فحص النص الكامل
-      let fullText = '';
-      for (let r = 0; r < event.results.length; r++) {
-        if (event.results[r]?.[0]) fullText += ' ' + event.results[r][0].transcript;
-      }
-      fullText = fullText.trim();
-      if (fullText) {
-        const { score, match } = scoreTranscript(fullText);
-        if (score > bestScoreRef.current) {
-          bestScoreRef.current = score;
-          bestTranscriptRef.current = match || fullText;
-        }
-        if (score >= INSTANT_ACCEPT) {
-          finishSuccess(match || fullText);
-          return;
-        }
+        setTranscript(rawText); setInterimText('');
+        if (score >= INSTANT_ACCEPT) { finishSuccess(match); return; }
       }
     };
 
     recognitionRef.current.onerror = (event: any) => {
-      if (resolvedRef.current) return;
+      if (session !== sessionRef.current || resolvedRef.current) return;
       console.error('❌ Error:', event.error);
       if (event.error === 'not-allowed' || event.error === 'permission-denied') {
         resolvedRef.current = true; forceStop(); setStatus('error'); return;
       }
       if (event.error === 'aborted') return;
-      // ✅ على الموبايل: أي خطأ تاني + سمع حاجة = نجاح
-      if (isMobileDevice && heardAnythingRef.current) {
-        finishSuccess(bestTranscriptRef.current || 'heard');
-        return;
-      }
+
       finishTryAgain(bestTranscriptRef.current || undefined);
     };
 
     recognitionRef.current.onend = () => {
+      if (session !== sessionRef.current) return;
       console.log('🛑 Ended. Best:', bestScoreRef.current.toFixed(2), bestTranscriptRef.current);
       cleanup(); setIsListening(false);
       if (resolvedRef.current) return;
 
-      // ✅ لو سمع أي كلام على الموبايل = نجاح مباشر
-      if (isMobileDevice && heardAnythingRef.current) {
-        finishSuccess(bestTranscriptRef.current || 'heard');
-        return;
-      }
-
-      // ✅ آخر فرصة - عتبة منخفضة
       if (bestTranscriptRef.current && bestScoreRef.current >= ACCEPT_THRESHOLD) {
         finishSuccess(bestTranscriptRef.current);
-        return;
-      }
-
-      // ✅ لو سمع أي كلام وكان فيه تشابه ولو بسيط
-      if (heardAnythingRef.current && bestScoreRef.current > 0.05) {
-        finishSuccess(bestTranscriptRef.current);
-        return;
-      }
-
-      if (manualStopRef.current && !heardAnythingRef.current) {
-        // ✅ الـ 5 ثواني خلصوا ومسمعش حاجة = try again مع زر تخطي
-        finishTryAgain(undefined);
-        return;
-      }
-
-      if (manualStopRef.current) {
-        if (bestTranscriptRef.current) {
-          finishSuccess(bestTranscriptRef.current);
-          return;
-        }
-        setStatus('idle'); return;
-      }
-
-      finishTryAgain(bestTranscriptRef.current || undefined);
+      } else finishTryAgain(bestTranscriptRef.current || undefined);
     };
 
     try {
@@ -1293,12 +1151,14 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     }
   };
 
+  const handleSkip = () => {
+    sessionRef.current++; resolvedRef.current = true;
+    if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+    forceStop();
+    onSkip();
+  };
+
   const handleManualStop = () => {
-    // ✅ لو سمع أي حاجة خالص = نجاح فوري
-    if (heardAnythingRef.current) {
-      finishSuccess(bestTranscriptRef.current || 'heard');
-      return;
-    }
     manualStopRef.current = true;
     requestStop();
   };
@@ -1314,7 +1174,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
           <div className="text-5xl mb-3">😅</div>
           <h3 className="text-lg font-black text-white mb-2">المتصفح مش بيدعم النطق</h3>
           <p className="text-white/60 text-sm mb-4">جرب Chrome أو Edge</p>
-          <button onClick={onSkip} className="px-8 py-3 rounded-2xl font-black text-white"
+          <button onClick={handleSkip} aria-label="تخطّي التدريب بدون نقاط" className="px-8 py-3 rounded-2xl font-black text-white"
             style={{ background: `linear-gradient(135deg, ${letterData.gradient[0]}, ${letterData.gradient[1]})` }}>
             تخطي ⏭️
           </button>
@@ -1328,7 +1188,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
 
   const MicButton = () => (
     <div className="relative">
-      <motion.button ref={micButtonRef}
+      <motion.button ref={micButtonRef} aria-label={isListening ? 'إيقاف الاستماع' : 'ابدأ الاستماع'}
         whileHover={!isListening ? { scale: 1.05 } : {}}
         whileTap={{ scale: 0.95 }}
         onClick={isListening ? handleManualStop : handleStart}
@@ -1380,13 +1240,13 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       {status === 'success' && (
         <motion.p key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
           className={`font-black text-green-400 ${isMobile ? 'text-sm' : 'text-base'}`}>
-          ✅ ممتاز! 🌟
+          سمعت الكلمة المطلوبة ✅
         </motion.p>
       )}
       {status === 'try-again' && (
         <motion.div key="try-again" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-1">
           <p className={`font-black text-yellow-400 ${isMobile ? 'text-[11px]' : 'text-xs'}`}>
-            مسمعتش حاجة 🎤
+            {transcript ? 'التعرّف كتب كلمة مختلفة، نجرّب تاني؟' : 'مقدرتش أتعرف على الكلمة، نجرّب تاني؟'}
           </p>
           <p className={`font-bold text-white/50 ${isMobile ? 'text-[9px]' : 'text-[10px]'}`}>
             اضغط المايك وقول الكلمة بصوت واضح، أو تخطي
@@ -1435,7 +1295,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
         {showSkipButton && status !== 'success' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }} className="flex flex-col items-center gap-1.5 w-full">
-            <button onClick={onSkip}
+            <button onClick={handleSkip} aria-label="تخطّي التدريب بدون نقاط"
               className={`flex items-center gap-1.5 rounded-xl font-black text-white border-2 transition-all w-full justify-center
                 ${isMobile ? 'px-4 py-2.5 text-xs' : 'px-5 py-2.5 text-sm'}`}
               style={{
@@ -1443,7 +1303,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
                 borderColor: 'rgba(76,201,240,0.6)',
                 boxShadow: '0 4px 15px rgba(76,201,240,0.25)'
               }}>
-              <SkipForward size={isMobile ? 14 : 16} /> تخطي ⏭️
+              <SkipForward size={isMobile ? 14 : 16} /> تخطّي، من غير نقاط
             </button>
           </motion.div>
         )}
@@ -1453,7 +1313,7 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
       {!showSkipButton && status !== 'success' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} transition={{ delay: 3 }}
           className="flex justify-center">
-          <button onClick={onSkip}
+          <button onClick={handleSkip} aria-label="تخطّي التدريب بدون نقاط"
             className={`text-white/40 hover:text-white/70 font-bold underline transition-colors
               ${isMobile ? 'text-[9px]' : 'text-xs'}`}>
             تخطي
@@ -1467,30 +1327,30 @@ function SpeakingPractice({ letterData, isMobile, onSuccess, onSkip }: {
     <motion.div key={`speak-word-${target}`}
       initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }}
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-      className="w-full flex items-center justify-center">
+      className="w-full flex items-center justify-center [@media(max-height:650px)]:[&_button]:!my-0">
 
       <GlassCard
-        className={`mx-auto ${isMobile ? 'w-full max-w-[340px] p-3' : 'w-full max-w-md p-5'}`}
+        className={`mx-auto ${isMobile ? 'w-full max-w-[340px] p-3' : 'w-full max-w-md p-5 [@media(max-height:650px)]:p-3'}`}
         accentColor={letterData.color} isMobile={isMobile} useBgImage={isMobile}>
-        <div className={`flex flex-col items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
+        <div className={`flex flex-col items-center ${isMobile ? 'gap-2' : 'gap-3 [@media(max-height:650px)]:gap-1'}`}>
 
           {/* العنوان */}
           <div className="flex items-center gap-2">
             <motion.div initial={{ scale: 0 }} animate={{ scale: [0, 1.2, 1] }}
               transition={{ duration: 0.5 }}
-              className={isMobile ? 'text-2xl' : 'text-3xl'}>🎤</motion.div>
+              className={isMobile ? 'text-2xl' : 'text-3xl'}><Mic size={isMobile ? 24 : 30} /></motion.div>
             <div className="text-center">
               <h3 className={`font-black text-white leading-tight ${isMobile ? 'text-sm' : 'text-lg'}`}>
-                انطق الكلمة
+                تدريب على الكلمة
               </h3>
               <p className={`text-white/60 font-bold ${isMobile ? 'text-[9px]' : 'text-xs'}`}>
-                اضغط المايك وانطق الكلمة
+                بنطابق الكلام المكتوب، مش بنقيّم جودة النطق
               </p>
             </div>
           </div>
 
           {/* الكلمة المطلوبة */}
-          <div className={`w-full rounded-xl border-2 text-center backdrop-blur-md ${isMobile ? 'p-2' : 'p-3'}`}
+          <div className={`w-full rounded-xl border-2 text-center backdrop-blur-md ${isMobile ? 'p-2' : 'p-3 [@media(max-height:650px)]:p-1'}`}
             style={{
               background: `linear-gradient(135deg, ${letterData.color}22, ${letterData.color}08)`,
               borderColor: `${letterData.color}55`
@@ -2811,4 +2671,4 @@ export default function GermanLetterLessonPage() {
       <GermanLetterLessonPageInner />
     </Suspense>
   );
-                }
+}
